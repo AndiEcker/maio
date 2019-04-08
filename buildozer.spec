@@ -34,7 +34,7 @@ version.filename = %(source.dir)s/main.py
 # (list) Application requirements: calendar, datetime, functools not needed
 # alexander Taylor in kivy-users on 31-08-14:
 # .. Buildozer gets suds via pip, and the current official stable version is 0.4. 
-# .. but nosend Client attribute is only availabe in 0.4.1 (now copied locally)
+# .. but nosend Client attribute is only available in 0.4.1 (now copied locally)
 # .. Later switched to suds-jurko 0.6 because of Client(nosend) and process_reply() method
 requirements = kivy==master
 
