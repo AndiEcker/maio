@@ -1,0 +1,201 @@
+#: import version main.__version__
+#: import os os
+#: import Label kivy.uix.label.Label
+#: import Popup kivy.uix.popup.Popup
+
+
+<ListsView@ContextualActionView>:
+    #BUG if uncomment next line
+    #use_separator: True
+    ActionPrevious:
+        title: 'Manage ' + app.data.selectedListName
+        #with_previous: True    # =default
+        on_release: app.switch_to_items_view()
+    ActionButton:
+        text: 'Copy ' + app.data.selectedListName
+        on_release:
+            app.list_name_edit_start(list_name=app.data.selectedListName + ' (Copy)', \
+            copy_items_from=app.data.selectedListName)
+    ActionButton:
+        text: '+'
+        on_release: app.list_name_edit_start()
+    ActionButton:
+        text: '-'
+        on_release: app.delete_list_name(app.data.selectedListName)
+
+
+<MaioActionBar@ActionBar>:
+    ActionView:
+        id: listSelActionView        # here get the ListSelButton widgets added to
+        use_separator: True
+        ActionPrevious:
+            title:
+                app.data.selectedListName[:18 if app.landscape else 3] \
+                + ("/" + app.data.selectedListItem[:18 if app.landscape else 3] if app.data.selectedListItem else "")
+            with_previous: False
+            on_release:
+                Popup(title= "Irma's shopping list V " + version + "   (c) 2016 Andi Ecker", title_align= 'center',
+                content= Label(text="Touch short on list item for to toggle.\n"
+                + "Touch long for to edit list item and then clear text for to delete item.\n\n" \
+                + "Similar actions for to edit/copy/delete entire lists are available at [Lists]."),
+                size_hint_y= .6).open()
+            app_icon: 'img/app_icon.jpg'
+        ActionButton:
+            text: 'Lists'
+            on_release: app.switch_to_lists_view()
+        ActionGroup:
+            id: listSelActionGroup        # for to dynamically add for each list a wid of type ListSelButton@ActionItem
+            text: 'List'
+            #icon: 'atlas://data/images/defaulttheme/splitter_grip'
+        ActionGroup:
+            text: 'Filter'
+            ListFiltButton:
+                id: listFilterDown
+                text: 'B'
+                state: app.data.listFilterDownState
+                canvas:
+                    Color:
+                        rgba: (0, 0, 1, .1)
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+            ListFiltButton:
+                id: listFilterNormal
+                text: 'G'
+                state: app.data.listFilterNormalState
+        # had to place the following buttons on the end of the ActionView to be shown at the most left of the View
+        ActionButton:
+            text: '+'
+            #icon: 'atlas://data/images/defaulttheme/audio-volume-high'
+            on_release: app.add_new_list_item()
+        ActionButton:
+            text: '-'
+            on_release: app.delete_list_item(app.data.selectedListItem)
+
+
+<ListSelButton@ActionToggleButton>:
+    important: True
+    icon: 'img/' + self.text + '.jpg' if os.path.exists('img/' + self.text + '.jpg') else ''
+    group: 'listSel'
+    minimum_width: self.height
+    state: 'down' if self.text == app.data.selectedListName else 'normal'   # needed for to set state on app startup
+    on_release: app.select_items_list(self.text)
+
+<ListFiltButton@ActionToggleButton>:
+    # exchanging down/normal state and using radio button mode results in
+    # .. automatic selection of at least one button (preventing empty list)
+    important: True
+    minimum_width: self.height
+    background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
+    background_down: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
+    canvas:
+        Color: 
+            rgba: app.toggleButtonInk
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    on_release: app.toggle_list_filter(self.text, self.state)
+    group: 'listFilt'
+
+    
+<ListName@BoxLayout>:
+    size_hint_y: None
+    height: app.data.fontSize * 1.5
+    on_text: print('ListName.on_text', self.text)
+    text: editButton.text
+    Button:
+        id: editButton
+        size_hint_x: 0.81
+        text: root.text
+        font_size: app.data.fontSize
+        padding_x: sp(9)
+        halign: 'center'
+        valign: 'middle'
+        text_size: self.size
+        canvas:
+            Color:
+                rgba: app.buttonInk
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        on_release: app.data.select_list(self.text); app.list_name_edit_start(self.text)
+    Button:
+        id: selectButton
+        size_hint_x: 0.18
+        text: '0'
+        font_size: app.data.fontSize * 1.2
+        padding_x: sp(9)
+        halign: 'center'
+        valign: 'middle'
+        text_size: self.size
+        canvas:
+            Color:
+                rgba: app.toggleButtonInk if editButton.text == app.data.selectedListName else app.buttonInk
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        on_release: app.data.select_list(self.text)
+
+<ListNameEditor@Popup>:
+    size_hint: 0.6, 0.3
+    on_dismiss: app.list_name_edit_finished(txtInp.text)
+    auto_dismiss: True
+    TextInput:
+        id: txtInp
+        text: root.title
+        focus: True
+        font_size: app.data.fontSize
+        height: self.font_size * 1.5
+        halign: 'left'
+        valign: 'middle'
+        text_size: self.size
+
+
+
+<ListItem@ToggleButton>:
+    size_hint_y: None
+    font_size: app.data.fontSize
+    height: self.font_size * 1.5
+    padding_x: sp(9)
+    halign: 'left'
+    valign: 'middle'
+    text_size: self.size
+    shorten: True
+    shorten_from: 'right'
+    split_str: '..'
+    canvas:
+        Color: 
+            rgba: app.toggleButtonInk
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    on_touch_down: app.items_list_touch_down_handler(self.text, args[1])
+    on_touch_up: app.items_list_touch_up_handler(self.text, args[1])
+    on_state: app.toggle_list_item(self.text, self.state)
+
+    
+<ListItemEditor@Popup>:
+    size_hint: 0.9, 0.3
+    on_dismiss: app.list_item_edit_finished(txtInp.text)
+    auto_dismiss: True
+    TextInput:
+        id: txtInp
+        text: root.title
+        focus: True
+        font_size: app.data.fontSize
+        height: self.font_size * 1.5
+        halign: 'left'
+        valign: 'middle'
+        text_size: self.size
+
+
+<MaioRoot@BoxLayout>:
+    orientation: 'vertical'
+    MaioActionBar:
+        id: actionBar
+    ScrollView:
+        do_scroll_x: False
+        BoxLayout:
+            id: listContainer
+            orientation: 'vertical'
+            size_hint_y: None
