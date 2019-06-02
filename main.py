@@ -47,48 +47,48 @@ class AppState(EventDispatcher):
     selectedListName = StringProperty('Lidl')           # default list on 1st startup
     selectedListItem = StringProperty('')
     allLists = DictProperty({'Lidl': [
-                                    {'text': u'Salami', 'state': 'normal'}, 
-                                    {'text': u'Maultäschle', 'state': 'down'}, 
-                                    {'text': u'Quarktasche', 'state': 'normal'}, 
-                                    {'text': u'Speck', 'state': 'normal'}, 
-                                    {'text': u'Schoko-Erdnüsse', 'state': 'normal'}, 
-                                    {'text': u'Apfelsaft', 'state': 'normal'}, 
-                                    {'text': u'Gummibärle', 'state': 'normal'}, 
-                                    {'text': u'Trauben-Nuss-Schokolade', 'state': 'normal'}, 
-                                    {'text': u'Quark', 'state': 'normal'}, 
+                                    {'text': 'Salami', 'state': 'normal'},
+                                    {'text': 'Maultäschle', 'state': 'down'},
+                                    {'text': 'Quarktasche', 'state': 'normal'},
+                                    {'text': 'Speck', 'state': 'normal'},
+                                    {'text': 'Schoko-Erdnüsse', 'state': 'normal'},
+                                    {'text': 'Apfelsaft', 'state': 'normal'},
+                                    {'text': 'Gummibärle', 'state': 'normal'},
+                                    {'text': 'Trauben-Nuss-Schokolade', 'state': 'normal'},
+                                    {'text': 'Quark', 'state': 'normal'},
                                 ], 
                              'Mercadona': [
-                                    {'text': u'Datteln im Speckmantel', 'state': 'normal'},
-                                    {'text': u'Chopped', 'state': 'normal'}, 
-                                    {'text': u'Atun', 'state': 'normal'}, 
-                                    {'text': u'Frischkäse', 'state': 'normal'}, 
-                                    {'text': u'Gruyere', 'state': 'normal'}, 
-                                    {'text': u'Emmentaler gerieben', 'state': 'normal'}, 
-                                    {'text': u'Sahne', 'state': 'normal'}, 
-                                    {'text': u'Bananen', 'state': 'normal'}, 
-                                    {'text': u'Tomaten', 'state': 'normal'}, 
-                                    {'text': u'Paprika', 'state': 'normal'}, 
-                                    {'text': u'Salat', 'state': 'normal'}, 
-                                    {'text': u'Zwiebeln', 'state': 'normal'}, 
-                                    {'text': u'Kartoffeln', 'state': 'normal'}, 
-                                    {'text': u'Äpfel', 'state': 'normal'}, 
+                                    {'text': 'Datteln im Speckmantel', 'state': 'normal'},
+                                    {'text': 'Chopped', 'state': 'normal'},
+                                    {'text': 'Atun', 'state': 'normal'},
+                                    {'text': 'Frischkäse', 'state': 'normal'},
+                                    {'text': 'Gruyere', 'state': 'normal'},
+                                    {'text': 'Emmentaler gerieben', 'state': 'normal'},
+                                    {'text': 'Sahne', 'state': 'normal'},
+                                    {'text': 'Bananen', 'state': 'normal'},
+                                    {'text': 'Tomaten', 'state': 'normal'},
+                                    {'text': 'Paprika', 'state': 'normal'},
+                                    {'text': 'Salat', 'state': 'normal'},
+                                    {'text': 'Zwiebeln', 'state': 'normal'},
+                                    {'text': 'Kartoffeln', 'state': 'normal'},
+                                    {'text': 'Äpfel', 'state': 'normal'},
                                 ], 
                              'Nor': [
-                                    {'text': u'Hundefutter', 'state': 'normal'}, 
-                                    {'text': u'Teelichter', 'state': 'normal'}, 
+                                    {'text': 'Hundefutter', 'state': 'normal'},
+                                    {'text': 'Teelichter', 'state': 'normal'},
                                 ], 
                              'Sur': [
-                                    {'text': u'Kopfhörer', 'state': 'down'}, 
-                                    {'text': u'Jenjibre', 'state': 'normal'}, 
-                                    {'text': u'Eier', 'state': 'normal'}, 
-                                    {'text': u'Zitronen', 'state': 'normal'}, 
-                                    {'text': u'Post', 'state': 'normal'}, 
-                                    {'text': u'Blumen', 'state': 'normal'}, 
-                                    {'text': u'Vanillezucker', 'state': 'normal'}, 
-                                    {'text': u'Maisstärke', 'state': 'normal'}, 
-                                    {'text': u'Gewürze', 'state': 'normal'}, 
-                                    {'text': u'Griess', 'state': 'normal'}, 
-                                    {'text': u'Dinkelbäcker', 'state': 'normal'}, 
+                                    {'text': 'Kopfhörer', 'state': 'down'},
+                                    {'text': 'Jenjibre', 'state': 'normal'},
+                                    {'text': 'Eier', 'state': 'normal'},
+                                    {'text': 'Zitronen', 'state': 'normal'},
+                                    {'text': 'Post', 'state': 'normal'},
+                                    {'text': 'Blumen', 'state': 'normal'},
+                                    {'text': 'Vanillezucker', 'state': 'normal'},
+                                    {'text': 'Maisstärke', 'state': 'normal'},
+                                    {'text': 'Gewürze', 'state': 'normal'},
+                                    {'text': 'Griess', 'state': 'normal'},
+                                    {'text': 'Dinkelbäcker', 'state': 'normal'},
                                 ]
                              })
 
@@ -125,10 +125,8 @@ class AppState(EventDispatcher):
             print('AppState.load() file ', fn, 'open/read/eval exception', exc)
 
         # ensure data integrity, preventing app crash later on (e.g. after corrupted data file)
-        if not self.allLists:
-            self.allLists = {'main': [dict(text=u'first item', state='normal'), ], }
         if not self.selectedListName or self.selectedListName not in self.allLists:
-            self.select_list(next(self.allLists))
+            self.select_list()
         if self.selectedListItem not in self.allLists[self.selectedListName]:
             self.select_item('')
 
@@ -162,13 +160,16 @@ class AppState(EventDispatcher):
     
     def delete_list(self, list_name):
         del self.allLists[list_name]
-        if self.allLists:
-            self.select_list(next(self.allLists))
+        self.select_list()
     
-    def select_list(self, list_name):
+    def select_list(self, list_name=None):
+        if not self.allLists:
+            self.allLists = {'main': [dict(text='first item', state='normal'), ], }
+        if list_name is None:
+            list_name = next(iter(self.allLists))
         if self.selectedListName != list_name:
             self.select_item('')
-        self.selectedListName = list_name
+            self.selectedListName = list_name
 
     # list item handling
     
@@ -234,14 +235,18 @@ class MaioApp(App):
         self.root.ids.actionBar.add_widget(Factory.ListsView())
         self.refresh_names_list()
 
-    def switch_to_items_view(self):
-        self.create_list_sel_buttons()
-        self.refresh_items_list()
-
     # list names
 
-    def delete_list_name(self, list_name):
-        Factory.DeleteConfirmPopup(ok_callback=partial(self.data.delete_list, list_name)).popup()
+    @staticmethod
+    def delete_list_name(list_name):
+        pu = Factory.ConfirmListDeletePopup()
+        pu.what = list_name
+        pu.open()
+
+    def delete_list_confirmed(self, list_name):
+        self.data.delete_list(list_name)
+        self.data.save()
+        self.refresh_names_list()
 
     def list_name_edit_start(self, list_name='', copy_items_from=''):  # start/initiate the edit of a list name
         self._edit_list_name = list_name
@@ -268,7 +273,8 @@ class MaioApp(App):
         lcw.clear_widgets()
         h = 0
         for li in self.data.allLists.keys():
-            liw = Factory.ListName(text=li)
+            liw = Factory.ListName()
+            liw.text = li
             lcw.add_widget(liw)
             h += liw.height
         lcw.height = h
@@ -291,14 +297,6 @@ class MaioApp(App):
         self._currentListItem = Factory.ListItem()
         pu = Factory.ListItemEditor(title='')
         pu.open()       # calling self._currentListItem on dismiss/close
-
-    def create_list_sel_buttons(self):
-        lc = self.root.ids.actionBar.ids.listSelActionGroup
-        lc.clear_widgets()
-        for list_name in self.data.allLists.keys():
-            wid = Factory.ListSelButton(text=list_name)
-            lc.add_widget(wid)
-            lc.width += wid.width
 
     def delete_list_item(self, item_name):
         if item_name:
@@ -406,7 +404,6 @@ class MaioApp(App):
         print('App.build(), user_data_dir', self.user_data_dir)
         self.data = AppState(self.user_data_dir).load()
         self.root = Factory.MaioRoot()
-        self.create_list_sel_buttons()
         self.refresh_items_list()
         Window.bind(on_resize=self.screen_size_changed)
         return self.root

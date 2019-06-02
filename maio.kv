@@ -10,7 +10,7 @@
     ActionPrevious:
         title: 'Manage ' + app.data.selectedListName
         #with_previous: True    # =default
-        on_release: app.switch_to_items_view()
+        on_release: app.refresh_items_list()
     ActionButton:
         text: 'Copy ' + app.data.selectedListName
         on_release:
@@ -34,19 +34,19 @@
                 + ("/" + app.data.selectedListItem[:18 if app.landscape else 3] if app.data.selectedListItem else "")
             with_previous: False
             on_release:
-                Popup(title= "Irma's shopping list V " + version + "   (c) 2016 Andi Ecker", title_align= 'center',
-                content= Label(text="Touch short on list item for to toggle.\n"
-                + "Touch long for to edit list item and then clear text for to delete item.\n\n" \
-                + "Similar actions for to edit/copy/delete entire lists are available at [Lists]."),
-                size_hint_y= .6).open()
+                Popup(title="Irmi's shopping list V " + version + "   (c) 2016 Andi Ecker", title_align='center',
+                content=Label(text=
+                "Touch short on list item for to\n toggle selection.\n"
+                "Touch long for to edit list item text.\n"
+                "Wipe item text for to remove the item\n from the list.\n\n"
+                "Similar actions for to edit/copy/delete\n entire lists are available at [Lists].",
+                halign='center'),
+                size_hint_y=.6
+                ).open()
             app_icon: 'img/app_icon.jpg'
         ActionButton:
             text: 'Lists'
             on_release: app.switch_to_lists_view()
-        ActionGroup:
-            id: listSelActionGroup        # for to dynamically add for each list a wid of type ListSelButton@ActionItem
-            text: 'List'
-            #icon: 'atlas://data/images/defaulttheme/splitter_grip'
         ActionGroup:
             text: 'Filter'
             ListFiltButton:
@@ -71,6 +71,8 @@
         ActionButton:
             text: '-'
             on_release: app.delete_list_item(app.data.selectedListItem)
+            disabled: app.data.selectedListItem
+            opacity: 1 if app.data.selectedListItem else 0
 
 
 <ListSelButton@ActionToggleButton>:
@@ -105,7 +107,7 @@
     text: editButton.text
     Button:
         id: editButton
-        size_hint_x: 0.81
+        size_hint_x: 0.69
         text: root.text
         font_size: app.data.fontSize
         padding_x: sp(9)
@@ -121,8 +123,8 @@
         on_release: app.data.select_list(self.text); app.list_name_edit_start(self.text)
     Button:
         id: selectButton
-        size_hint_x: 0.18
-        text: '0'
+        size_hint_x: 0.30
+        text: '-- >'
         font_size: app.data.fontSize * 1.2
         padding_x: sp(9)
         halign: 'center'
@@ -134,7 +136,8 @@
             Rectangle:
                 pos: self.pos
                 size: self.size
-        on_release: app.data.select_list(self.text)
+        on_release:
+            app.data.select_list(editButton.text); app.root.ids.actionBar.on_previous(); app.refresh_items_list()
 
 <ListNameEditor@Popup>:
     size_hint: 0.6, 0.3
@@ -144,6 +147,7 @@
         id: txtInp
         text: root.title
         focus: True
+        multiline: False
         font_size: app.data.fontSize
         height: self.font_size * 1.5
         halign: 'left'
@@ -187,6 +191,17 @@
         halign: 'left'
         valign: 'middle'
         text_size: self.size
+
+
+<ConfirmListDeletePopup@Popup>:
+    size_hint: 0.9, 0.15
+    auto_dismiss: True
+    title: "Confirm deletion of the list " + (root.what or "><")
+    title_align: 'center'
+    what: self.what
+    Button:
+        text: "Ok"
+        on_release: app.delete_list_confirmed(root.what); root.dismiss()
 
 
 <MaioRoot@BoxLayout>:

@@ -1,5 +1,6 @@
 .idea/
 .git/
+.buildozer/
 *.pyc
 *.pyo
 __pycache__/

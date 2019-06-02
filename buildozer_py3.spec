@@ -36,9 +36,7 @@ version.filename = %(source.dir)s/main.py
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-#requirements = python2,kivy==master
-requirements = python2legacy,kivy
-#requirements = python2,kivy
+requirements = python3,kivy==master
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -69,7 +67,7 @@ orientation = all
 # author = © Copyright Info
 
 # change the major version of python used by the app
-osx.python_version = 2
+osx.python_version = 3
 
 # Kivy version to use
 osx.kivy_version = 1.9.1
@@ -92,17 +90,17 @@ fullscreen = 0
 #android.permissions = INTERNET
 
 # (int) Target Android API, should be as high as possible.
-#android.api = 19
+#android.api = 27
 
 # (int) Minimum API your APK will support.
-android.minapi = 18
+# ae: python 3 only supports api 21+/android 5+
+android.minapi = 21
 
 # (int) Android SDK version to use
 #android.sdk = 20
 
 # (str) Android NDK version to use
 #android.ndk = 17c
-#android.ndk = 10e
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 #android.ndk_api = 21
