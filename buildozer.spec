@@ -37,8 +37,9 @@ version.filename = %(source.dir)s/main.py
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
 #requirements = python2,kivy==master
-requirements = python2legacy,kivy
 #requirements = python2,kivy
+#requirements = python2legacy,kivy
+requirements = kivy
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -95,7 +96,7 @@ fullscreen = 0
 #android.api = 19
 
 # (int) Minimum API your APK will support.
-android.minapi = 18
+#android.minapi = 18
 
 # (int) Android SDK version to use
 #android.sdk = 20

@@ -4,55 +4,47 @@
 #: import Popup kivy.uix.popup.Popup
 
 
-<ListsView@ContextualActionView>:
+<ItemsView@ContextualActionView>:
     #BUG if uncomment next line
     #use_separator: True
     ActionPrevious:
-        title: 'Manage ' + app.data.selectedListName
+        title:
+            app.data.selected_list_name[:18 if app.landscape else 3] \
+            + ("/" + app.data.selected_list_item[:18 if app.landscape else 3] if app.data.selected_list_item else "")
         #with_previous: True    # =default
         on_release: app.refresh_items_list()
-    ActionButton:
-        text: 'Copy ' + app.data.selectedListName
-        on_release:
-            app.list_name_edit_start(list_name=app.data.selectedListName + ' (Copy)', \
-            copy_items_from=app.data.selectedListName)
-    ActionButton:
-        text: '+'
-        on_release: app.list_name_edit_start()
-    ActionButton:
-        text: '-'
-        on_release: app.delete_list_name(app.data.selectedListName)
 
 
 <MaioActionBar@ActionBar>:
     ActionView:
-        id: listSelActionView        # here get the ListSelButton widgets added to
+        id: listSelActionView
         use_separator: True
         ActionPrevious:
-            title:
-                app.data.selectedListName[:18 if app.landscape else 3] \
-                + ("/" + app.data.selectedListItem[:18 if app.landscape else 3] if app.data.selectedListItem else "")
             with_previous: False
             on_release:
-                Popup(title="Irmi's shopping list V " + version + "   (c) 2016 Andi Ecker", title_align='center',
+                Popup(title="Irmi's shopping list V " + version + "   (c) 2019 Andi Ecker",
+                title_align='center',
                 content=Label(text=
-                "Touch short on list item for to\n toggle selection.\n"
-                "Touch long for to edit list item text.\n"
-                "Wipe item text for to remove the item\n from the list.\n\n"
-                "Similar actions for to edit/copy/delete\n entire lists are available at [Lists].",
+                "Touch short on list icon/name for\n"
+                " to display their items.\n"
+                "Touch long for to change list icon/name.\n"
+                "Wipe list name for to drop the list.\n"
+                "Change list name for to copy the list.\n\n"
+                "Similar actions for each list item\n"
+                " are available within each list.",
                 halign='center'),
                 size_hint_y=.6
                 ).open()
             app_icon: 'img/app_icon.jpg'
         ActionButton:
             text: 'Lists'
-            on_release: app.switch_to_lists_view()
+            on_release: app.switch_to_items_view()
         ActionGroup:
             text: 'Filter'
             ListFiltButton:
                 id: listFilterDown
                 text: 'B'
-                state: app.data.listFilterDownState
+                state: app.data.list_filter_down_state
                 canvas:
                     Color:
                         rgba: (0, 0, 1, .1)
@@ -62,7 +54,7 @@
             ListFiltButton:
                 id: listFilterNormal
                 text: 'G'
-                state: app.data.listFilterNormalState
+                state: app.data.list_filter_normal_state
         # had to place the following buttons on the end of the ActionView to be shown at the most left of the View
         ActionButton:
             text: '+'
@@ -70,18 +62,10 @@
             on_release: app.add_new_list_item()
         ActionButton:
             text: '-'
-            on_release: app.delete_list_item(app.data.selectedListItem)
-            disabled: app.data.selectedListItem
-            opacity: 1 if app.data.selectedListItem else 0
+            on_release: app.delete_list_item(app.data.selected_list_item)
+            disabled: app.data.selected_list_item
+            opacity: 1 if app.data.selected_list_item else 0
 
-
-<ListSelButton@ActionToggleButton>:
-    important: True
-    icon: 'img/' + self.text + '.jpg' if os.path.exists('img/' + self.text + '.jpg') else ''
-    group: 'listSel'
-    minimum_width: self.height
-    state: 'down' if self.text == app.data.selectedListName else 'normal'   # needed for to set state on app startup
-    on_release: app.select_items_list(self.text)
 
 <ListFiltButton@ActionToggleButton>:
     # exchanging down/normal state and using radio button mode results in
@@ -92,7 +76,7 @@
     background_down: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
     canvas:
         Color: 
-            rgba: app.toggleButtonInk
+            rgba: app.toggled_item_ink
         Rectangle:
             pos: self.pos
             size: self.size
@@ -102,21 +86,21 @@
     
 <ListName@BoxLayout>:
     size_hint_y: None
-    height: app.data.fontSize * 1.5
+    height: app.data.font_size * 1.5
     on_text: print('ListName.on_text', self.text)
     text: editButton.text
     Button:
         id: editButton
         size_hint_x: 0.69
         text: root.text
-        font_size: app.data.fontSize
+        font_size: app.data.font_size
         padding_x: sp(9)
         halign: 'center'
         valign: 'middle'
         text_size: self.size
         canvas:
             Color:
-                rgba: app.buttonInk
+                rgba: app.normal_item_ink
             Rectangle:
                 pos: self.pos
                 size: self.size
@@ -125,19 +109,18 @@
         id: selectButton
         size_hint_x: 0.30
         text: '-- >'
-        font_size: app.data.fontSize * 1.2
+        font_size: app.data.font_size * 1.2
         padding_x: sp(9)
         halign: 'center'
         valign: 'middle'
         text_size: self.size
         canvas:
             Color:
-                rgba: app.toggleButtonInk if editButton.text == app.data.selectedListName else app.buttonInk
+                rgba: app.toggled_item_ink if editButton.text == app.data.selected_list_name else app.normal_item_ink
             Rectangle:
                 pos: self.pos
                 size: self.size
-        on_release:
-            app.data.select_list(editButton.text); app.root.ids.actionBar.on_previous(); app.refresh_items_list()
+        on_release: app.data.select_list(editButton.text); app.refresh_items_list()
 
 <ListNameEditor@Popup>:
     size_hint: 0.6, 0.3
@@ -148,7 +131,7 @@
         text: root.title
         focus: True
         multiline: False
-        font_size: app.data.fontSize
+        font_size: app.data.font_size
         height: self.font_size * 1.5
         halign: 'left'
         valign: 'middle'
@@ -158,7 +141,7 @@
 
 <ListItem@ToggleButton>:
     size_hint_y: None
-    font_size: app.data.fontSize
+    font_size: app.data.font_size
     height: self.font_size * 1.5
     padding_x: sp(9)
     halign: 'left'
@@ -169,7 +152,7 @@
     split_str: '..'
     canvas:
         Color: 
-            rgba: app.toggleButtonInk
+            rgba: app.toggled_item_ink
         Rectangle:
             pos: self.pos
             size: self.size
@@ -186,7 +169,7 @@
         id: txtInp
         text: root.title
         focus: True
-        font_size: app.data.fontSize
+        font_size: app.data.font_size
         height: self.font_size * 1.5
         halign: 'left'
         valign: 'middle'
@@ -204,13 +187,26 @@
         on_release: app.delete_list_confirmed(root.what); root.dismiss()
 
 
-<MaioRoot@BoxLayout>:
-    orientation: 'vertical'
-    MaioActionBar:
-        id: actionBar
-    ScrollView:
-        do_scroll_x: False
-        BoxLayout:
-            id: listContainer
-            orientation: 'vertical'
-            size_hint_y: None
+<MaioRoot@FloatLayout>:
+    id: maioRoot
+    BoxLayout:
+        orientation: 'vertical'
+        MaioActionBar:
+            id: actionBar
+        ScrollView:
+            do_scroll_x: False
+            BoxLayout:
+                id: listContainer
+                orientation: 'vertical'
+                size_hint_y: None
+    Button:
+        text: " + "
+        size_hint: None, None
+        pos: 0.9, 0.1
+        canvas.before:
+            Color:
+                rgba: 1, 0, 0, 1
+            Ellipse:
+                pos: self.pos
+                size: self.size
+                source: 'img//app_icon.jpg'

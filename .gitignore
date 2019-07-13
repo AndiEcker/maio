@@ -1,6 +1,11 @@
+bin/
+venv/
+tests/
 .idea/
 .git/
 .buildozer/
+.buildozer_py2_OLD/
+.buildozer_py3/
 *.pyc
 *.pyo
 __pycache__/
