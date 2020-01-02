@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas
 source.include_patterns = img/*.jpg
 
 # (list) Source files to exclude (let empty to not exclude anything)
-source.exclude_exts = spec
+#source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
 #source.exclude_dirs = tests, bin
@@ -36,10 +36,7 @@ version.filename = %(source.dir)s/main.py
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-#requirements = python2,kivy==master
-#requirements = python2,kivy
-#requirements = python2legacy,kivy
-requirements = kivy
+requirements = python3,kivy
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -70,7 +67,7 @@ orientation = all
 # author = © Copyright Info
 
 # change the major version of python used by the app
-osx.python_version = 2
+osx.python_version = 3
 
 # Kivy version to use
 osx.kivy_version = 1.9.1
@@ -93,17 +90,16 @@ fullscreen = 0
 #android.permissions = INTERNET
 
 # (int) Target Android API, should be as high as possible.
-#android.api = 19
+#android.api = 27
 
 # (int) Minimum API your APK will support.
-#android.minapi = 18
+#android.minapi = 21
 
 # (int) Android SDK version to use
 #android.sdk = 20
 
 # (str) Android NDK version to use
 #android.ndk = 17c
-#android.ndk = 10e
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 #android.ndk_api = 21
@@ -134,6 +130,9 @@ fullscreen = 0
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.renpy.android.PythonActivity
 
+# (str) Android app theme, default is ok for Kivy-based app
+# android.apptheme = "@android:style/Theme.NoTitleBar"
+
 # (list) Pattern to whitelist for the whole project
 #android.whitelist =
 
@@ -161,11 +160,25 @@ fullscreen = 0
 # bootstrap)
 #android.gradle_dependencies =
 
+# (list) add java compile options
+# this can for example be necessary when importing certain java libraries using the 'android.gradle_dependencies' option
+# see https://developer.android.com/studio/write/java8-support for further information
+# android.add_compile_options = "sourceCompatibility = 1.8", "targetCompatibility = 1.8"
+
+# (list) Gradle repositories to add {can be necessary for some android.gradle_dependencies}
+# please enclose in double quotes 
+# e.g. android.gradle_repositories = "maven { url 'https://kotlin.bintray.com/ktor' }"
+#android.add_gradle_repositories =
+
+# (list) packaging options to add 
+# see https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.PackagingOptions.html
+# can be necessary to solve conflicts in gradle_dependencies
+# please enclose in double quotes 
+# e.g. android.add_packaging_options = "exclude 'META-INF/common.kotlin_module'", "exclude 'META-INF/*.kotlin_module'"
+#android.add_gradle_repositories =
+
 # (list) Java classes to add as activities to the manifest.
 #android.add_activities = com.example.ExampleActivity
-
-# (str) python-for-android branch to use, defaults to master
-#p4a.branch = master
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
@@ -183,6 +196,7 @@ fullscreen = 0
 # (list) Android additional libraries to copy into libs/armeabi
 #android.add_libs_armeabi = libs/android/*.so
 #android.add_libs_armeabi_v7a = libs/android-v7/*.so
+#android.add_libs_arm64_v8a = libs/android-v8/*.so
 #android.add_libs_x86 = libs/android-x86/*.so
 #android.add_libs_mips = libs/android-mips/*.so
 
@@ -212,6 +226,12 @@ android.arch = armeabi-v7a
 #
 # Python for android (p4a) specific
 #
+
+# (str) python-for-android fork to use, defaults to upstream (kivy)
+#p4a.fork = kivy
+
+# (str) python-for-android branch to use, defaults to master
+#p4a.branch = master
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
 #p4a.source_dir =
@@ -248,7 +268,7 @@ ios.ios_deploy_branch = 1.7.0
 
 # (str) Name of the certificate to use for signing the debug version
 # Get a list of available identities: buildozer ios list_identities
-#ios.codesign.debug = "iPhone Developer: <last name> <first name> (<hex string>)"
+#ios.codesign.debug = "iPhone Developer: <last_name> <first_name> (<hex_string>)"
 
 # (str) Name of the certificate to use for signing the release version
 #ios.codesign.release = %(ios.codesign.debug)s

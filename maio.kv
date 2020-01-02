@@ -200,13 +200,19 @@
                 orientation: 'vertical'
                 size_hint_y: None
     Button:
-        text: " + "
+        text: '+'
         size_hint: None, None
-        pos: 0.9, 0.1
-        canvas.before:
+        #size: .1, 6    # seems not to be recognized by FloatLayout
+        font_size: self.size[1]
+        pos_hint: {'right': 1.0}
+        background_active: None
+        background_border: None
+        background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
+        on_release: app.add_new_list_item()
+        canvas.after:
             Color:
-                rgba: 1, 0, 0, 1
+                rgba: 1, 0, 0, .6
             Ellipse:
                 pos: self.pos
                 size: self.size
-                source: 'img//app_icon.jpg'
+                source: 'img/app_icon.jpg'

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/andi.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/maio.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.python-version" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildozer.spec" beforeDir="false" afterPath="$PROJECT_DIR$/buildozer.spec" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/maio.kv" beforeDir="false" afterPath="$PROJECT_DIR$/maio.kv" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1VfD7uwJOW3r5Am1PZR1h9wt9sF" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/buildozer_V09.spec" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="two.files.diff.last.used.file" value="$PROJECT_DIR$/buildozer_V09.spec" />
+  </component>
+  <component name="RunManager">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="maio" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="StructureViewFactory">
+    <option name="AUTOSCROLL_FROM_SOURCE" value="true" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="" />
+      <created>1577635091155</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1577635091155</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="453" y="220" width="1084" height="718" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1577636671582">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="453" y="220" width="1084" height="718" key="#com.intellij.execution.impl.EditConfigurationsDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577636671582" />
+    <state x="736" y="433" width="508" height="257" key="#com.intellij.ide.actions.ChooseComponentsToExportDialog" timestamp="1577635480755">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="736" y="433" width="508" height="257" key="#com.intellij.ide.actions.ChooseComponentsToExportDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577635480755" />
+    <state x="602" y="158" width="777" height="807" key="CommitChangelistDialog2" timestamp="1577731733069">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="602" y="158" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1577731733069" />
+    <state x="218" y="162" width="1555" height="800" key="DiffContextDialog" timestamp="1577637894782">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="218" y="162" width="1555" height="800" key="DiffContextDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577637894782" />
+    <state x="732" y="339" width="515" height="479" key="EnvironmentVariablesDialog" timestamp="1577636652860">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="732" y="339" width="515" height="479" key="EnvironmentVariablesDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577636652860" />
+    <state x="740" y="305" width="501" height="513" key="FileChooserDialogImpl" timestamp="1577637894162">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="740" y="305" width="501" height="513" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1577637894162" />
+    <state width="1732" height="260" key="GridCell.Tab.0.bottom" timestamp="1577899681516">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state width="1732" height="260" key="GridCell.Tab.0.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1577899681516" />
+    <state width="1732" height="260" key="GridCell.Tab.0.center" timestamp="1577899681516">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state width="1732" height="260" key="GridCell.Tab.0.center/67.27.1853.1053@67.27.1853.1053" timestamp="1577899681516" />
+    <state width="1732" height="260" key="GridCell.Tab.0.left" timestamp="1577899681515">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state width="1732" height="260" key="GridCell.Tab.0.left/67.27.1853.1053@67.27.1853.1053" timestamp="1577899681515" />
+    <state width="1732" height="260" key="GridCell.Tab.0.right" timestamp="1577899681516">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state width="1732" height="260" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1577899681516" />
+    <state x="484" y="197" key="SettingsEditor" timestamp="1577636479882">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="484" y="197" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1577636479882" />
+    <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1577712108186">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577712108186" />
+    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog" timestamp="1577973137329">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577973137329" />
+    <state x="275" y="166" width="1474" height="794" key="find.popup" timestamp="1577898487597">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="275" y="166" width="1474" height="794" key="find.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1577898487597" />
+  </component>
+</project>
