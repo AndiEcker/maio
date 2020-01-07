@@ -4,70 +4,89 @@
 #: import Popup kivy.uix.popup.Popup
 
 
-<ItemsView@ContextualActionView>:
-    #BUG if uncomment next line
-    #use_separator: True
-    ActionPrevious:
-        title:
-            app.data.selected_list_name[:18 if app.landscape else 3] \
-            + ("/" + app.data.selected_list_item[:18 if app.landscape else 3] if app.data.selected_list_item else "")
-        #with_previous: True    # =default
-        on_release: app.refresh_items_list()
+<MaioMenuBar@BoxLayout>:
+    size_hint_y: None
+    height: sp(90)
+    Button:
+        size_hint_x: None
+        width: sp(369)
+        on_release:
+            Popup(title="Irmi's shopping list V " + version + "   (c) 2020 Andi Ecker",
+            title_align='center',
+            content=Label(text=
+            "Touch short on list icon/name for\n"
+            " to display their items.\n"
+            "Touch long for to change list icon/name.\n"
+            "Wipe list name for to drop the list.\n"
+            "Change list name for to copy the list.\n\n"
+            "Similar actions for each list item\n"
+            " are available within each list.",
+            halign='center'),
+            size_hint_y=.6
+            ).open()
+        StackLayout:
+            pos: self.parent.pos
+            size: self.parent.size
+            Image:
+                source: 'img/app_icon.jpg'
+                size_hint_x: None
+                width: self.parent.height
+            Label:
+                text:
+                    app.data.selected_list_name[:18 if app.landscape else 3] \
+                    + ("/" + app.data.selected_list_item[:18 if app.landscape else 3] \
+                    if app.data.selected_list_item else "")
+                size_hint_x: None
+                width: self.parent.width - self.parent.height
+    Button:
+        text: 'Lists'
+        on_release: app.switch_to_items_view()
+    ListFiltButton:
+        id: listFilterDown
+        text: 'B'
+        state: app.data.list_filter_down_state
+        canvas:
+            Color:
+                rgba: (0, 0, 1, .1)
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    ListFiltButton:
+        id: listFilterNormal
+        text: 'G'
+        state: app.data.list_filter_normal_state
+    Button:
+        text: '+'
+        on_release: app.add_new_list_item()
+        font_size: self.size[1]
+        background_color: [.9, .9, .9, .6]
+        background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
+        background_down: 'atlas://data/images/defaulttheme/slider_cursor'
+        #icon: 'atlas://data/images/defaulttheme/audio-volume-high'
+        canvas.after:
+            Color:
+                rgba: 1, 0, 0, .6
+            Ellipse:
+                pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
+                size: self.size[0] - sp(12), self.size[1] - sp(12)
+    Button:
+        text: '-'
+        on_release: app.delete_list_item(app.data.selected_list_item)
+        disabled: app.data.selected_list_item
+        opacity: 1 if app.data.selected_list_item else 0
+        font_size: self.size[1]
+        background_color: [.9, .9, .9, .6]
+        background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
+        background_down: 'atlas://data/images/defaulttheme/slider_cursor'
+        canvas.after:
+            Color:
+                rgba: 1, .3, 0, .6
+            Ellipse:
+                pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
+                size: self.size[0] - sp(12), self.size[1] - sp(12)
 
 
-<MaioActionBar@ActionBar>:
-    ActionView:
-        id: listSelActionView
-        use_separator: True
-        ActionPrevious:
-            with_previous: False
-            on_release:
-                Popup(title="Irmi's shopping list V " + version + "   (c) 2019 Andi Ecker",
-                title_align='center',
-                content=Label(text=
-                "Touch short on list icon/name for\n"
-                " to display their items.\n"
-                "Touch long for to change list icon/name.\n"
-                "Wipe list name for to drop the list.\n"
-                "Change list name for to copy the list.\n\n"
-                "Similar actions for each list item\n"
-                " are available within each list.",
-                halign='center'),
-                size_hint_y=.6
-                ).open()
-            app_icon: 'img/app_icon.jpg'
-        ActionButton:
-            text: 'Lists'
-            on_release: app.switch_to_items_view()
-        ActionGroup:
-            text: 'Filter'
-            ListFiltButton:
-                id: listFilterDown
-                text: 'B'
-                state: app.data.list_filter_down_state
-                canvas:
-                    Color:
-                        rgba: (0, 0, 1, .1)
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-            ListFiltButton:
-                id: listFilterNormal
-                text: 'G'
-                state: app.data.list_filter_normal_state
-        # had to place the following buttons on the end of the ActionView to be shown at the most left of the View
-        ActionButton:
-            text: '+'
-            #icon: 'atlas://data/images/defaulttheme/audio-volume-high'
-            on_release: app.add_new_list_item()
-        ActionButton:
-            text: '-'
-            on_release: app.delete_list_item(app.data.selected_list_item)
-            disabled: app.data.selected_list_item
-            opacity: 1 if app.data.selected_list_item else 0
-
-
-<ListFiltButton@ActionToggleButton>:
+<ListFiltButton@ToggleButton>:
     # exchanging down/normal state and using radio button mode results in
     # .. automatic selection of at least one button (preventing empty list)
     important: True
@@ -191,8 +210,8 @@
     id: maioRoot
     BoxLayout:
         orientation: 'vertical'
-        MaioActionBar:
-            id: actionBar
+        MaioMenuBar:
+            id: menuBar
         ScrollView:
             do_scroll_x: False
             BoxLayout:
@@ -202,17 +221,17 @@
     Button:
         text: '+'
         size_hint: None, None
-        #size: .1, 6    # seems not to be recognized by FloatLayout
+        size: sp(60) if app.landscape else sp(90), sp(90) if app.landscape else sp(60)
         font_size: self.size[1]
         pos_hint: {'right': 1.0}
-        background_active: None
-        background_border: None
-        background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
+        background_color: [.9, .9, .9, .6]
+        background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
+        background_down: 'atlas://data/images/defaulttheme/slider_cursor'
         on_release: app.add_new_list_item()
         canvas.after:
             Color:
                 rgba: 1, 0, 0, .6
             Ellipse:
-                pos: self.pos
-                size: self.size
+                pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
+                size: self.size[0] - sp(12), self.size[1] - sp(12)
                 source: 'img/app_icon.jpg'

@@ -12,12 +12,11 @@
     0.7     code clean-up, raised min-sdk to default 21 (was 18) and commented out fullscreen = 0 (30-06-2019).
     0.8     prevent fontSize to get too small after triple-touch, for to be double-touchable for to increase.
     0.9     pep008 refactoring.
-    0.10    started moving add/delete from ActionBar into floating buttons.
+    0.10    started moving add/delete from ActionBar into menu and floating buttons.
     0.11    extended/corrected list items to the ones in Irmi's mobile phone, fixed bugs, added DEBUG_BUBBLE.
   ToDo:
     - better handling of doubletap/tripletap
     - allow user to change order of item in list
-    - refactor ActionBar (more clear, more icons, add item/list add/edit/delete menu)
     - nicer UI (from kivy.uix.effectwidget import EffectWidget, InvertEffect, HorizontalBlurEffect, VerticalBlurEffect)
     - user specific app theme (color, fonts) config screen
 
@@ -49,18 +48,17 @@ if DEBUG_BUBBLE:
     from kivy.lang import Builder
 
     Builder.load_string('''
-<InfoBubble@Bubble>
+<DebugBubble@Bubble>
     message: 'empty message'
-    # let bubble be of 600 device pixels, expand as necessary on the height depending on the message + 30 dp of padding
     size_hint: None, None
     show_arrow: False
     pos_hint: {'top': 1, 'right': 1}
-    size: dp(600), lbl.texture_size[1] + dp(30)
+    size: sp(600), lbl.texture_size[1] + sp(30)
     Label:
         id: lbl
         text: root.message
         # constraint text to be displayed within the bubble width and have it be unrestricted on the height
-        text_size: root.width - dp(30), None
+        text_size: root.width - sp(30), None
 ''')
 
     info_bubble = None
@@ -69,11 +67,11 @@ if DEBUG_BUBBLE:
         """ print() replacement """
         global info_bubble
         if not info_bubble:
-            info_bubble = Factory.InfoBubble()
+            info_bubble = Factory.DebugBubble()
         info_bubble.message = " ".join([repr(message) for message in messages])
         if not info_bubble.parent:  # Check if bubble is not already on screen
             Window.add_widget(info_bubble)
-        Clock.schedule_once(lambda dt: Window.remove_widget(info_bubble), 3)  # Remove bubble after 3 secs
+        Clock.schedule_once(lambda dt: Window.remove_widget(info_bubble), 9)  # Remove bubble after some seconds
 else:
     dprint = print
 
@@ -435,7 +433,7 @@ class MaioApp(App):
 
     def switch_to_items_view(self):
         """ switch screen to list items view """
-        self.root.ids.actionBar.add_widget(Factory.ItemsView())
+        self.root.ids.menuBar.add_widget(Factory.ItemsView())
         self.refresh_names_list()
 
     # list names
@@ -537,7 +535,7 @@ class MaioApp(App):
             self._multi_tap = 1
             return
         elif touch.is_triple_tap:
-            self._multi_tap = -2  # -2 because couldn't prevent the double tap action before/on triple tap
+            self._multi_tap = -2  # -2 because couldn't prevent the double tap before/on triple tap
             return
         lcw = self.root.ids.listContainer
         local_touch_pos = lcw.to_local(touch.x, touch.y)
@@ -588,8 +586,8 @@ class MaioApp(App):
         """ refresh lists """
         lcw = self.root.ids.listContainer
         lcw.clear_widgets()
-        lf_ds = self.root.ids.actionBar.ids.listFilterDown.state == 'normal'
-        lf_ns = self.root.ids.actionBar.ids.listFilterNormal.state == 'normal'
+        lf_ds = self.root.ids.menuBar.ids.listFilterDown.state == 'normal'
+        lf_ns = self.root.ids.menuBar.ids.listFilterNormal.state == 'normal'
         h = 0
         for liw in self.data.all_lists[self.data.selected_list_name]:
             if lf_ds and liw['state'] == 'down' or lf_ns and liw['state'] == 'normal':
