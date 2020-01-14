@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-""" My All In One - (c) 2019 Andi Ecker.
+""" My All In One - (c) 2020 Andi Ecker.
 
   version history:
     0.1     first beta (mini shopping list for Irma with 4 static lists Lidl/Mercadona/Nor/Sur).
@@ -14,6 +14,7 @@
     0.9     pep008 refactoring.
     0.10    started moving add/delete from ActionBar into menu and floating buttons.
     0.11    extended/corrected list items to the ones in Irmi's mobile phone, fixed bugs, added DEBUG_BUBBLE.
+    0.12    refactoring of UI (migrate to KivyApp) and data structure (allow list in list).
   ToDo:
     - better handling of doubletap/tripletap
     - allow user to change order of item in list
@@ -25,55 +26,10 @@ import os
 import time
 from functools import partial
 
-import kivy
-from kivy.app import App
-from kivy.core.window import Window
-from kivy.factory import Factory
-from kivy.properties import BooleanProperty, DictProperty, NumericProperty, ObjectProperty, StringProperty
-from kivy.event import EventDispatcher
-from kivy.clock import Clock
-from kivy.metrics import sp
-
-kivy.require('1.9.1')  # currently using 1.11.1 but at least 1.9.1 is needed for Window.softinput_mode 'below_target'
-Window.softinput_mode = 'below_target'  # ensure android keyboard is not covering Popup/text input
+from ae.KivyApp import KivyApp as GUIApp
 
 
-__version__ = '0.11'
-
-
-# adapted from:
-#   https://stackoverflow.com/questions/23055696/see-output-of-print-statements-on-android-using-kivy-kivy-launcher
-DEBUG_BUBBLE = True
-if DEBUG_BUBBLE:
-    from kivy.lang import Builder
-
-    Builder.load_string('''
-<DebugBubble@Bubble>
-    message: 'empty message'
-    size_hint: None, None
-    show_arrow: False
-    pos_hint: {'top': 1, 'right': 1}
-    size: sp(600), lbl.texture_size[1] + sp(30)
-    Label:
-        id: lbl
-        text: root.message
-        # constraint text to be displayed within the bubble width and have it be unrestricted on the height
-        text_size: root.width - sp(30), None
-''')
-
-    info_bubble = None
-
-    def dprint(*messages):
-        """ print() replacement """
-        global info_bubble
-        if not info_bubble:
-            info_bubble = Factory.DebugBubble()
-        info_bubble.message = " ".join([repr(message) for message in messages])
-        if not info_bubble.parent:  # Check if bubble is not already on screen
-            Window.add_widget(info_bubble)
-        Clock.schedule_once(lambda dt: Window.remove_widget(info_bubble), 9)  # Remove bubble after some seconds
-else:
-    dprint = print
+__version__ = '0.12'
 
 
 MIN_FONT_SIZE = sp(24)
@@ -84,171 +40,11 @@ class AppState(EventDispatcher):
     """ application state control """
     app_version = StringProperty(__version__)
     font_size = NumericProperty(MIN_FONT_SIZE)              # font size of list items/names
-    list_filter_down_state = StringProperty('normal')       # show toggled/checked items
-    list_filter_normal_state = StringProperty('normal')     # show normal/unchecked items
-    selected_list_name = StringProperty()                   # default list on 1st startup
+    filter_selected = StringProperty('normal')       # show toggled/checked items
+    filter_unselected = StringProperty('normal')     # show normal/unchecked items
+    selected_list_name = StringProperty()                   # default list on 1st startup (NOW is app_context)
     selected_list_item = StringProperty()
-    all_lists = DictProperty(
-        {
-            'Lidl': [
-                {'text': 'Bio-Zitronen', 'state': 'normal'},
-                {'text': 'Ingwer', 'state': 'normal'},
-                {'text': 'Salat', 'state': 'normal'},
-                {'text': 'Kirschen', 'state': 'normal'},
-                {'text': 'Salami', 'state': 'normal'},
-                {'text': 'Maultäschle', 'state': 'down'},
-                {'text': 'Schoko-Erdnüsse', 'state': 'normal'},
-                {'text': 'Gummibärle', 'state': 'normal'},
-                {'text': 'Saure Gummies', 'state': 'normal'},
-                {'text': 'Trauben-Nuss-Schokolade', 'state': 'normal'},
-                {'text': 'Minzschokoblättchen', 'state': 'normal'},
-                {'text': 'Kekse', 'state': 'normal'},
-                {'text': 'Salami', 'state': 'normal'},
-                {'text': 'Quark', 'state': 'normal'},
-                {'text': 'Kräuterfrischkäse', 'state': 'normal'},
-                {'text': 'Ziegenkäse geräuchert', 'state': 'normal'},
-                {'text': 'Camenbert', 'state': 'normal'},
-                {'text': 'Emmentaler', 'state': 'normal'},
-                {'text': 'Haferflocken', 'state': 'normal'},
-                {'text': 'Kaffee', 'state': 'normal'},
-                {'text': 'Paranüsse', 'state': 'normal'},
-                {'text': 'Pipastix', 'state': 'normal'},
-                {'text': 'Eier', 'state': 'normal'},
-                {'text': 'Joghurt', 'state': 'normal'},
-                {'text': 'Milch Omega', 'state': 'normal'},
-                {'text': 'Bier', 'state': 'normal'},
-                {'text': 'Essiggurken', 'state': 'normal'},
-                {'text': 'Meerrettich', 'state': 'normal'},
-                {'text': 'Hähnchen', 'state': 'normal'},
-                {'text': 'Senf', 'state': 'normal'},
-                {'text': 'Lino dorado', 'state': 'normal'},
-                {'text': 'Katzenfutter', 'state': 'normal'},
-                {'text': 'Hunde-stix', 'state': 'normal'},
-                {'text': 'Tomatensauce', 'state': 'normal'},
-            ],
-            'Mercadona': [
-                {'text': 'Tomaten', 'state': 'normal'},
-                {'text': 'Paprika', 'state': 'normal'},
-                {'text': 'Salat', 'state': 'normal'},
-                {'text': 'Mischgemüse', 'state': 'normal'},
-                {'text': 'Zwiebeln', 'state': 'normal'},
-                {'text': 'Spinat', 'state': 'normal'},
-                {'text': 'Zuccini', 'state': 'normal'},
-                {'text': 'Karotten', 'state': 'normal'},
-                {'text': 'Schnittlauch', 'state': 'normal'},
-                {'text': 'Süsskartoffeln', 'state': 'normal'},
-                {'text': 'Kartoffeln', 'state': 'normal'},
-                {'text': 'Brokkoli', 'state': 'normal'},
-                {'text': 'Äpfel', 'state': 'normal'},
-                {'text': 'Bananen', 'state': 'normal'},
-                {'text': 'Erbsen', 'state': 'normal'},
-                {'text': 'Datteln im Speckmantel', 'state': 'normal'},
-                {'text': 'Chopped', 'state': 'normal'},
-                {'text': 'Frischkäse', 'state': 'normal'},
-                {'text': 'Ziegenkäse geräuchert', 'state': 'normal'},
-                {'text': 'Emmentaler gerieben', 'state': 'normal'},
-                {'text': 'Gouda', 'state': 'normal'},
-                {'text': 'Parmesan', 'state': 'normal'},
-                {'text': 'Creme fraiche', 'state': 'normal'},
-                {'text': 'Margarine', 'state': 'normal'},
-                {'text': 'Kefir', 'state': 'normal'},
-                {'text': 'Sahne', 'state': 'normal'},
-                {'text': 'Milch', 'state': 'normal'},
-                {'text': 'Pollo', 'state': 'normal'},
-                {'text': 'Knochen', 'state': 'normal'},
-                {'text': 'Krabben', 'state': 'normal'},
-                {'text': 'Thunfischfilet', 'state': 'normal'},
-                {'text': 'Toastbrot', 'state': 'normal'},
-                {'text': 'Tagliatelle', 'state': 'normal'},
-                {'text': 'Bohnen', 'state': 'normal'},
-                {'text': 'Linsen', 'state': 'normal'},
-                {'text': 'Mandarinen', 'state': 'normal'},
-                {'text': 'Tomatenmark', 'state': 'normal'},
-                {'text': 'Kokosmilch', 'state': 'normal'},
-                {'text': 'Oliven', 'state': 'normal'},
-                {'text': 'Öl', 'state': 'normal'},
-                {'text': 'Mandeln gemahlen', 'state': 'normal'},
-                {'text': 'Blätterteig', 'state': 'normal'},
-                {'text': 'Cava', 'state': 'normal'},
-                {'text': 'Bier', 'state': 'normal'},
-                {'text': 'Eis', 'state': 'normal'},
-                {'text': 'Pan rallado', 'state': 'normal'},
-                {'text': 'Pinienkerne', 'state': 'normal'},
-                {'text': 'Rote Beete', 'state': 'normal'},
-                {'text': 'Essig', 'state': 'normal'},
-                {'text': 'Pimenton dulce', 'state': 'normal'},
-                {'text': 'Zucker', 'state': 'normal'},
-                {'text': 'Sprudelwasser', 'state': 'normal'},
-                {'text': 'Destiliertes Wasser', 'state': 'normal'},
-                {'text': 'Tomaten troceado', 'state': 'normal'},
-                {'text': 'Linsennudeln', 'state': 'normal'},
-                {'text': 'Spirelli Nudeln', 'state': 'normal'},
-                {'text': 'Basmati Reis', 'state': 'normal'},
-                {'text': 'Mayo', 'state': 'normal'},
-                {'text': 'Waschmittel', 'state': 'normal'},
-                {'text': 'Klopapier', 'state': 'normal'},
-                {'text': 'Küchenkrepp', 'state': 'normal'},
-                {'text': 'Festiger', 'state': 'normal'},
-                {'text': 'Frosch Scheuermilch', 'state': 'normal'},
-                {'text': 'Müllbeutel', 'state': 'normal'},
-                {'text': 'Babytücher', 'state': 'normal'},
-                {'text': 'Badezusatz', 'state': 'normal'},
-                {'text': 'Atun', 'state': 'normal'},
-                {'text': 'Trockenfutter', 'state': 'normal'},
-                {'text': 'Mousse', 'state': 'normal'},
-                {'text': 'Stix', 'state': 'normal'},
-                {'text': 'Palitos', 'state': 'normal'},
-                {'text': 'Galletas', 'state': 'normal'},
-                {'text': 'Beutel-Katze', 'state': 'normal'},
-                {'text': 'Aperitive Gussi', 'state': 'normal'},
-                {'text': 'Haselnüsse', 'state': 'normal'},
-                {'text': 'Nüsse', 'state': 'normal'},
-                {'text': 'Chia-Samen', 'state': 'normal'},
-                {'text': 'Mosto tinto', 'state': 'normal'},
-                {'text': 'Apfelsaft', 'state': 'normal'},
-                {'text': 'Tee duerme bien', 'state': 'normal'},
-            ],
-            'Nor': [
-                {'text': 'Hundefutter', 'state': 'normal'},
-                {'text': 'Teelichter', 'state': 'normal'},
-                {'text': 'Haarfarbe', 'state': 'normal'},
-                {'text': 'Kühlschrank', 'state': 'normal'},
-                {'text': 'Kaffeelöffel', 'state': 'normal'},
-                {'text': 'Sofa', 'state': 'normal'},
-                {'text': 'Lampe', 'state': 'normal'},
-                {'text': 'Salami', 'state': 'normal'},
-                {'text': 'Teetassen', 'state': 'normal'},
-                {'text': 'Daunendecke', 'state': 'normal'},
-            ],
-            'Sur': [
-                {'text': 'Jenjibre', 'state': 'normal'},
-                {'text': 'Eier', 'state': 'normal'},
-                {'text': 'Zitronen', 'state': 'normal'},
-                {'text': 'Post', 'state': 'normal'},
-                {'text': 'Blumen', 'state': 'normal'},
-                {'text': 'Vanillezucker', 'state': 'normal'},
-                {'text': 'Stärke', 'state': 'normal'},
-                {'text': 'Gewürze', 'state': 'normal'},
-                {'text': 'Griess', 'state': 'normal'},
-                {'text': 'Dinkelbäcker', 'state': 'normal'},
-                {'text': 'Puleva Margarine', 'state': 'normal'},
-                {'text': 'Tomaten getrocknet', 'state': 'normal'},
-                {'text': 'Erdbeeren gefrohren', 'state': 'normal'},
-                {'text': 'Brodo Gemüsebrühe', 'state': 'normal'},
-                {'text': 'Senf', 'state': 'normal'},
-                {'text': 'Essig', 'state': 'normal'},
-                {'text': 'Rapsöl', 'state': 'normal'},
-                {'text': 'Sateh', 'state': 'normal'},
-                {'text': 'Hot Curry', 'state': 'normal'},
-                {'text': 'Kakao', 'state': 'normal'},
-                {'text': 'Quark', 'state': 'normal'},
-            ],
-            'Gomera': [
-                {'text': 'Pfefferbeisser', 'state': 'normal'},
-                {'text': 'Maultäschle', 'state': 'normal'},
-                {'text': 'Gruyere', 'state': 'normal'},
-            ],
-        })
+    all_lists = DictProperty()
 
     def __init__(self, path, **kwargs):
         super(EventDispatcher, self).__init__(**kwargs)
@@ -259,7 +55,7 @@ class AppState(EventDispatcher):
         self.filename = os.path.join(path, 'AppState.txt')
 
     def load(self):
-        """ load app state """
+        """ load_app_state app state """
         fn = self.filename
         try:
             if not os.path.exists(fn):
@@ -268,20 +64,20 @@ class AppState(EventDispatcher):
                 if not os.path.exists(dn):
                     os.makedirs(dn)
         except OSError as exc:
-            dprint('AppState.load() prepare database directory exception', exc)
+            dprint('AppState.load_app_state() prepare database directory exception', exc)
         try:
             if os.path.exists(fn):
                 with open(fn) as fp:
                     # keeps app version of first app start/install, used for data file format updates
                     self.app_version = eval(fp.readline())
                     self.font_size = min(max(MIN_FONT_SIZE, eval(fp.readline())), MAX_FONT_SIZE)
-                    self.list_filter_down_state = eval(fp.readline())
-                    self.list_filter_normal_state = eval(fp.readline())
+                    self.filter_selected = eval(fp.readline())
+                    self.filter_unselected = eval(fp.readline())
                     self.selected_list_name = eval(fp.readline())
                     self.selected_list_item = eval(fp.readline())
                     self.all_lists = eval(fp.read())
         except OSError as exc:
-            dprint('AppState.load() file ', fn, 'open/read/eval exception', exc)
+            dprint('AppState.load_app_state() file ', fn, 'open/read/eval exception', exc)
 
         # ensure data integrity, preventing app crash later on (e.g. after corrupted data file)
         if not self.selected_list_name or self.selected_list_name not in self.all_lists:
@@ -292,8 +88,8 @@ class AppState(EventDispatcher):
         return self
 
     def save(self):
-        """ save app state """
-        dprint('save', self.selected_list_name, self.selected_list_item, self.all_lists)
+        """ save_app_state app state """
+        dprint('save_app_state', self.selected_list_name, self.selected_list_item, self.all_lists)
         if os.path.exists(self.filename):
             fn, ext = os.path.splitext(self.filename)
             fn += '_' + time.strftime('%Y%m%d%H') + ext
@@ -303,13 +99,13 @@ class AppState(EventDispatcher):
             with open(self.filename, 'w') as fp:
                 fp.write(repr(self.app_version) + '\n')
                 fp.write(repr(self.font_size) + '\n')
-                fp.write(repr(self.list_filter_down_state) + '\n')
-                fp.write(repr(self.list_filter_normal_state) + '\n')
+                fp.write(repr(self.filter_selected) + '\n')
+                fp.write(repr(self.filter_unselected) + '\n')
                 fp.write(repr(self.selected_list_name) + '\n')
                 fp.write(repr(self.selected_list_item) + '\n')
                 fp.write(repr(self.all_lists))
         except OSError as exc:
-            dprint('AppState.save() exception', exc)
+            dprint('AppState.save_app_state() exception', exc)
 
     # list add/chg name/copy/del handling
 
@@ -355,9 +151,9 @@ class AppState(EventDispatcher):
     def change_list_filter(self, filter_name, filter_state):
         """ change list filter """
         if filter_name == 'normal':
-            self.list_filter_normal_state = filter_state
+            self.filter_unselected = filter_state
         elif filter_name == 'down':
-            self.list_filter_down_state = filter_state
+            self.filter_selected = filter_state
 
     def delete_item(self, item_name):
         """ delete list item """
@@ -377,58 +173,8 @@ class AppState(EventDispatcher):
         self.selected_list_item = item_name
 
 
-class MaioApp(App):
+class MaioApp(GUIApp):
     """ app class """
-    title = 'My All In One'
-    icon = 'img/app_icon.png'
-    version = __version__
-    toggled_item_ink = (0.69, 1.0, 0.39, 0.18)
-    normal_item_ink = (0.39, 0.39, 0.39, 0.18)
-
-    landscape = BooleanProperty()
-
-    data = ObjectProperty()
-
-    _edit_list_name = ''  # list name to be initially edited ('' on add new list)
-    _copy_items_from = ''  # list name of source list for list copy
-
-    _currentListItem = None  # ListItem widget used for to add a new or edit a list item
-
-    _multi_tap = 0  # used for listTouchDownHandler
-    _last_touch_start_callback = dict()
-
-    # kivy methods and callbacks
-
-    def build(self):
-        """ build app """
-        dprint('App.build(), user_data_dir', self.user_data_dir)
-        self.data = AppState(self.user_data_dir).load()
-        self.root = Factory.MaioRoot()
-        if self.data.selected_list_name:
-            self.refresh_names_list()
-        else:
-            self.refresh_items_list()
-        Window.bind(on_resize=self.screen_size_changed)
-        return self.root
-
-    def screen_size_changed(self, *_):
-        """ screen resize handler """
-        dprint('screen_size_changed', self.root.width, self.root.height)
-        self.landscape = self.root.width >= self.root.height
-
-    def on_start(self):
-        """ app start event """
-        self.screen_size_changed()  # init. app./self.landscape (on app startup and after build)
-
-    def on_pause(self):
-        """ app pause event """
-        self.data.save()
-        return True
-
-    def on_stop(self):
-        """ quit app event """
-        self.data.save()
-
     # screen switching/refreshing
 
     def switch_to_items_view(self):
@@ -448,7 +194,7 @@ class MaioApp(App):
     def delete_list_confirmed(self, list_name):
         """ delete list confirmation callback """
         self.data.delete_list(list_name)
-        self.data.save()
+        self.data.save_app_state()
         self.refresh_names_list()
 
     def list_name_edit_start(self, list_name='', copy_items_from=''):
@@ -470,7 +216,7 @@ class MaioApp(App):
                 self.data.delete_list(self._edit_list_name)
             else:  # user added new list name (with text)
                 self.data.add_list(list_name)
-            self.data.save()
+            self.data.save_app_state()
             self.refresh_names_list()  # refresh screen
 
     def refresh_names_list(self):
@@ -579,7 +325,7 @@ class MaioApp(App):
         else:  # user edited list item
             self.data.change_item(self._currentListItem.text, text)
             self._currentListItem.text = text
-        self.data.save()
+        self.data.save_app_state()
         self._currentListItem = None  # release ref created by add_new_list_item()/edit_list_item()
 
     def refresh_items_list(self):
@@ -603,7 +349,7 @@ class MaioApp(App):
     def select_items_list(self, list_name):
         """ select list """
         dprint('select_list', list_name)
-        self.data.save()
+        self.data.save_app_state()
         self.data.select_list(list_name)
         self.refresh_items_list()
 
@@ -617,11 +363,11 @@ class MaioApp(App):
         """ toggle list item """
         dprint('toggle_list_item', item_name, state)
         self.data.change_item(item_name, state=state)
-        self.data.save()
-        if self.data.list_filter_down_state == 'down' or self.data.list_filter_normal_state == 'down':
+        self.data.save_app_state()
+        if self.data.filter_selected or self.data.filter_unselected:
             self.refresh_items_list()  # refresh only needed if one filter is active
 
 
 # app start
 if __name__ in ('__android__', '__main__'):
-    MaioApp().run()
+    MaioApp().run_app()

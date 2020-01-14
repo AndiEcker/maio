@@ -44,7 +44,7 @@
     ListFiltButton:
         id: listFilterDown
         text: 'B'
-        state: app.data.list_filter_down_state
+        state: 'down' if app.data.filter_selected else 'normal'
         canvas:
             Color:
                 rgba: (0, 0, 1, .1)
@@ -54,7 +54,7 @@
     ListFiltButton:
         id: listFilterNormal
         text: 'G'
-        state: app.data.list_filter_normal_state
+        state: 'down' if app.data.filter_unselected else 'normal'
     Button:
         text: '+'
         on_release: app.add_new_list_item()
