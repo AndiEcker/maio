@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="V 0.11: prepare UI and ae namespace refactoring, extended default list items:&#10;&#10;- refactored ActionBar to BoxLayout.&#10;- slightly enhanced +/- button textures.&#10;- started migration to new ae namespace GUI portions (until V 0.0.1 developed within this project).&#10;- added empty GUIApp/KivyApp ae namespace package skeletons and requirements.txt.&#10;- added DEBUG_BUBBLE.&#10;- extended/corrected list items to the ones in Irmi's mobile phone.">
-      <change afterPath="$PROJECT_DIR$/maio.ini" afterDir="false" />
+    <list default="true" id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 1">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ae/GUIApp.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/GUIApp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ae/KivyApp.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/KivyApp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/maio.kv" beforeDir="false" afterPath="$PROJECT_DIR$/maio.kv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/maio.ini" beforeDir="false" afterPath="$PROJECT_DIR$/maio.ini" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -104,13 +103,21 @@
       <option name="project" value="LOCAL" />
       <updated>1578412218001</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 1">
+      <created>1579021734469</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1579021734469</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="V 0.11: UI refactoring, extended default list items" />
     <MESSAGE value="V 0.11: prepare UI and ae namespace refactoring, extended default list items:&#10;&#10;- refactored ActionBar to BoxLayout.&#10;- slightly enhanced +/- button textures.&#10;- started migration to new ae namespace GUI portions (until V 0.0.1 developed within this project).&#10;- added empty GUIApp/KivyApp ae namespace package skeletons and requirements.txt.&#10;- added DEBUG_BUBBLE.&#10;- extended/corrected list items to the ones in Irmi's mobile phone." />
-    <option name="LAST_COMMIT_MESSAGE" value="V 0.11: prepare UI and ae namespace refactoring, extended default list items:&#10;&#10;- refactored ActionBar to BoxLayout.&#10;- slightly enhanced +/- button textures.&#10;- started migration to new ae namespace GUI portions (until V 0.0.1 developed within this project).&#10;- added empty GUIApp/KivyApp ae namespace package skeletons and requirements.txt.&#10;- added DEBUG_BUBBLE.&#10;- extended/corrected list items to the ones in Irmi's mobile phone." />
+    <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 1" />
+    <option name="LAST_COMMIT_MESSAGE" value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 1" />
   </component>
   <component name="WindowStateProjectService">
     <state x="453" y="220" width="1084" height="718" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1577636671582">
@@ -121,10 +128,14 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="736" y="433" width="508" height="257" key="#com.intellij.ide.actions.ChooseComponentsToExportDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577635480755" />
-    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1579021584922">
+    <state x="803" y="281" width="374" height="562" key="#com.intellij.ide.util.MemberChooser" timestamp="1579098966331">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1579021584922" />
+    <state x="803" y="281" width="374" height="562" key="#com.intellij.ide.util.MemberChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1579098966331" />
+    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1579097660483">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1579097660483" />
     <state x="218" y="162" width="1555" height="800" key="DiffContextDialog" timestamp="1577637894782">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -173,10 +184,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="484" y="197" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1578603530671" />
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1578412220849">
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1579021738142">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1578412220849" />
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1579021738142" />
     <state width="926" height="527" key="XDebugger.FullValuePopup" timestamp="1578326160012">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -185,10 +196,14 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577712108186" />
-    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog" timestamp="1579020399432">
+    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog" timestamp="1579096482854">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1579020399432" />
+    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1579096482854" />
+    <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1579101026644">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1579101026644" />
     <state x="275" y="166" width="1474" height="794" key="find.popup" timestamp="1579021480350">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>

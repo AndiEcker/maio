@@ -1,5 +1,5 @@
 """ GUIApp-conform Kivy app """
-from typing import Optional, TextIO
+from typing import Any, Dict, Optional, Sequence, TextIO
 
 from ae.GUIApp import GUIAppBase
 
@@ -7,15 +7,18 @@ import kivy
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.factory import Factory
-from kivy.properties import BooleanProperty, DictProperty, NumericProperty, ObjectProperty, StringProperty
-from kivy.event import EventDispatcher
+from kivy.properties import BooleanProperty, ObjectProperty
 from kivy.clock import Clock
 from kivy.metrics import sp
 from kivy.lang import Builder
-from kivy.uix.bubble import Bubble
 
 kivy.require('1.9.1')  # currently using 1.11.1 but at least 1.9.1 is needed for Window.softinput_mode 'below_target'
 Window.softinput_mode = 'below_target'  # ensure android keyboard is not covering Popup/text input
+
+
+MIN_FONT_SIZE = sp(24)
+MAX_FONT_SIZE = sp(33)
+
 
 # adapted from: https://stackoverflow.com/questions/23055696
 #    /see-output-of-print-statements-on-android-using-kivy-kivy-launcher
@@ -89,16 +92,35 @@ class FrameworkApp(App):
 
 class KivyApp(GUIAppBase):
     """ Kivy application """
-    def load_app_state(self) -> bool:
-        """ prepare app run """
-        self.framework_app = FrameworkApp(self)
-        self.user_data_dir = self.framework_app.user_data_dir
-        return super().load_app_state()
+
+    font_size: float = MIN_FONT_SIZE                    #: font size used for toolbar and list items
+    win_rectangle: Sequence = (0, 0, sp(800), sp(600))  #: (x, y, width, height) of the app window
+
+    def get_app_state(self) -> Dict[str, Any]:
+        """ determine state of running Kivy app """
+        app_state = dict()
+        app_state['fontSize'] = self.font_size
+
+        return app_state
 
     def run_app(self):
         """ startup/display the application """
         if self.debug_bubble:
             Builder.load_string(DEBUG_BUBBLE_DEF)
+
+    def set_app_state(self, app_state: Dict[str, Any]) -> str:
+        """ set/change the state of a running app, called for to prepare app.run_app """
+        if 'fontSize' not in self.app_state_keys:
+            self.app_state_keys += ('fontSize', 'winRectangle', )
+        self.framework_app = FrameworkApp(self)
+
+        self.font_size = app_state['fontSize']
+        win_rect = app_state['winRectangle']
+        if win_rect:
+            pos_x, pos_y, width, height = win_rect
+            self.framework_app.window
+
+        return ""
 
     def show_bubble(self, *objects, file: Optional[TextIO] = None, **kwargs):
         """ show popup bubble - compatible to Python print() and AppBase.print_out() """

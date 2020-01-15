@@ -14,7 +14,7 @@
     0.9     pep008 refactoring.
     0.10    started moving add/delete from ActionBar into menu and floating buttons.
     0.11    extended/corrected list items to the ones in Irmi's mobile phone, fixed bugs, added DEBUG_BUBBLE.
-    0.12    refactoring of UI (migrate to KivyApp) and data structure (allow list in list).
+    0.12    big refactoring of UI (migrate to KivyApp) and data structure (allow list in list).
   ToDo:
     - better handling of doubletap/tripletap
     - allow user to change order of item in list
@@ -25,87 +25,51 @@
 import os
 import time
 from functools import partial
+from typing import Any, Dict, List
 
-from ae.KivyApp import KivyApp as GUIApp
+from kivy.factory import Factory
+from ae.KivyApp import KivyApp
 
 
 __version__ = '0.12'
 
 
-MIN_FONT_SIZE = sp(24)
-MAX_FONT_SIZE = sp(33)
+class MaioApp(KivyApp):
+    """ app class """
+    filter_selected: bool = True        #: True for to display selected list items
+    filter_unselected: bool = True      #: True for to display unselected list items
+    selected_list_name: str = ""        #: name of list, recently selected by user
+    selected_list_item: str = ""        #: name of list item, recently selected by user
 
+    all_lists: Dict[str, List[Dict[str, str]]]
 
-class AppState(EventDispatcher):
-    """ application state control """
-    app_version = StringProperty(__version__)
-    font_size = NumericProperty(MIN_FONT_SIZE)              # font size of list items/names
-    filter_selected = StringProperty('normal')       # show toggled/checked items
-    filter_unselected = StringProperty('normal')     # show normal/unchecked items
-    selected_list_name = StringProperty()                   # default list on 1st startup (NOW is app_context)
-    selected_list_item = StringProperty()
-    all_lists = DictProperty()
+    def get_app_state(self) -> Dict[str, Any]:
+        """ get state of running app """
+        app_state = super().get_app_state()
+        app_state['filterSelected'] = self.filter_selected
+        app_state['filterUnselected'] = self.filter_unselected
+        app_state['selectedListName'] = self.selected_list_name
+        app_state['selectedListItem'] = self.selected_list_item
+        app_state['allLists'] = self.all_lists
+        return app_state
 
-    def __init__(self, path, **kwargs):
-        super(EventDispatcher, self).__init__(**kwargs)
-        # path: platform-specific App.user_data_dir because easier maintainable and accessible in android device
-        # .. located mostly at /sdcard/maio in android, ~/.config/maio in linux, $APPDATA$\maio in windows
-        # .. (see App.user_data_dir in kivy docs)
-        # filename: name of this class with .txt extension
-        self.filename = os.path.join(path, 'AppState.txt')
-
-    def load(self):
-        """ load_app_state app state """
-        fn = self.filename
-        try:
-            if not os.path.exists(fn):
-                # first run after first installation: ensure databases folder and use property default values
-                dn = os.path.dirname(fn)
-                if not os.path.exists(dn):
-                    os.makedirs(dn)
-        except OSError as exc:
-            dprint('AppState.load_app_state() prepare database directory exception', exc)
-        try:
-            if os.path.exists(fn):
-                with open(fn) as fp:
-                    # keeps app version of first app start/install, used for data file format updates
-                    self.app_version = eval(fp.readline())
-                    self.font_size = min(max(MIN_FONT_SIZE, eval(fp.readline())), MAX_FONT_SIZE)
-                    self.filter_selected = eval(fp.readline())
-                    self.filter_unselected = eval(fp.readline())
-                    self.selected_list_name = eval(fp.readline())
-                    self.selected_list_item = eval(fp.readline())
-                    self.all_lists = eval(fp.read())
-        except OSError as exc:
-            dprint('AppState.load_app_state() file ', fn, 'open/read/eval exception', exc)
-
-        # ensure data integrity, preventing app crash later on (e.g. after corrupted data file)
-        if not self.selected_list_name or self.selected_list_name not in self.all_lists:
-            self.select_list()
-        if self.selected_list_item not in self.all_lists[self.selected_list_name]:
-            self.select_item('')
-
-        return self
-
-    def save(self):
-        """ save_app_state app state """
-        dprint('save_app_state', self.selected_list_name, self.selected_list_item, self.all_lists)
-        if os.path.exists(self.filename):
-            fn, ext = os.path.splitext(self.filename)
-            fn += '_' + time.strftime('%Y%m%d%H') + ext
-            if not os.path.exists(fn):
-                os.rename(self.filename, fn)
-        try:
-            with open(self.filename, 'w') as fp:
-                fp.write(repr(self.app_version) + '\n')
-                fp.write(repr(self.font_size) + '\n')
-                fp.write(repr(self.filter_selected) + '\n')
-                fp.write(repr(self.filter_unselected) + '\n')
-                fp.write(repr(self.selected_list_name) + '\n')
-                fp.write(repr(self.selected_list_item) + '\n')
-                fp.write(repr(self.all_lists))
-        except OSError as exc:
-            dprint('AppState.save_app_state() exception', exc)
+    def set_app_state(self, app_state: Dict[str, Any]) -> str:
+        """ set/change the state of a running app, called for to prepare app.run_app """
+        err_msg = super().set_app_state(app_state)
+        if not err_msg:
+            if 'filterSelected' not in self.app_state_keys:
+                self.app_state_keys += ('filterSelected', 'filterUnselected', 'selectedListName', 'selectedListItem',
+                                        'allLists')
+            self.filter_selected = app_state['filterSelected']
+            self.filter_unselected = app_state['filterUnselected']
+            self.selected_list_name = app_state['selectedListName']
+            self.selected_list_item = app_state['selectedListItem']
+            self.all_lists = app_state['allLists']
+            if not self.selected_list_name or self.selected_list_name not in self.all_lists:
+                self.select_list()
+            if self.selected_list_item not in self.all_lists[self.selected_list_name]:
+                self.select_item('')
+        return err_msg
 
     # list add/chg name/copy/del handling
 
@@ -172,14 +136,11 @@ class AppState(EventDispatcher):
         """ select list item """
         self.selected_list_item = item_name
 
-
-class MaioApp(GUIApp):
-    """ app class """
     # screen switching/refreshing
 
     def switch_to_items_view(self):
         """ switch screen to list items view """
-        self.root.ids.menuBar.add_widget(Factory.ItemsView())
+        self.framework_app.root.ids.menuBar.add_widget(Factory.ItemsView())
         self.refresh_names_list()
 
     # list names
