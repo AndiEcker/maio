@@ -57,9 +57,6 @@ class MaioApp(KivyApp):
         """ set/change the state of a running app, called for to prepare app.run_app """
         err_msg = super().set_app_state(app_state)
         if not err_msg:
-            if 'filterSelected' not in self.app_state_keys:
-                self.app_state_keys += ('filterSelected', 'filterUnselected', 'selectedListName', 'selectedListItem',
-                                        'allLists')
             self.filter_selected = app_state['filterSelected']
             self.filter_unselected = app_state['filterUnselected']
             self.selected_list_name = app_state['selectedListName']

@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 1">
+    <list default="true" id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/ae/tests/conftest.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ae/tests/test_GUIApp.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test_requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/maio.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/maio.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ae/GUIApp.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/GUIApp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ae/KivyApp.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/KivyApp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/maio.ini" beforeDir="false" afterPath="$PROJECT_DIR$/maio.ini" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,6 +20,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Python Script" />
+        <option value="Python Unit Test" />
       </list>
     </option>
   </component>
@@ -32,10 +36,11 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/buildozer_V09.spec" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="restartRequiresConfirmation" value="false" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyIntegratedToolsModulesConfigurable" />
     <property name="two.files.diff.last.used.file" value="$PROJECT_DIR$/buildozer_V09.spec" />
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python tests.pytest in test_GUIApp.py">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="maio" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -57,8 +62,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="pytest in test_GUIApp.py" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="maio" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/ae" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/ae/tests/test_GUIApp.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.main" />
+      <item itemvalue="Python tests.pytest in test_GUIApp.py" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.pytest in test_GUIApp.py" />
         <item itemvalue="Python.main" />
       </list>
     </recent_temporary>
@@ -110,32 +135,40 @@
       <option name="project" value="LOCAL" />
       <updated>1579021734469</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 2">
+      <created>1579107729116</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1579107729116</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="V 0.11: UI refactoring, extended default list items" />
     <MESSAGE value="V 0.11: prepare UI and ae namespace refactoring, extended default list items:&#10;&#10;- refactored ActionBar to BoxLayout.&#10;- slightly enhanced +/- button textures.&#10;- started migration to new ae namespace GUI portions (until V 0.0.1 developed within this project).&#10;- added empty GUIApp/KivyApp ae namespace package skeletons and requirements.txt.&#10;- added DEBUG_BUBBLE.&#10;- extended/corrected list items to the ones in Irmi's mobile phone." />
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 1" />
-    <option name="LAST_COMMIT_MESSAGE" value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 1" />
+    <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 2" />
+    <option name="LAST_COMMIT_MESSAGE" value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 2" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="453" y="220" width="1084" height="718" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1577636671582">
+    <state x="453" y="220" width="1084" height="718" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1579188392590">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="453" y="220" width="1084" height="718" key="#com.intellij.execution.impl.EditConfigurationsDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577636671582" />
+    <state x="453" y="220" width="1084" height="718" key="#com.intellij.execution.impl.EditConfigurationsDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1579188392590" />
     <state x="736" y="433" width="508" height="257" key="#com.intellij.ide.actions.ChooseComponentsToExportDialog" timestamp="1577635480755">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="736" y="433" width="508" height="257" key="#com.intellij.ide.actions.ChooseComponentsToExportDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577635480755" />
-    <state x="803" y="281" width="374" height="562" key="#com.intellij.ide.util.MemberChooser" timestamp="1579098966331">
+    <state x="803" y="281" width="374" height="562" key="#com.intellij.ide.util.MemberChooser" timestamp="1579186438040">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="803" y="281" width="374" height="562" key="#com.intellij.ide.util.MemberChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1579098966331" />
-    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1579097660483">
+    <state x="803" y="281" width="374" height="562" key="#com.intellij.ide.util.MemberChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1579186438040" />
+    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1579107727912">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1579097660483" />
+    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1579107727912" />
     <state x="218" y="162" width="1555" height="800" key="DiffContextDialog" timestamp="1577637894782">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -148,46 +181,46 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="740" y="305" width="501" height="513" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1577637894162" />
-    <state width="1732" height="322" key="GridCell.Tab.0.bottom" timestamp="1578339065594">
+    <state width="1732" height="322" key="GridCell.Tab.0.bottom" timestamp="1579192551014">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.0.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1578339065594" />
-    <state width="1732" height="322" key="GridCell.Tab.0.center" timestamp="1578339065594">
+    <state width="1732" height="322" key="GridCell.Tab.0.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551014" />
+    <state width="1732" height="322" key="GridCell.Tab.0.center" timestamp="1579192551014">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.0.center/67.27.1853.1053@67.27.1853.1053" timestamp="1578339065594" />
-    <state width="1732" height="322" key="GridCell.Tab.0.left" timestamp="1578339065593">
+    <state width="1732" height="322" key="GridCell.Tab.0.center/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551014" />
+    <state width="1732" height="322" key="GridCell.Tab.0.left" timestamp="1579192551013">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.0.left/67.27.1853.1053@67.27.1853.1053" timestamp="1578339065593" />
-    <state width="1732" height="322" key="GridCell.Tab.0.right" timestamp="1578339065594">
+    <state width="1732" height="322" key="GridCell.Tab.0.left/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551013" />
+    <state width="1732" height="322" key="GridCell.Tab.0.right" timestamp="1579192551014">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1578339065594" />
-    <state width="1732" height="322" key="GridCell.Tab.1.bottom" timestamp="1578339065595">
+    <state width="1732" height="322" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551014" />
+    <state width="1732" height="322" key="GridCell.Tab.1.bottom" timestamp="1579192551015">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.1.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1578339065595" />
-    <state width="1732" height="322" key="GridCell.Tab.1.center" timestamp="1578339065595">
+    <state width="1732" height="322" key="GridCell.Tab.1.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551015" />
+    <state width="1732" height="322" key="GridCell.Tab.1.center" timestamp="1579192551015">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.1.center/67.27.1853.1053@67.27.1853.1053" timestamp="1578339065595" />
-    <state width="1732" height="322" key="GridCell.Tab.1.left" timestamp="1578339065594">
+    <state width="1732" height="322" key="GridCell.Tab.1.center/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551015" />
+    <state width="1732" height="322" key="GridCell.Tab.1.left" timestamp="1579192551015">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.1.left/67.27.1853.1053@67.27.1853.1053" timestamp="1578339065594" />
-    <state width="1732" height="322" key="GridCell.Tab.1.right" timestamp="1578339065595">
+    <state width="1732" height="322" key="GridCell.Tab.1.left/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551015" />
+    <state width="1732" height="322" key="GridCell.Tab.1.right" timestamp="1579192551015">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.1.right/67.27.1853.1053@67.27.1853.1053" timestamp="1578339065595" />
-    <state x="484" y="197" key="SettingsEditor" timestamp="1578603530671">
+    <state width="1732" height="322" key="GridCell.Tab.1.right/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551015" />
+    <state x="484" y="197" key="SettingsEditor" timestamp="1579188624559">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="484" y="197" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1578603530671" />
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1579021738142">
+    <state x="484" y="197" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1579188624559" />
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1579107731654">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1579021738142" />
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1579107731654" />
     <state width="926" height="527" key="XDebugger.FullValuePopup" timestamp="1578326160012">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -196,21 +229,32 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577712108186" />
-    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog" timestamp="1579096482854">
+    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog" timestamp="1579179531428">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1579096482854" />
+    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1579179531428" />
     <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1579101026644">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1579101026644" />
-    <state x="275" y="166" width="1474" height="794" key="find.popup" timestamp="1579021480350">
+    <state x="275" y="166" width="1474" height="794" key="find.popup" timestamp="1579192185038">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="275" y="166" width="1474" height="794" key="find.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1579021480350" />
-    <state x="658" y="281" width="672" height="678" key="search.everywhere.popup" timestamp="1578512284028">
+    <state x="275" y="166" width="1474" height="794" key="find.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1579192185038" />
+    <state x="658" y="281" width="672" height="678" key="search.everywhere.popup" timestamp="1579189702972">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="658" y="281" width="672" height="678" key="search.everywhere.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1578512284028" />
+    <state x="658" y="281" width="672" height="678" key="search.everywhere.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1579189702972" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/ae/tests/test_GUIApp.py</url>
+          <line>95</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

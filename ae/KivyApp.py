@@ -103,6 +103,10 @@ class KivyApp(GUIAppBase):
 
         return app_state
 
+    def init_app(self):
+        """ initialize framework app instance """
+        self.framework_app = FrameworkApp(self)
+
     def run_app(self):
         """ startup/display the application """
         if self.debug_bubble:
@@ -110,10 +114,6 @@ class KivyApp(GUIAppBase):
 
     def set_app_state(self, app_state: Dict[str, Any]) -> str:
         """ set/change the state of a running app, called for to prepare app.run_app """
-        if 'fontSize' not in self.app_state_keys:
-            self.app_state_keys += ('fontSize', 'winRectangle', )
-        self.framework_app = FrameworkApp(self)
-
         self.font_size = app_state['fontSize']
         win_rect = app_state['winRectangle']
         if win_rect:
