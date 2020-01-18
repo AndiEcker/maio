@@ -1,7 +1,6 @@
 """ test ae.GUIApp """
 import os
 import pytest
-import sys
 from typing import Dict, Any
 
 from ae.GUIApp import GUIAppBase, APP_STATE_SECTION_NAME
@@ -13,7 +12,7 @@ TST_DICT = {TST_VAR: TST_VAL}
 
 
 class ImplementationOfABC(GUIAppBase):
-    """ test stub class """
+    """ test abc implementation stub class """
     get_state_called = False
     init_called = False
     run_called = False
@@ -25,7 +24,7 @@ class ImplementationOfABC(GUIAppBase):
         self.get_state_called = True
         return TST_DICT
 
-    def init_app(self):
+    def on_init_app(self):
         """ init app """
         self.init_called = True
 

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/ae/tests/conftest.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ae/tests/test_GUIApp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/maio.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/maio.iml" afterDir="false" />
+    <list default="true" id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 3">
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/andi.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/andi.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ae/GUIApp.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/GUIApp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ae/KivyApp.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/KivyApp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ae/tests/test_GUIApp.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/tests/test_GUIApp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/maio.ini" beforeDir="false" afterPath="$PROJECT_DIR$/main.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/maio.kv" beforeDir="false" afterPath="$PROJECT_DIR$/main.kv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,7 +40,7 @@
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyIntegratedToolsModulesConfigurable" />
     <property name="two.files.diff.last.used.file" value="$PROJECT_DIR$/buildozer_V09.spec" />
   </component>
-  <component name="RunManager" selected="Python tests.pytest in test_GUIApp.py">
+  <component name="RunManager" selected="Python.main">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="maio" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -83,8 +83,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.pytest in test_GUIApp.py" />
         <item itemvalue="Python.main" />
+        <item itemvalue="Python tests.pytest in test_GUIApp.py" />
       </list>
     </recent_temporary>
   </component>
@@ -142,7 +142,14 @@
       <option name="project" value="LOCAL" />
       <updated>1579107729116</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 3">
+      <created>1579192732896</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1579192732896</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -150,7 +157,8 @@
     <MESSAGE value="V 0.11: prepare UI and ae namespace refactoring, extended default list items:&#10;&#10;- refactored ActionBar to BoxLayout.&#10;- slightly enhanced +/- button textures.&#10;- started migration to new ae namespace GUI portions (until V 0.0.1 developed within this project).&#10;- added empty GUIApp/KivyApp ae namespace package skeletons and requirements.txt.&#10;- added DEBUG_BUBBLE.&#10;- extended/corrected list items to the ones in Irmi's mobile phone." />
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 1" />
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 2" />
-    <option name="LAST_COMMIT_MESSAGE" value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 2" />
+    <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 3" />
+    <option name="LAST_COMMIT_MESSAGE" value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 3" />
   </component>
   <component name="WindowStateProjectService">
     <state x="453" y="220" width="1084" height="718" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1579188392590">
@@ -165,10 +173,14 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="803" y="281" width="374" height="562" key="#com.intellij.ide.util.MemberChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1579186438040" />
-    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1579107727912">
+    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1579363334307">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1579107727912" />
+    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1579363334307" />
+    <state width="657" height="466" key="DebuggerActiveHint" timestamp="1579362559059">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state width="657" height="466" key="DebuggerActiveHint/67.27.1853.1053@67.27.1853.1053" timestamp="1579362559059" />
     <state x="218" y="162" width="1555" height="800" key="DiffContextDialog" timestamp="1577637894782">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -181,66 +193,66 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="740" y="305" width="501" height="513" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1577637894162" />
-    <state width="1732" height="322" key="GridCell.Tab.0.bottom" timestamp="1579192551014">
+    <state width="1732" height="322" key="GridCell.Tab.0.bottom" timestamp="1579367686917">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.0.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551014" />
-    <state width="1732" height="322" key="GridCell.Tab.0.center" timestamp="1579192551014">
+    <state width="1732" height="322" key="GridCell.Tab.0.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1579367686917" />
+    <state width="1732" height="322" key="GridCell.Tab.0.center" timestamp="1579367686915">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.0.center/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551014" />
-    <state width="1732" height="322" key="GridCell.Tab.0.left" timestamp="1579192551013">
+    <state width="1732" height="322" key="GridCell.Tab.0.center/67.27.1853.1053@67.27.1853.1053" timestamp="1579367686915" />
+    <state width="1732" height="322" key="GridCell.Tab.0.left" timestamp="1579367686914">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.0.left/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551013" />
-    <state width="1732" height="322" key="GridCell.Tab.0.right" timestamp="1579192551014">
+    <state width="1732" height="322" key="GridCell.Tab.0.left/67.27.1853.1053@67.27.1853.1053" timestamp="1579367686914" />
+    <state width="1732" height="322" key="GridCell.Tab.0.right" timestamp="1579367686916">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551014" />
-    <state width="1732" height="322" key="GridCell.Tab.1.bottom" timestamp="1579192551015">
+    <state width="1732" height="322" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1579367686916" />
+    <state width="1732" height="322" key="GridCell.Tab.1.bottom" timestamp="1579367665120">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.1.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551015" />
-    <state width="1732" height="322" key="GridCell.Tab.1.center" timestamp="1579192551015">
+    <state width="1732" height="322" key="GridCell.Tab.1.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1579367665120" />
+    <state width="1732" height="322" key="GridCell.Tab.1.center" timestamp="1579367665120">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.1.center/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551015" />
-    <state width="1732" height="322" key="GridCell.Tab.1.left" timestamp="1579192551015">
+    <state width="1732" height="322" key="GridCell.Tab.1.center/67.27.1853.1053@67.27.1853.1053" timestamp="1579367665120" />
+    <state width="1732" height="322" key="GridCell.Tab.1.left" timestamp="1579367665119">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.1.left/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551015" />
-    <state width="1732" height="322" key="GridCell.Tab.1.right" timestamp="1579192551015">
+    <state width="1732" height="322" key="GridCell.Tab.1.left/67.27.1853.1053@67.27.1853.1053" timestamp="1579367665119" />
+    <state width="1732" height="322" key="GridCell.Tab.1.right" timestamp="1579367665120">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1732" height="322" key="GridCell.Tab.1.right/67.27.1853.1053@67.27.1853.1053" timestamp="1579192551015" />
+    <state width="1732" height="322" key="GridCell.Tab.1.right/67.27.1853.1053@67.27.1853.1053" timestamp="1579367665120" />
     <state x="484" y="197" key="SettingsEditor" timestamp="1579188624559">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="484" y="197" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1579188624559" />
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1579107731654">
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1579192735747">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1579107731654" />
-    <state width="926" height="527" key="XDebugger.FullValuePopup" timestamp="1578326160012">
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1579192735747" />
+    <state width="926" height="527" key="XDebugger.FullValuePopup" timestamp="1579362693514">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="926" height="527" key="XDebugger.FullValuePopup/67.27.1853.1053@67.27.1853.1053" timestamp="1578326160012" />
+    <state width="926" height="527" key="XDebugger.FullValuePopup/67.27.1853.1053@67.27.1853.1053" timestamp="1579362693514" />
     <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1577712108186">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577712108186" />
-    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog" timestamp="1579179531428">
+    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog" timestamp="1579350830227">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1579179531428" />
+    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1579350830227" />
     <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1579101026644">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1579101026644" />
-    <state x="275" y="166" width="1474" height="794" key="find.popup" timestamp="1579192185038">
+    <state x="275" y="166" width="1474" height="872" key="find.popup" timestamp="1579371095400">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="275" y="166" width="1474" height="794" key="find.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1579192185038" />
+    <state x="275" y="166" width="1474" height="872" key="find.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1579371095400" />
     <state x="658" y="281" width="672" height="678" key="search.everywhere.popup" timestamp="1579189702972">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -251,8 +263,18 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ae/tests/test_GUIApp.py</url>
-          <line>95</line>
+          <line>94</line>
           <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/.pyenv/versions/kivy_env/lib/python3.6/site-packages/kivy/app.py</url>
+          <line>596</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/ae/KivyApp.py</url>
+          <line>57</line>
+          <option name="timeStamp" value="12" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

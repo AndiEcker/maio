@@ -33,9 +33,9 @@
                 width: self.parent.height
             Label:
                 text:
-                    app.data.selected_list_name[:18 if app.landscape else 3] \
-                    + ("/" + app.data.selected_list_item[:18 if app.landscape else 3] \
-                    if app.data.selected_list_item else "")
+                    app.gui_app.selected_list_name[:18 if app.landscape else 3] \
+                    + ("/" + app.gui_app.selected_list_item[:18 if app.landscape else 3] \
+                    if app.gui_app.selected_list_item else "")
                 size_hint_x: None
                 width: self.parent.width - self.parent.height
     Button:
@@ -44,7 +44,7 @@
     ListFiltButton:
         id: listFilterDown
         text: 'B'
-        state: 'down' if app.data.filter_selected else 'normal'
+        state: 'down' if app.gui_app.filter_selected else 'normal'
         canvas:
             Color:
                 rgba: (0, 0, 1, .1)
@@ -54,7 +54,7 @@
     ListFiltButton:
         id: listFilterNormal
         text: 'G'
-        state: 'down' if app.data.filter_unselected else 'normal'
+        state: 'down' if app.gui_app.filter_unselected else 'normal'
     Button:
         text: '+'
         on_release: app.add_new_list_item()
@@ -71,9 +71,9 @@
                 size: self.size[0] - sp(12), self.size[1] - sp(12)
     Button:
         text: '-'
-        on_release: app.delete_list_item(app.data.selected_list_item)
-        disabled: app.data.selected_list_item
-        opacity: 1 if app.data.selected_list_item else 0
+        on_release: app.delete_list_item(app.gui_app.selected_list_item)
+        disabled: app.gui_app.selected_list_item
+        opacity: 1 if app.gui_app.selected_list_item else 0
         font_size: self.size[1]
         background_color: [.9, .9, .9, .6]
         background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
@@ -95,7 +95,7 @@
     background_down: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
     canvas:
         Color: 
-            rgba: app.toggled_item_ink
+            rgba: app.gui_app.selected_item_ink
         Rectangle:
             pos: self.pos
             size: self.size
@@ -105,41 +105,41 @@
     
 <ListName@BoxLayout>:
     size_hint_y: None
-    height: app.data.font_size * 1.5
+    height: app.gui_app.font_size * 1.5
     on_text: print('ListName.on_text', self.text)
     text: editButton.text
     Button:
         id: editButton
         size_hint_x: 0.69
         text: root.text
-        font_size: app.data.font_size
+        font_size: app.gui_app.font_size
         padding_x: sp(9)
         halign: 'center'
         valign: 'middle'
         text_size: self.size
         canvas:
             Color:
-                rgba: app.normal_item_ink
+                rgba: app.gui_app.unselected_item_ink
             Rectangle:
                 pos: self.pos
                 size: self.size
-        on_release: app.data.select_list(self.text); app.list_name_edit_start(self.text)
+        on_release: app.gui_app.select_list(self.text); app.list_name_edit_start(self.text)
     Button:
         id: selectButton
         size_hint_x: 0.30
         text: '-- >'
-        font_size: app.data.font_size * 1.2
+        font_size: app.gui_app.font_size * 1.2
         padding_x: sp(9)
         halign: 'center'
         valign: 'middle'
         text_size: self.size
         canvas:
             Color:
-                rgba: app.toggled_item_ink if editButton.text == app.data.selected_list_name else app.normal_item_ink
+                rgba: app.gui_app.selected_item_ink if editButton.text == app.gui_app.selected_list_name else app.gui_app.unselected_item_ink
             Rectangle:
                 pos: self.pos
                 size: self.size
-        on_release: app.data.select_list(editButton.text); app.refresh_items_list()
+        on_release: app.gui_app.select_list(editButton.text); app.refresh_items_list()
 
 <ListNameEditor@Popup>:
     size_hint: 0.6, 0.3
@@ -150,7 +150,7 @@
         text: root.title
         focus: True
         multiline: False
-        font_size: app.data.font_size
+        font_size: app.gui_app.font_size
         height: self.font_size * 1.5
         halign: 'left'
         valign: 'middle'
@@ -160,7 +160,7 @@
 
 <ListItem@ToggleButton>:
     size_hint_y: None
-    font_size: app.data.font_size
+    font_size: app.gui_app.font_size
     height: self.font_size * 1.5
     padding_x: sp(9)
     halign: 'left'
@@ -171,7 +171,7 @@
     split_str: '..'
     canvas:
         Color: 
-            rgba: app.toggled_item_ink
+            rgba: app.gui_app.selected_item_ink
         Rectangle:
             pos: self.pos
             size: self.size
@@ -188,7 +188,7 @@
         id: txtInp
         text: root.title
         focus: True
-        font_size: app.data.font_size
+        font_size: app.gui_app.font_size
         height: self.font_size * 1.5
         halign: 'left'
         valign: 'middle'

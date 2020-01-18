@@ -1,5 +1,6 @@
 """ GUIApp-conform Kivy app """
-from typing import Any, Dict, Optional, Sequence, TextIO
+import os
+from typing import Any, Dict, Optional, TextIO
 
 from ae.GUIApp import GUIAppBase
 
@@ -7,12 +8,12 @@ import kivy
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.factory import Factory
-from kivy.properties import BooleanProperty, ObjectProperty
+from kivy.properties import BooleanProperty
 from kivy.clock import Clock
 from kivy.metrics import sp
 from kivy.lang import Builder
 
-kivy.require('1.9.1')  # currently using 1.11.1 but at least 1.9.1 is needed for Window.softinput_mode 'below_target'
+kivy.require('1.11.1')  # currently using 1.11.1 but at least 1.9.1 is needed for Window.softinput_mode 'below_target'
 Window.softinput_mode = 'below_target'  # ensure android keyboard is not covering Popup/text input
 
 
@@ -39,41 +40,29 @@ DEBUG_BUBBLE_DEF = '''
 
 class FrameworkApp(App):
     """ framework app class """
-    title = 'My All In One'
-    icon = 'img/app_icon.png'
-    toggled_item_ink = (0.69, 1.0, 0.39, 0.18)
-    normal_item_ink = (0.39, 0.39, 0.39, 0.18)
 
     landscape = BooleanProperty()
-
-    data = ObjectProperty()
-
-    _edit_list_name = ''  # list name to be initially edited ('' on add new list)
-    _copy_items_from = ''  # list name of source list for list copy
-
-    _currentListItem = None  # ListItem widget used for to add a new or edit a list item
-
-    _multi_tap = 0  # used for listTouchDownHandler
-    _last_touch_start_callback = dict()
 
     # kivy App class methods and callbacks
 
     def __init__(self, gui_app: 'KivyApp', **kwargs):
         """ init kivy app """
         self.gui_app = gui_app
+        self.title = gui_app.app_title                      #: set kivy.app.App.title
+        self.icon = os.path.join("img", "app_icon.png")     #: set kivy.app.App.icon
+
         super().__init__(**kwargs)
 
     def build(self):
         """ build app """
-        self.gui_app.print_out('App.build(), user_data_dir', self.user_data_dir)
-        self.data = self.gui_app.app_state
+        self.gui_app.po('App.build(), user_data_dir', self.user_data_dir,
+                        "config files", getattr(self.gui_app, '_cfg_files'))
         Window.bind(on_resize=self.screen_size_changed)
-        self.root = Factory.MaioRoot()
-        return self.root
+        return Factory.MaioRoot()
 
     def screen_size_changed(self, *_):
         """ screen resize handler """
-        self.gui_app.print_out('screen_size_changed', self.root.width, self.root.height)
+        self.gui_app.po('screen_size_changed', self.root.width, self.root.height)
         self.landscape = self.root.width >= self.root.height
 
     def on_start(self):
@@ -93,34 +82,29 @@ class FrameworkApp(App):
 class KivyApp(GUIAppBase):
     """ Kivy application """
 
-    font_size: float = MIN_FONT_SIZE                    #: font size used for toolbar and list items
-    win_rectangle: Sequence = (0, 0, sp(800), sp(600))  #: (x, y, width, height) of the app window
-
-    def get_app_state(self) -> Dict[str, Any]:
-        """ determine state of running Kivy app """
-        app_state = dict()
-        app_state['fontSize'] = self.font_size
-
-        return app_state
-
-    def init_app(self):
+    def on_init_app(self):
         """ initialize framework app instance """
         self.framework_app = FrameworkApp(self)
-
-    def run_app(self):
-        """ startup/display the application """
-        if self.debug_bubble:
-            Builder.load_string(DEBUG_BUBBLE_DEF)
+        self.font_size = MIN_FONT_SIZE                  #: font size used for toolbar and list items
+        self.win_rectangle = (0, 0, sp(800), sp(600))   #: (x, y, width, height) of the app window
 
     def set_app_state(self, app_state: Dict[str, Any]) -> str:
         """ set/change the state of a running app, called for to prepare app.run_app """
-        self.font_size = app_state['fontSize']
-        win_rect = app_state['winRectangle']
-        if win_rect:
-            pos_x, pos_y, width, height = win_rect
-            self.framework_app.window
+        err_msg = super(KivyApp, self).set_app_state(app_state)
+        if not err_msg:
+            win_rect = app_state['win_rectangle']
+            if win_rect:
+                Window.left, Window.top = win_rect[:2]
+                Window.size = win_rect[2:]
 
-        return ""
+        return err_msg
+
+    def run_app(self):
+        """ startup/display the application """
+        self.framework_app.kv_file = 'main.kv'
+        if self.debug_bubble:
+            Builder.load_string(DEBUG_BUBBLE_DEF)
+        self.framework_app.run()
 
     def show_bubble(self, *objects, file: Optional[TextIO] = None, **kwargs):
         """ show popup bubble - compatible to Python print() and AppBase.print_out() """
@@ -130,4 +114,4 @@ class KivyApp(GUIAppBase):
         if not self.info_bubble.parent:  # Check if bubble is not already on screen
             Window.add_widget(self.info_bubble)
         Clock.schedule_once(lambda dt: Window.remove_widget(self.info_bubble), 9)  # Remove bubble after some seconds
-        self.print_out(*objects, file=file, **kwargs)
+        self.po(*objects, file=file, **kwargs)
