@@ -13,21 +13,6 @@ AppStateType = Dict[str, Any]           #: app state config variable type
 APP_STATE_SECTION_NAME = 'aeAppState'   #: config section name for to store app state
 
 
-def app_state_items(cfg_parser: ConfigParser) -> AppStateType:
-    """ get all app state items from the config files.
-
-    :param cfg_parser:      instance of the :class:`~configparser.ConfigParser` provided by
-                            :class:`~ae.console.ConsoleApp`.
-    :return:                dict of all app state items.
-    """
-    items = cfg_parser.items(APP_STATE_SECTION_NAME)
-    app_state = dict()
-    for key, value in items:
-        lit = Literal(value)
-        app_state[key] = lit.value
-    return app_state
-
-
 def app_state_keys(cfg_parser: ConfigParser) -> Tuple:
     """
 
@@ -41,7 +26,7 @@ def app_state_keys(cfg_parser: ConfigParser) -> Tuple:
 class GUIAppBase(ConsoleApp, ABC):
     """ abstract base class for to implement a GUIApp-conform app class """
 
-    font_size: float = 30                                   #: font size used for toolbar and list items
+    font_size: float = 30.                                  #: font size used for toolbar and list items
     framework_app: Any = None                               #: app class instance of the used GUI framework
     selected_item_ink: Tuple = (0.69, 1.0, 0.39, 0.18)      #: rgba color tuple
     unselected_item_ink: Tuple = (0.39, 0.39, 0.39, 0.18)
@@ -83,7 +68,13 @@ class GUIAppBase(ConsoleApp, ABC):
     def load_app_state(self) -> str:
         """ load application state for to prepare app.run_app """
         self.debug_bubble = self.get_opt('debugLevel') >= DEBUG_LEVEL_VERBOSE
-        app_state = app_state_items(self._cfg_parser)
+
+        items = self._cfg_parser.items(APP_STATE_SECTION_NAME)
+        app_state = dict()
+        for key, state in items:
+            lit = Literal(state, value_type=type(getattr(self, key, "")))
+            app_state[key] = lit.value
+
         return self.set_app_state(app_state)
 
     def save_app_state(self) -> str:

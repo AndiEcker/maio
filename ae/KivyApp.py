@@ -68,6 +68,9 @@ class FrameworkApp(App):
     def on_start(self):
         """ app start event """
         self.screen_size_changed()  # init. app./self.landscape (on app startup and after build)
+        display_callback = getattr(self.gui_app, 'on_draw_gui', None)
+        if display_callback:
+            display_callback()
 
     def on_pause(self):
         """ app pause event """

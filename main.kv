@@ -6,10 +6,11 @@
 
 <MaioMenuBar@BoxLayout>:
     size_hint_y: None
-    height: sp(90)
+    height: app.gui_app.font_size * 1.8
     Button:
         size_hint_x: None
         width: sp(369)
+        font_size: app.gui_app.font_size * 1.5
         on_release:
             Popup(title="Irmi's shopping list V " + version + "   (c) 2020 Andi Ecker",
             title_align='center',
@@ -37,10 +38,12 @@
                     + ("/" + app.gui_app.selected_list_item[:18 if app.landscape else 3] \
                     if app.gui_app.selected_list_item else "")
                 size_hint_x: None
+                font_size: app.gui_app.font_size * 1.5
                 width: self.parent.width - self.parent.height
     Button:
-        text: 'Lists'
-        on_release: app.switch_to_items_view()
+        text: ' ^ '
+        font_size: app.gui_app.font_size * 2.1
+        on_release: app.gui_app.refresh_names_list()
     ListFiltButton:
         id: listFilterDown
         text: 'B'
@@ -57,7 +60,7 @@
         state: 'down' if app.gui_app.filter_unselected else 'normal'
     Button:
         text: '+'
-        on_release: app.add_new_list_item()
+        on_release: app.gui_app.add_new_list_item()
         font_size: self.size[1]
         background_color: [.9, .9, .9, .6]
         background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
@@ -71,7 +74,7 @@
                 size: self.size[0] - sp(12), self.size[1] - sp(12)
     Button:
         text: '-'
-        on_release: app.delete_list_item(app.gui_app.selected_list_item)
+        on_release: app.gui_app.delete_list_item(app.gui_app.selected_list_item)
         disabled: app.gui_app.selected_list_item
         opacity: 1 if app.gui_app.selected_list_item else 0
         font_size: self.size[1]
@@ -91,6 +94,7 @@
     # .. automatic selection of at least one button (preventing empty list)
     important: True
     minimum_width: self.height
+    font_size: app.gui_app.font_size * 1.5
     background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
     background_down: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
     canvas:
@@ -99,8 +103,7 @@
         Rectangle:
             pos: self.pos
             size: self.size
-    on_release: app.toggle_list_filter(self.text, self.state)
-    group: 'listFilt'
+    on_release: app.gui_app.toggle_list_filter(self.text, self.state)
 
     
 <ListName@BoxLayout>:
@@ -123,7 +126,7 @@
             Rectangle:
                 pos: self.pos
                 size: self.size
-        on_release: app.gui_app.select_list(self.text); app.list_name_edit_start(self.text)
+        on_release: app.gui_app.select_list(self.text); app.gui_app.list_name_edit_start(self.text)
     Button:
         id: selectButton
         size_hint_x: 0.30
@@ -139,11 +142,11 @@
             Rectangle:
                 pos: self.pos
                 size: self.size
-        on_release: app.gui_app.select_list(editButton.text); app.refresh_items_list()
+        on_release: app.gui_app.select_list(editButton.text); app.gui_app.refresh_items_list()
 
 <ListNameEditor@Popup>:
     size_hint: 0.6, 0.3
-    on_dismiss: app.list_name_edit_finished(txtInp.text)
+    on_dismiss: app.gui_app.list_name_edit_finished(txtInp.text)
     auto_dismiss: True
     TextInput:
         id: txtInp
@@ -175,14 +178,14 @@
         Rectangle:
             pos: self.pos
             size: self.size
-    on_touch_down: app.items_list_touch_down_handler(self.text, args[1])
-    on_touch_up: app.items_list_touch_up_handler(self.text, args[1])
-    on_state: app.toggle_list_item(self.text, self.state)
+    on_touch_down: app.gui_app.items_list_touch_down_handler(self.text, args[1])
+    on_touch_up: app.gui_app.items_list_touch_up_handler(self.text, args[1])
+    on_state: app.gui_app.toggle_list_item(self.text, self.state)
 
     
 <ListItemEditor@Popup>:
     size_hint: 0.9, 0.3
-    on_dismiss: app.list_item_edit_finished(txtInp.text)
+    on_dismiss: app.gui_app.list_item_edit_finished(txtInp.text)
     auto_dismiss: True
     TextInput:
         id: txtInp
@@ -203,7 +206,7 @@
     what: self.what
     Button:
         text: "Ok"
-        on_release: app.delete_list_confirmed(root.what); root.dismiss()
+        on_release: app.gui_app.delete_list_confirmed(root.what); root.dismiss()
 
 
 <MaioRoot@FloatLayout>:
@@ -227,7 +230,7 @@
         background_color: [.9, .9, .9, .6]
         background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
         background_down: 'atlas://data/images/defaulttheme/slider_cursor'
-        on_release: app.add_new_list_item()
+        on_release: app.gui_app.add_new_list_item()
         canvas.after:
             Color:
                 rgba: 1, 0, 0, .6

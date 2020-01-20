@@ -53,15 +53,25 @@ class MaioApp(KivyApp):
     _multi_tap = 0                      #: used for listTouchDownHandler
     _last_touch_start_callback = dict()
 
-    def set_app_state(self, app_state: Dict[str, Any]) -> str:
+    def _set_app_state(self, app_state: Dict[str, Any]) -> str:
         """ set/change the state of a running app, called for to prepare app.run_app """
         err_msg = super().set_app_state(app_state)
         if not err_msg:
-            if not self.selected_list_name or self.selected_list_name not in self.all_lists:
-                self.select_list()
-            if self.selected_list_item not in self.all_lists[self.selected_list_name]:
-                self.select_item('')
+            if not self.all_lists:
+                self.all_lists = {'main': [dict(text='first item', state='normal'), ], }
+            self.select_list(self.selected_list_name)
+            self.select_item(self.selected_list_item)
         return err_msg
+
+    def on_draw_gui(self):
+        """ callback after app init/build for to draw/refresh gui
+        """
+        #self.framework_app.root.ids.menuBar.ids.listFilterDown.state = 'down' if self.filter_selected else 'normal'
+        #self.framework_app.root.ids.menuBar.ids.listFilterNormal.state = 'down' if self.filter_unselected else 'normal'
+        if self.selected_list_name:
+            self.refresh_items_list()
+        else:
+            self.refresh_names_list()
 
     # list add/chg name/copy/del handling
 
@@ -74,13 +84,10 @@ class MaioApp(KivyApp):
     def delete_list(self, list_name):
         """ delete existing list """
         del self.all_lists[list_name]
-        self.select_list()
 
     def select_list(self, list_name=None):
         """ select a list """
-        if not self.all_lists:
-            self.all_lists = {'main': [dict(text='first item', state='normal'), ], }
-        if list_name is None:
+        if not list_name or list_name not in self.all_lists:
             list_name = next(iter(self.all_lists))
         if self.selected_list_name != list_name:
             self.select_item('')
@@ -104,13 +111,6 @@ class MaioApp(KivyApp):
             li['state'] = state
         self.select_item(item_name)
 
-    def change_list_filter(self, filter_name, filter_state):
-        """ change list filter """
-        if filter_name == 'normal':
-            self.filter_unselected = filter_state
-        elif filter_name == 'down':
-            self.filter_selected = filter_state
-
     def delete_item(self, item_name):
         """ delete list item """
         li = self.find_item(item_name)
@@ -126,14 +126,8 @@ class MaioApp(KivyApp):
 
     def select_item(self, item_name):
         """ select list item """
-        self.selected_list_item = item_name
-
-    # screen switching/refreshing
-
-    def switch_to_items_view(self):
-        """ switch screen to list items view """
-        self.framework_app.root.ids.menuBar.add_widget(Factory.ItemsView())
-        self.refresh_names_list()
+        self.selected_list_item = item_name \
+            if self.selected_list_name and item_name in self.all_lists[self.selected_list_name] else ''
 
     # list names
 
@@ -187,6 +181,7 @@ class MaioApp(KivyApp):
         # ensure that selected_list_item is visible - if still exists in current list ?!?!?
         if self.selected_list_name in self.all_lists:
             pass
+        self.selected_list_name = ''
 
     # list items
 
@@ -306,10 +301,19 @@ class MaioApp(KivyApp):
         self.select_list(list_name)
         self.refresh_items_list()
 
-    def toggle_list_filter(self, filter_name, filter_state):
+    def toggle_list_filter(self, filter_button_text, filter_button_state):
         """ list item filter """
-        self.dpo('toggle_list_filter', filter_name, 'down' if filter_name == 'B' else 'normal', filter_state)
-        self.change_list_filter('down' if filter_name == 'B' else 'normal', filter_state)
+        self.dpo('toggle_list_filter', filter_button_text, filter_button_state)
+        toggle_selected_filter = filter_button_text == "B"
+        filtering = filter_button_state == 'down'
+        if toggle_selected_filter:
+            self.filter_selected = filtering
+            if filtering and self.filter_unselected:
+                self.filter_unselected = False
+        else:
+            self.filter_unselected = filtering
+            if filtering and self.filter_selected:
+                self.filter_selected = False
         self.refresh_items_list()
 
     def toggle_list_item(self, item_name, state):
