@@ -164,8 +164,8 @@
         Rectangle:
             pos: self.pos
             size: self.size
-    on_touch_down: app.gui_app.items_list_touch_down_handler(self.text, args[1])
-    on_touch_up: app.gui_app.items_list_touch_up_handler(self.text, args[1])
+    on_touch_down: app.gui_app.item_touch_down_handler(self.text, args[1])
+    on_touch_up: app.gui_app.item_touch_up_handler(self.text, args[1])
     on_state: app.gui_app.toggle_leaf(self.text, self.state)
 
 
@@ -182,7 +182,7 @@
         height: self.font_size * 1.5
         halign: 'left'
         valign: 'middle'
-        text_size: self.size
+        text_size: app.gui_app._current_widget.size  # self.size
 
 
 <ConfirmListDeletePopup@Popup>:

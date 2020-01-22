@@ -30,6 +30,7 @@ from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.metrics import sp
 from kivy.uix.widget import Widget
+from kivy.core.window import Window
 
 from ae.KivyApp import MIN_FONT_SIZE, MAX_FONT_SIZE, KivyApp
 
@@ -173,12 +174,26 @@ class MaioApp(KivyApp):
 
     def edit_leaf(self, item_name, *_):
         """ edit list item """
-        self.change_app_state('current_item', item_name)
+        self.dpo('edit long touched item', item_name)
         liw = self.get_widget_by_name(item_name)
         if liw:
+            self.change_app_state('current_item', item_name)
             self._current_widget = liw
-            pu = Factory.LeafEditor(title=liw.text)
-            pu.open()  # calling leaf_edit_finished() on dismiss/close
+            svw = self.framework_app.root.ids.listContainer.parent
+            border = (12, 3, 12, 3)   # (bottom, right, top, left)
+            phx = (liw.x - border[3]) / Window.width  # svw.size[0]
+            phy = (liw.y - (svw.viewport_size[1] - svw.size[1]) * svw.scroll_y - border[0]) / Window.height
+            pu = Factory.LeafEditor(title=liw.text,
+                                    pos_hint=dict(x=phx, y=phy),
+                                    size_hint=(None, None), size=(liw.width, liw.height * 3),
+                                    background_color=(.6, .6, .6, .6),
+                                    border=border,
+                                    separator_height=3,
+                                    title_align='center',
+                                    title_color=self.selected_item_ink,
+                                    title_size=self.font_size / 1.8)
+            # pu.open()  # calling leaf_edit_finished() on dismiss/close
+            Clock.schedule_once(pu.open, 1.2)       # focus is still going away with touch_up
 
     def list_name_edit_start(self, list_name='', copy_items_from=''):
         """ start/initiate the edit of a list name """
@@ -202,7 +217,7 @@ class MaioApp(KivyApp):
             self.save_app_state()
             self.display_list()  # refresh screen
 
-    def items_list_touch_down_handler(self, leaf_name, touch):
+    def item_touch_down_handler(self, leaf_name, touch):
         """ long touch detection and double/triple tap event handlers for lists (only called if list is not empty) """
         self.dpo('listTouchDownHandler', leaf_name, touch)
         if touch.is_double_tap:
@@ -218,9 +233,9 @@ class MaioApp(KivyApp):
         if liw and liw.collide_point(*local_touch_pos):
             self.dpo('....touched widget', leaf_name)
             self._last_touch_start_callback[leaf_name] = partial(self.edit_leaf, leaf_name)
-            Clock.schedule_once(self._last_touch_start_callback[leaf_name], 1.8)  # edit item text
+            Clock.schedule_once(self._last_touch_start_callback[leaf_name], 1.5)  # edit item text
 
-    def items_list_touch_up_handler(self, leaf_name, touch):
+    def item_touch_up_handler(self, leaf_name, touch):
         """ touch up detection and multi-tap event handlers for lists """
         self.dpo('listTouchUpHandler', leaf_name, touch)
         if leaf_name in self._last_touch_start_callback:
@@ -242,8 +257,11 @@ class MaioApp(KivyApp):
 
     def leaf_edit_finished(self, text):
         """ finished list edit callback """
-        self.dpo('leaf_edit_finished', text)
+        self.dpo('leaf_edit_finished', text, self._current_widget)
         liw = self._current_widget
+        if not liw:
+            self.dpo("last_edit_finished(): current widget unset in popup dismiss callback")
+            return  # sometimes this event is fired multiple times (on dismiss of popup)
         self._current_widget = None  # release ref created by add_new_leaf()/edit_leaf()
 
         remove_item = not text  # (text is None or text == '')

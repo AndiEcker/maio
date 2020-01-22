@@ -79,7 +79,7 @@ class GUIAppBase(ConsoleApp, ABC):
 
     def play_beep(self):
         """ make a short beep sound """
-        print(chr(7))
+        print(chr(7), "BEEP")
 
     def save_app_state(self) -> str:
         """ save app state in config file """
