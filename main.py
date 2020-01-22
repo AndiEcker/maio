@@ -13,7 +13,7 @@
     0.8     prevent font size to get too small after triple-touch, for to be double-touchable for to increase.
     0.9     pep008 refactoring.
     0.10    started moving add/delete from ActionBar into menu and floating buttons.
-    0.11    extended/corrected list items to the ones in Irmi's mobile phone, fixed bugs, added DEBUG_BUBBLE.
+    0.11    extended/corrected leafs to the ones in Irmi's mobile phone, fixed bugs, added DEBUG_BUBBLE.
     0.12    big refactoring of UI (migrate to KivyApp) and data structure (allow list in list).
   ToDo:
     - better handling of doubletap/tripletap
@@ -22,117 +22,144 @@
     - user specific app theme (color, fonts) config screen
 
 """
+from copy import deepcopy
 from functools import partial
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.metrics import sp
+from kivy.uix.widget import Widget
 
 from ae.KivyApp import MIN_FONT_SIZE, MAX_FONT_SIZE, KivyApp
 
 
 __version__ = '0.12'
 
-
-ListDataType = Dict[str, List[Dict[str, str]]]
+ItemDataType = Dict[str, Any]
+ListDataType = List[ItemDataType]
 
 
 class MaioApp(KivyApp):
     """ app class """
-    filter_selected: bool = True        #: True for to display selected list items
-    filter_unselected: bool = True      #: True for to display unselected list items
-    selected_list_name: str = ""        #: name of list, recently selected by user
-    selected_list_item: str = ""        #: name of list item, recently selected by user
+    filter_selected: bool = True            #: True for to hide selected leafs
+    filter_unselected: bool = True          #: True for to hide unselected leafs
+    data_tree: ListDataType = list()        #: app data
+    data_path: List[str] = list()   #: list of sub-list names, selected by user - last item can be a leaf name
+    current_item: str = ""                  #: name of the currently/last by the user touched list item (sub-list/leaf]
 
-    all_lists: ListDataType = dict()    #: app data
+    _edit_list_name: str = ''               #: list name to be initially edited ('' on add new list)
+    _copy_items_from: str = ''              #: list name of source list for list copy
+    _current_list: ListDataType = list()    #: currently displayed sub-list
+    _current_widget: Optional[Widget] = None          #: widget used for to add a new or edit a list item
+    _multi_tap: int = 0                     #: used for listTouchDownHandler
+    _last_touch_start_callback: Dict = dict()
 
-    _edit_list_name = ''                #: list name to be initially edited ('' on add new list)
-    _copy_items_from = ''               #: list name of source list for list copy
-    _currentListItem = None             #: ListItem widget used for to add a new or edit a list item
-    _multi_tap = 0                      #: used for listTouchDownHandler
-    _last_touch_start_callback = dict()
+    # app init
 
-    def _set_app_state(self, app_state: Dict[str, Any]) -> str:
+    def set_app_state(self, app_state: Dict[str, Any]) -> str:
         """ set/change the state of a running app, called for to prepare app.run_app """
         err_msg = super().set_app_state(app_state)
         if not err_msg:
-            if not self.all_lists:
-                self.all_lists = {'main': [dict(text='first item', state='normal'), ], }
-            self.select_list(self.selected_list_name)
-            self.select_item(self.selected_list_item)
+            pass
         return err_msg
 
     def on_draw_gui(self):
-        """ callback after app init/build for to draw/refresh gui
-        """
-        #self.framework_app.root.ids.menuBar.ids.listFilterDown.state = 'down' if self.filter_selected else 'normal'
-        #self.framework_app.root.ids.menuBar.ids.listFilterNormal.state = 'down' if self.filter_unselected else 'normal'
-        if self.selected_list_name:
-            self.refresh_items_list()
-        else:
-            self.refresh_names_list()
+        """ callback after app init/build for to draw/refresh gui. """
+        self.display_list()
 
-    # list add/chg name/copy/del handling
+    # item search and navigation in currently displayed list
+
+    def find_item_index(self, item_name: str) -> int:
+        """ determine list index in the currently displayed list. """
+        for idx, data in enumerate(self._current_list):
+            if data['text'] == item_name:
+                return idx
+        return -1
+
+    def get_item_by_name(self, item_name: str) -> ItemDataType:
+        """ search list item in current list """
+        lx = self.find_item_index(item_name)
+        if lx != -1:
+            return self._current_list[lx]
+        return dict(text='')
+
+    def get_widget_by_name(self, item_name: str) -> Optional[Widget]:
+        """ search list item widget """
+        lcw = self.framework_app.root.ids.listContainer
+        for li in lcw.children:
+            if li.text == item_name:
+                return li
+
+    def go_down_tree(self, list_name: str):
+        """ user navigates down in the tree into list_name """
+        self.data_path.append(list_name)
+        self.change_app_state('data_path', self.data_path)
+        self.change_app_state('current_item', '')
+        self.display_list()
+
+    def go_up_tree(self):
+        """ user navigates up in the data tree """
+        list_name = self.data_path.pop()
+        self.change_app_state('data_path', self.data_path)
+        self.change_app_state('current_item', list_name)
+        self.display_list()
+
+    # item (leaf/sub_list) add/delete/edit of name/copy/del
+
+    def add_leaf_confirmed(self, item_name: str, liw: Widget):
+        """ finish the addition of a new list item """
+        self._current_list.append(dict(text=item_name, state='normal'))
+
+        liw.text = item_name
+        lcw = self.framework_app.root.ids.listContainer
+        lcw.add_widget(liw)
+        lcw.height += liw.height
+
+        self.change_app_state('current_item', item_name)
 
     def add_list(self, list_name, copy_items_from=''):
         """ add new list """
-        cl = list(self.all_lists[copy_items_from]) if copy_items_from else []
-        self.all_lists[list_name] = cl
-        self.select_list(list_name)
+        if copy_items_from:
+            new_list = deepcopy(self.get_item_by_name(copy_items_from))
+        else:
+            new_list = dict(sub_list=list())
+        new_list['text'] = list_name
+        self._current_list.append(new_list)
+        self.change_app_state('current_item', list_name)
 
-    def delete_list(self, list_name):
-        """ delete existing list """
-        del self.all_lists[list_name]
+    def add_new_leaf(self):
+        """ start/initiate the addition of a new list item """
+        self.change_app_state('current_item', '')
+        self._current_widget = Factory.Leaf()
+        pu = Factory.LeafEditor(title='')
+        pu.open()  # calling self._current_widget on dismiss/close
 
-    def select_list(self, list_name=None):
-        """ select a list """
-        if not list_name or list_name not in self.all_lists:
-            list_name = next(iter(self.all_lists))
-        if self.selected_list_name != list_name:
-            self.select_item('')
-            self.selected_list_name = list_name
+    def delete_current_item(self):
+        """ menu delete button callback for current/last touched item in current list """
+        item_name = self.current_item
+        lid = self.get_item_by_name(item_name)
+        if 'sub_list' in lid:
+            self.delete_list_popup(item_name)
+        else:
+            self.delete_item_confirmed(item_name)
 
-    # list item handling
-
-    def add_item(self, item_name, item_state='normal'):
-        """ add item to list """
-        if item_name:
-            self.all_lists[self.selected_list_name].append(dict(text=item_name, state=item_state))
-            self.select_item(item_name)
-
-    def change_item(self, item_name, text=None, state=None):
-        """ change list item """
-        li = self.find_item(item_name)
-        if text is not None:
-            li['text'] = text
-            item_name = text
-        if state is not None:
-            li['state'] = state
-        self.select_item(item_name)
-
-    def delete_item(self, item_name):
+    def delete_data_item(self, item_name):
         """ delete list item """
-        li = self.find_item(item_name)
-        self.all_lists[self.selected_list_name].remove(li)
-        self.select_item('')
+        self._current_list.remove(self.get_item_by_name(item_name))
+        self.change_app_state('current_item', '')
 
-    def find_item(self, item_name):
-        """ find list item """
-        li = self.all_lists[self.selected_list_name]
-        for i in range(len(li)):
-            if li[i]['text'] == item_name:
-                return li[i]
-
-    def select_item(self, item_name):
-        """ select list item """
-        self.selected_list_item = item_name \
-            if self.selected_list_name and item_name in self.all_lists[self.selected_list_name] else ''
-
-    # list names
+    def delete_item_confirmed(self, item_name):
+        """ delete list item """
+        lcw = self.framework_app.root.ids.listContainer
+        liw = self.get_widget_by_name(item_name)
+        if liw:
+            self.delete_data_item(liw.text)
+            lcw.height -= liw.height
+            lcw.remove_widget(liw)
 
     @staticmethod
-    def delete_list_name(list_name):
+    def delete_list_popup(list_name):
         """ delete list """
         pu = Factory.ConfirmListDeletePopup()
         pu.what = list_name
@@ -140,91 +167,44 @@ class MaioApp(KivyApp):
 
     def delete_list_confirmed(self, list_name):
         """ delete list confirmation callback """
-        self.delete_list(list_name)
+        self.delete_data_item(list_name)
         self.save_app_state()
-        self.refresh_names_list()
+        self.display_list()
+
+    def edit_leaf(self, item_name, *_):
+        """ edit list item """
+        self.change_app_state('current_item', item_name)
+        liw = self.get_widget_by_name(item_name)
+        if liw:
+            self._current_widget = liw
+            pu = Factory.LeafEditor(title=liw.text)
+            pu.open()  # calling leaf_edit_finished() on dismiss/close
 
     def list_name_edit_start(self, list_name='', copy_items_from=''):
         """ start/initiate the edit of a list name """
         self._edit_list_name = list_name
         self._copy_items_from = copy_items_from
-        self.select_item('')
-        pu = Factory.ListNameEditor(title=list_name)
-        pu.open()  # calling self._currentListName on dismiss/close
+        self.change_app_state('current_item', '')
+        pu = Factory.ListEditor(title=list_name)
+        pu.open()  # calling self._currentList on dismiss/close
 
     def list_name_edit_finished(self, list_name):
         """ dismiss call back for new, copy and edit list name """
         self.dpo('list_name_edit_finished - new list name=', list_name)
-        if list_name not in self.all_lists:
+        if not self.find_item_index(list_name) == -1:
             if self._copy_items_from:
                 self.add_list(list_name, self._copy_items_from)
             elif self._edit_list_name:  # user edited list name
                 self.add_list(list_name, self._edit_list_name)
-                self.delete_list(self._edit_list_name)
+                self.delete_data_item(self._edit_list_name)
             else:  # user added new list name (with text)
                 self.add_list(list_name)
             self.save_app_state()
-            self.refresh_names_list()  # refresh screen
+            self.display_list()  # refresh screen
 
-    def refresh_names_list(self):
-        """ refresh names list """
-        lcw = self.framework_app.root.ids.listContainer
-        lcw.clear_widgets()
-        h = 0
-        for li in self.all_lists.keys():
-            liw = Factory.ListName()
-            liw.text = li
-            lcw.add_widget(liw)
-            h += liw.height
-        lcw.height = h
-
-        # ensure that selected_list_item is visible - if still exists in current list ?!?!?
-        if self.selected_list_name in self.all_lists:
-            pass
-        self.selected_list_name = ''
-
-    # list items
-
-    def add_list_item(self, item_name, wid):
-        """ finish the addition of a new list item """
-        self.add_item(item_name)
-        lcw = self.framework_app.root.ids.listContainer
-        wid.text = item_name
-        lcw.add_widget(wid)
-        lcw.height += wid.height
-
-    def add_new_list_item(self):
-        """ start/initiate the addition of a new list item """
-        self.select_item('')
-        self._currentListItem = Factory.ListItem()
-        pu = Factory.ListItemEditor(title='')
-        pu.open()  # calling self._currentListItem on dismiss/close
-
-    def delete_list_item(self, item_name):
-        """ delete list item """
-        if item_name:
-            lcw = self.framework_app.root.ids.listContainer
-            for li in lcw.children:
-                if li.text == item_name:
-                    self.delete_item(li.text)
-                    lcw.height -= li.height
-                    lcw.remove_widget(li)
-                    break
-
-    def edit_list_item(self, item_name, *_):
-        """ edit list item """
-        self.select_item(item_name)
-        lcw = self.framework_app.root.ids.listContainer
-        for li in lcw.children:
-            if li.text == item_name:
-                self._currentListItem = li
-                pu = Factory.ListItemEditor(title=li.text)
-                pu.open()  # calling list_item_edit_finished() on dismiss/close
-                break
-
-    def items_list_touch_down_handler(self, list_item_name, touch):
+    def items_list_touch_down_handler(self, leaf_name, touch):
         """ long touch detection and double/triple tap event handlers for lists (only called if list is not empty) """
-        self.dpo('listTouchDownHandler', list_item_name, touch)
+        self.dpo('listTouchDownHandler', leaf_name, touch)
         if touch.is_double_tap:
             self._multi_tap = 1
             return
@@ -234,72 +214,85 @@ class MaioApp(KivyApp):
         lcw = self.framework_app.root.ids.listContainer
         local_touch_pos = lcw.to_local(touch.x, touch.y)
         self.dpo('..local', local_touch_pos)
-        for wid in lcw.children:
-            self.dpo('...widget', wid.text, wid.pos)
-            if wid.collide_point(*local_touch_pos) and wid.text == list_item_name:
-                self.dpo('....found', list_item_name)
-                self._last_touch_start_callback[list_item_name] = partial(self.edit_list_item, list_item_name)
-                Clock.schedule_once(self._last_touch_start_callback[list_item_name], 1.8)  # edit item text
+        liw = self.get_widget_by_name(leaf_name)
+        if liw and liw.collide_point(*local_touch_pos):
+            self.dpo('....touched widget', leaf_name)
+            self._last_touch_start_callback[leaf_name] = partial(self.edit_leaf, leaf_name)
+            Clock.schedule_once(self._last_touch_start_callback[leaf_name], 1.8)  # edit item text
 
-    def items_list_touch_up_handler(self, list_item_name, touch):
+    def items_list_touch_up_handler(self, leaf_name, touch):
         """ touch up detection and multi-tap event handlers for lists """
-        self.dpo('listTouchUpHandler', list_item_name, touch)
-        if list_item_name in self._last_touch_start_callback:
-            Clock.unschedule(self._last_touch_start_callback[list_item_name])
+        self.dpo('listTouchUpHandler', leaf_name, touch)
+        if leaf_name in self._last_touch_start_callback:
+            Clock.unschedule(self._last_touch_start_callback[leaf_name])
         if self._multi_tap:
             # double/triple click allows to in-/decrease the list item font size
-            self.dpo(f"FONT SIZE CHANGE from {self.font_size} to {self.font_size + sp(3) * self._multi_tap}")
-            self.font_size += sp(3) * self._multi_tap
-            if self.font_size < MIN_FONT_SIZE:
-                self.font_size = MIN_FONT_SIZE
-                self.dpo(f"   .. CORRECTED to MIN={self.font_size}")
-            elif self.font_size > MAX_FONT_SIZE:
-                self.font_size = MAX_FONT_SIZE
-                self.dpo(f"   .. CORRECTED to MAX={self.font_size}")
-            self.refresh_items_list()
+            font_size = self.font_size
+            self.dpo(f"FONT SIZE CHANGE from {font_size} to {font_size + sp(3) * self._multi_tap}")
+            font_size += sp(3) * self._multi_tap
+            if font_size < MIN_FONT_SIZE:
+                font_size = MIN_FONT_SIZE
+                self.dpo(f"   .. CORRECTED to MIN={font_size}")
+            elif font_size > MAX_FONT_SIZE:
+                font_size = MAX_FONT_SIZE
+                self.dpo(f"   .. CORRECTED to MAX={font_size}")
+            self.change_app_state('font_size', font_size)
+            self.display_list()
             self._multi_tap = 0
 
-    def list_item_edit_finished(self, text):
+    def leaf_edit_finished(self, text):
         """ finished list edit callback """
-        self.dpo('list_item_edit_finished', text)
-        remove_item = (text is None or text == '')
-        new_item = (self._currentListItem.text == '')  # or use: self.gui_app.select_item == ''
-        if remove_item and new_item:  # user cancelled newly created but still not added list item
-            pass
-        elif remove_item:  # user cleared text of existing list item
-            self.delete_list_item(self._currentListItem.text)
-        elif new_item:  # user added new list item (with text)
-            self.add_list_item(text, self._currentListItem)
-        else:  # user edited list item
-            self.change_item(self._currentListItem.text, text)
-            self._currentListItem.text = text
-        self.save_app_state()
-        self._currentListItem = None  # release ref created by add_new_list_item()/edit_list_item()
+        self.dpo('leaf_edit_finished', text)
+        liw = self._current_widget
+        self._current_widget = None  # release ref created by add_new_leaf()/edit_leaf()
 
-    def refresh_items_list(self):
+        remove_item = not text  # (text is None or text == '')
+        new_item = (liw.text == '')
+        if remove_item and new_item:
+            return      # user cancelled newly created but still not added list item
+        if text and self.find_item_index(text) != -1:
+            self.play_beep()
+            return      # prevent creation of duplicates
+
+        if remove_item:  # user cleared text of existing list item
+            self.delete_item_confirmed(liw.text)
+        elif new_item:  # user added new list item (with text)
+            self.add_leaf_confirmed(text, liw)
+        else:  # user edited list item
+            self.get_item_by_name(liw.text)['text'] = text
+            liw.text = text
+            self.change_app_state('current_item', text)
+        self.save_app_state()
+
+    def display_list(self):
         """ refresh lists """
+        current_item = self.current_item
+        self._current_list = self.data_tree
+        for sub_list in self.data_path:
+            self._current_list = self.get_item_by_name(sub_list)['sub_list']
+
+        lf_ds = self.framework_app.root.ids.menuBar.ids.listFilterSelected.state == 'normal'
+        lf_ns = self.framework_app.root.ids.menuBar.ids.listFilterUnselected.state == 'normal'
+
         lcw = self.framework_app.root.ids.listContainer
         lcw.clear_widgets()
-        lf_ds = self.framework_app.root.ids.menuBar.ids.listFilterDown.state == 'normal'
-        lf_ns = self.framework_app.root.ids.menuBar.ids.listFilterNormal.state == 'normal'
         h = 0
-        for liw in self.all_lists[self.selected_list_name]:
-            if lf_ds and liw['state'] == 'down' or lf_ns and liw['state'] == 'normal':
-                liw = Factory.ListItem(**liw)
+        for lid in self._current_list:
+            sel_state = lid.get('state', 'normal') == 'down'
+            if lf_ds and sel_state or lf_ns and not sel_state:
+                liw = Factory.List() if 'sub_list' in lid else Factory.Leaf()
+                liw.text = lid['text']
+                liw.state = lid.get('state', 'normal')
+
                 lcw.add_widget(liw)
                 h += liw.height
         lcw.height = h
 
-        # ensure that selected_list_item is visible - if still exists in current list
-        if self.selected_list_item in self.all_lists[self.selected_list_name]:
+        # ensure that current leaf/sub-list is visible - if still exists in current list
+        if current_item:
             pass
-
-    def select_items_list(self, list_name):
-        """ select list """
-        self.dpo('select_list', list_name)
-        self.save_app_state()
-        self.select_list(list_name)
-        self.refresh_items_list()
+        # restore self.current_item (changed in list redraw by setting observed selectButton.state)
+        self.change_app_state('current_item', current_item)
 
     def toggle_list_filter(self, filter_button_text, filter_button_state):
         """ list item filter """
@@ -307,24 +300,26 @@ class MaioApp(KivyApp):
         toggle_selected_filter = filter_button_text == "B"
         filtering = filter_button_state == 'down'
         if toggle_selected_filter:
-            self.filter_selected = filtering
+            self.change_app_state('filter_selected', filtering)
             if filtering and self.filter_unselected:
-                self.filter_unselected = False
+                self.change_app_state('filter_unselected', False)
         else:
-            self.filter_unselected = filtering
+            self.change_app_state('filter_unselected', filtering)
             if filtering and self.filter_selected:
-                self.filter_selected = False
-        self.refresh_items_list()
-
-    def toggle_list_item(self, item_name, state):
-        """ toggle list item """
-        self.dpo('toggle_list_item', item_name, state)
-        self.change_item(item_name, state=state)
+                self.change_app_state('filter_selected', False)
         self.save_app_state()
-        if self.filter_selected or self.filter_unselected:
-            self.refresh_items_list()  # refresh only needed if one filter is active
+        self.display_list()
+
+    def toggle_leaf(self, item_name, state):
+        """ toggle list item """
+        self.dpo('toggle_leaf', item_name, state)
+        self.get_item_by_name(item_name)['state'] = state
+        self.change_app_state('current_item', item_name)
+        self.save_app_state()
+        # if self.filter_selected or self.filter_unselected:
+        #     self.display_list()  # refresh only needed if one filter is active
 
 
 # app start
 if __name__ in ('__android__', '__main__'):
-    MaioApp().run_app()
+    MaioApp(app_name='maio', app_title="Irmi's Shopping Listz").run_app()

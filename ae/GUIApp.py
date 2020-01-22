@@ -26,7 +26,7 @@ def app_state_keys(cfg_parser: ConfigParser) -> Tuple:
 class GUIAppBase(ConsoleApp, ABC):
     """ abstract base class for to implement a GUIApp-conform app class """
 
-    font_size: float = 30.                                  #: font size used for toolbar and list items
+    font_size: float = 30.                                  #: font size used for toolbar and leafs
     framework_app: Any = None                               #: app class instance of the used GUI framework
     selected_item_ink: Tuple = (0.69, 1.0, 0.39, 0.18)      #: rgba color tuple
     unselected_item_ink: Tuple = (0.39, 0.39, 0.39, 0.18)
@@ -76,6 +76,10 @@ class GUIAppBase(ConsoleApp, ABC):
             app_state[key] = lit.value
 
         return self.set_app_state(app_state)
+
+    def play_beep(self):
+        """ make a short beep sound """
+        print(chr(7))
 
     def save_app_state(self) -> str:
         """ save app state in config file """

@@ -8,7 +8,7 @@ import kivy
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.factory import Factory
-from kivy.properties import BooleanProperty
+from kivy.properties import BooleanProperty, DictProperty
 from kivy.clock import Clock
 from kivy.metrics import sp
 from kivy.lang import Builder
@@ -38,10 +38,11 @@ DEBUG_BUBBLE_DEF = '''
 '''
 
 
-class FrameworkApp(App):
+class FrameworkAppClass(App):
     """ framework app class """
 
     landscape = BooleanProperty()
+    app_state = DictProperty()
 
     # kivy App class methods and callbacks
 
@@ -84,16 +85,14 @@ class FrameworkApp(App):
 
 class KivyApp(GUIAppBase):
     """ Kivy application """
-
-    def on_init_app(self):
-        """ initialize framework app instance """
-        self.framework_app = FrameworkApp(self)
-        self.font_size = MIN_FONT_SIZE                  #: font size used for toolbar and list items
-        self.win_rectangle = (0, 0, sp(800), sp(600))   #: (x, y, width, height) of the app window
+    def change_app_state(self, state_name, new_value):
+        """ change single app state item to value in self.attribute and app_state dict item """
+        setattr(self, state_name, new_value)
+        self.framework_app.app_state[state_name] = new_value
 
     def set_app_state(self, app_state: Dict[str, Any]) -> str:
         """ set/change the state of a running app, called for to prepare app.run_app """
-        err_msg = super(KivyApp, self).set_app_state(app_state)
+        err_msg = super().set_app_state(app_state)
         if not err_msg:
             win_rect = app_state['win_rectangle']
             if win_rect:
@@ -102,11 +101,18 @@ class KivyApp(GUIAppBase):
 
         return err_msg
 
+    def on_init_app(self):
+        """ initialize framework app instance """
+        self.framework_app = FrameworkAppClass(self)
+        self.framework_app.kv_file = 'main.kv'
+        self.font_size = MIN_FONT_SIZE                  #: font size used for toolbar and leafs
+        self.win_rectangle = (sp(90), sp(90), sp(800), sp(600))   #: (x, y, width, height) of the app window
+
     def run_app(self):
         """ startup/display the application """
-        self.framework_app.kv_file = 'main.kv'
         if self.debug_bubble:
             Builder.load_string(DEBUG_BUBBLE_DEF)
+        self.framework_app.app_state = self.get_app_state()
         self.framework_app.run()
 
     def show_bubble(self, *objects, file: Optional[TextIO] = None, **kwargs):

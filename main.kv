@@ -6,22 +6,18 @@
 
 <MaioMenuBar@BoxLayout>:
     size_hint_y: None
-    height: app.gui_app.font_size * 1.8
+    height: app.app_state['font_size'] * 1.8
     Button:
-        size_hint_x: None
         width: sp(369)
-        font_size: app.gui_app.font_size * 1.5
+        font_size: app.app_state['font_size'] * 1.5
         on_release:
             Popup(title="Irmi's shopping list V " + version + "   (c) 2020 Andi Ecker",
             title_align='center',
             content=Label(text=
-            "Touch short on list icon/name for\n"
-            " to display their items.\n"
-            "Touch long for to change list icon/name.\n"
-            "Wipe list name for to drop the list.\n"
-            "Change list name for to copy the list.\n\n"
-            "Similar actions for each list item\n"
-            " are available within each list.",
+            "Touch short on leaf/list name for to toggle selection.\n"
+            "Touch short on lists --> icon for\n"
+            "to display their leafs and sub-lists.\n"
+            "Touch long on leaf/list name for to edit the name.",
             halign='center'),
             size_hint_y=.6
             ).open()
@@ -34,34 +30,46 @@
                 width: self.parent.height
             Label:
                 text:
-                    app.gui_app.selected_list_name[:18 if app.landscape else 3] \
-                    + ("/" + app.gui_app.selected_list_item[:18 if app.landscape else 3] \
-                    if app.gui_app.selected_list_item else "")
+                    " / ".join(app.app_state['data_path'])[:18 if app.landscape else 3] \
+                    + (" ->" + app.app_state['current_item'][:18 if app.landscape else 3] \
+                    if app.app_state['current_item'] else "")
                 size_hint_x: None
-                font_size: app.gui_app.font_size * 1.5
                 width: self.parent.width - self.parent.height
+                font_size: app.app_state['font_size'] * 1.2
+                text_size: self.size
+                halign: 'center'
+                valign: 'middle'
+                shorten: True
+                shorten_from: 'left'
+                split_str: '...'
     Button:
         text: ' ^ '
-        font_size: app.gui_app.font_size * 2.1
-        on_release: app.gui_app.refresh_names_list()
+        on_release: app.gui_app.go_up_tree()
+        font_size: app.app_state['font_size'] * 2.1
+        size_hint_max_x: self.height * 2.
+        size_hint_x: 1 if app.app_state['data_path'] else None
+        width: self.height if app.app_state['data_path'] else 0
+        disabled: not app.app_state['data_path']
+        opacity: 1 if app.app_state['data_path'] else 0
     ListFiltButton:
-        id: listFilterDown
+        id: listFilterSelected
         text: 'B'
-        state: 'down' if app.gui_app.filter_selected else 'normal'
+        state: 'down' if app.app_state['filter_selected'] else 'normal'
         canvas:
             Color:
-                rgba: (0, 0, 1, .1)
+                rgba: (0, 0, 1, .21)     # add blue
             Rectangle:
                 pos: self.pos
                 size: self.size
     ListFiltButton:
-        id: listFilterNormal
+        id: listFilterUnselected
         text: 'G'
-        state: 'down' if app.gui_app.filter_unselected else 'normal'
+        state: 'down' if app.app_state['filter_unselected'] else 'normal'
     Button:
         text: '+'
-        on_release: app.gui_app.add_new_list_item()
+        on_release: app.gui_app.add_new_leaf()
         font_size: self.size[1]
+        size_hint_max_x: self.height * 2.
         background_color: [.9, .9, .9, .6]
         background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
         background_down: 'atlas://data/images/defaulttheme/slider_cursor'
@@ -74,16 +82,19 @@
                 size: self.size[0] - sp(12), self.size[1] - sp(12)
     Button:
         text: '-'
-        on_release: app.gui_app.delete_list_item(app.gui_app.selected_list_item)
-        disabled: app.gui_app.selected_list_item
-        opacity: 1 if app.gui_app.selected_list_item else 0
+        on_release: app.gui_app.delete_current_item()
         font_size: self.size[1]
+        size_hint_max_x: self.height * 2.
+        size_hint_x: 1 if app.app_state['current_item'] else None
+        width: self.height if app.app_state['current_item'] else 0
+        disabled: not app.app_state['current_item']
+        opacity: 1 if app.app_state['current_item'] else 0
         background_color: [.9, .9, .9, .6]
         background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
         background_down: 'atlas://data/images/defaulttheme/slider_cursor'
         canvas.after:
             Color:
-                rgba: 1, .3, 0, .6
+                rgba: 1, .3, 0, .36
             Ellipse:
                 pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
                 size: self.size[0] - sp(12), self.size[1] - sp(12)
@@ -94,76 +105,51 @@
     # .. automatic selection of at least one button (preventing empty list)
     important: True
     minimum_width: self.height
-    font_size: app.gui_app.font_size * 1.5
+    font_size: app.app_state['font_size'] * 1.5
+    size_hint_max_x: self.height * 2.
     background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
     background_down: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
     canvas:
         Color: 
-            rgba: app.gui_app.selected_item_ink
+            rgba: app.app_state['selected_item_ink']
         Rectangle:
             pos: self.pos
             size: self.size
     on_release: app.gui_app.toggle_list_filter(self.text, self.state)
 
     
-<ListName@BoxLayout>:
+<List@BoxLayout>:
+    state: selectButton.state
+    text: selectButton.text
     size_hint_y: None
-    height: app.gui_app.font_size * 1.5
-    on_text: print('ListName.on_text', self.text)
-    text: editButton.text
-    Button:
-        id: editButton
-        size_hint_x: 0.69
-        text: root.text
-        font_size: app.gui_app.font_size
-        padding_x: sp(9)
-        halign: 'center'
-        valign: 'middle'
-        text_size: self.size
-        canvas:
-            Color:
-                rgba: app.gui_app.unselected_item_ink
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        on_release: app.gui_app.select_list(self.text); app.gui_app.list_name_edit_start(self.text)
-    Button:
+    height: app.app_state['font_size'] * 1.5
+    Leaf:
         id: selectButton
-        size_hint_x: 0.30
+        state: root.state
+        text: root.text
+        size_hint_x: 0.69
+    Button:
+        id: enterButton
         text: '-- >'
-        font_size: app.gui_app.font_size * 1.2
+        size_hint_x: 0.30
+        font_size: app.app_state['font_size'] * 1.2
         padding_x: sp(9)
         halign: 'center'
         valign: 'middle'
         text_size: self.size
         canvas:
             Color:
-                rgba: app.gui_app.selected_item_ink if editButton.text == app.gui_app.selected_list_name else app.gui_app.unselected_item_ink
+                rgba:
+                    app.app_state['selected_item_ink'] if selectButton.state == 'down' \
+                    else app.app_state['unselected_item_ink']
             Rectangle:
                 pos: self.pos
                 size: self.size
-        on_release: app.gui_app.select_list(editButton.text); app.gui_app.refresh_items_list()
+        on_release: app.gui_app.go_down_tree(selectButton.text)
 
-<ListNameEditor@Popup>:
-    size_hint: 0.6, 0.3
-    on_dismiss: app.gui_app.list_name_edit_finished(txtInp.text)
-    auto_dismiss: True
-    TextInput:
-        id: txtInp
-        text: root.title
-        focus: True
-        multiline: False
-        font_size: app.gui_app.font_size
-        height: self.font_size * 1.5
-        halign: 'left'
-        valign: 'middle'
-        text_size: self.size
-
-
-
-<ListItem@ToggleButton>:
+<Leaf@ToggleButton>:
     size_hint_y: None
-    font_size: app.gui_app.font_size
+    font_size: app.app_state['font_size']
     height: self.font_size * 1.5
     padding_x: sp(9)
     halign: 'left'
@@ -173,25 +159,26 @@
     shorten_from: 'right'
     split_str: '..'
     canvas:
-        Color: 
-            rgba: app.gui_app.selected_item_ink
+        Color:
+            rgba: app.app_state['selected_item_ink'] if self.state == 'down' else app.app_state['unselected_item_ink']
         Rectangle:
             pos: self.pos
             size: self.size
     on_touch_down: app.gui_app.items_list_touch_down_handler(self.text, args[1])
     on_touch_up: app.gui_app.items_list_touch_up_handler(self.text, args[1])
-    on_state: app.gui_app.toggle_list_item(self.text, self.state)
+    on_state: app.gui_app.toggle_leaf(self.text, self.state)
 
-    
-<ListItemEditor@Popup>:
+
+<LeafEditor@Popup>:
     size_hint: 0.9, 0.3
-    on_dismiss: app.gui_app.list_item_edit_finished(txtInp.text)
+    on_dismiss: app.gui_app.leaf_edit_finished(txtInp.text)
     auto_dismiss: True
     TextInput:
         id: txtInp
         text: root.title
         focus: True
-        font_size: app.gui_app.font_size
+        multiline: False
+        font_size: app.app_state['font_size']
         height: self.font_size * 1.5
         halign: 'left'
         valign: 'middle'
@@ -201,12 +188,12 @@
 <ConfirmListDeletePopup@Popup>:
     size_hint: 0.9, 0.15
     auto_dismiss: True
-    title: "Confirm deletion of the list " + (root.what or "><")
+    title: "Confirm deletion of the list " + (root.what or "><") + " including all sub-items"
     title_align: 'center'
     what: self.what
     Button:
         text: "Ok"
-        on_release: app.gui_app.delete_list_confirmed(root.what); root.dismiss()
+        on_release: app.gui_app.delete_item_confirmed(root.what); root.dismiss()
 
 
 <MaioRoot@FloatLayout>:
@@ -230,7 +217,7 @@
         background_color: [.9, .9, .9, .6]
         background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
         background_down: 'atlas://data/images/defaulttheme/slider_cursor'
-        on_release: app.gui_app.add_new_list_item()
+        on_release: app.gui_app.add_new_leaf()
         canvas.after:
             Color:
                 rgba: 1, 0, 0, .6
