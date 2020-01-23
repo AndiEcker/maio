@@ -40,6 +40,8 @@ __version__ = '0.12'
 ItemDataType = Dict[str, Any]
 ListDataType = List[ItemDataType]
 
+DEL_SUB_LIST_PREFIX = "from "               #: delete_item_confirmed() item_name prefix: if list or sub_list get deleted
+
 
 class MaioApp(KivyApp):
     """ app class """
@@ -95,15 +97,20 @@ class MaioApp(KivyApp):
     def go_down_tree(self, list_name: str):
         """ user navigates down in the tree into list_name """
         self.data_path.append(list_name)
-        self.change_app_state('data_path', self.data_path)
-        self.change_app_state('current_item', '')
-        self.display_list()
+        self._set_path_and_current_item('')
 
     def go_up_tree(self):
         """ user navigates up in the data tree """
         list_name = self.data_path.pop()
+        self._set_path_and_current_item(list_name)
+
+    def _set_path_and_current_item(self, item_name):
+        """ propagate change of data path and current item,
+
+        :param item_name:   name of new current item.
+        """
         self.change_app_state('data_path', self.data_path)
-        self.change_app_state('current_item', list_name)
+        self.change_app_state('current_item', item_name)
         self.display_list()
 
     # item (leaf/sub_list) add/delete/edit of name/copy/del
@@ -141,7 +148,10 @@ class MaioApp(KivyApp):
         item_name = self.current_item
         lid = self.get_item_by_name(item_name)
         if 'sub_list' in lid:
-            self.delete_list_popup(item_name)
+            if lid['sub_list']:
+                self.delete_list_popup(item_name)
+                return
+            lid.pop('sub_list')
         else:
             self.delete_item_confirmed(item_name)
 
@@ -151,13 +161,21 @@ class MaioApp(KivyApp):
         self.change_app_state('current_item', '')
 
     def delete_item_confirmed(self, item_name):
-        """ delete list item """
+        """ delete item or sub-list of this item """
+        if item_name.startswith(DEL_SUB_LIST_PREFIX):
+            item_name = item_name[len(DEL_SUB_LIST_PREFIX):]
+            del_sub_list = True
+        else:
+            del_sub_list = False
         lcw = self.framework_app.root.ids.listContainer
         liw = self.get_widget_by_name(item_name)
         if liw:
-            self.delete_data_item(liw.text)
-            lcw.height -= liw.height
-            lcw.remove_widget(liw)
+            if del_sub_list:
+                self.get_item_by_name(item_name).pop('sub_list', None)
+            else:
+                self.delete_data_item(liw.text)
+                lcw.height -= liw.height
+                lcw.remove_widget(liw)
 
     @staticmethod
     def delete_list_popup(list_name):
@@ -172,7 +190,7 @@ class MaioApp(KivyApp):
         self.save_app_state()
         self.display_list()
 
-    def edit_leaf(self, item_name, *_):
+    def edit_item_popup(self, item_name, *_):
         """ edit list item """
         self.dpo('edit long touched item', item_name)
         liw = self.get_widget_by_name(item_name)
@@ -192,8 +210,51 @@ class MaioApp(KivyApp):
                                     title_align='center',
                                     title_color=self.selected_item_ink,
                                     title_size=self.font_size / 1.8)
-            # pu.open()  # calling leaf_edit_finished() on dismiss/close
+            # pu.open()  # calling edit_item_finished() on dismiss/close
             Clock.schedule_once(pu.open, 1.2)       # focus is still going away with touch_up
+
+    def edit_item_finished(self, text, state):
+        """ finished list edit callback """
+        self.dpo('edit_item_finished', text, self._current_widget)
+        liw = self._current_widget
+        if not liw:
+            self.dpo("last_edit_finished(): current widget unset in popup dismiss callback")
+            return  # sometimes this event is fired multiple times (on dismiss of popup)
+        self._current_widget = None  # release ref created by add_new_leaf()/edit_item_popup()
+
+        remove_item = not text  # (text is None or text == '')
+        append_item = (liw.text == '')
+        if remove_item and append_item:
+            return      # user cancelled newly created but still not added list item
+        if (append_item or text != liw.text) and self.find_item_index(text) != -1:
+            self.play_beep()
+            return      # prevent creation of duplicates
+
+        item_data = self.get_item_by_name(liw.text)
+        if remove_item:  # user cleared text of existing list item
+            if item_data.get('sub_list'):
+                self.delete_list_popup(liw.text)
+                return
+            self.delete_item_confirmed(liw.text)
+        elif append_item:  # user added new list item (with text)
+            if state == 'down':
+                self.add_list(text)
+            else:
+                self.add_leaf_confirmed(text, liw)
+        else:  # user edited list item
+            item_data['text'] = text
+            liw.text = text
+            if state != 'down' if 'sub_list' in item_data else 'normal':
+                if state == 'normal':
+                    if item_data.get('sub_list'):
+                        self.delete_list_popup(DEL_SUB_LIST_PREFIX + text)
+                        return
+                    item_data.pop('sub_list')
+                else:
+                    item_data['sub_list'] = list()
+            self.change_app_state('current_item', text)
+        self.save_app_state()
+        self.display_list()
 
     def list_name_edit_start(self, list_name='', copy_items_from=''):
         """ start/initiate the edit of a list name """
@@ -232,7 +293,7 @@ class MaioApp(KivyApp):
         liw = self.get_widget_by_name(leaf_name)
         if liw and liw.collide_point(*local_touch_pos):
             self.dpo('....touched widget', leaf_name)
-            self._last_touch_start_callback[leaf_name] = partial(self.edit_leaf, leaf_name)
+            self._last_touch_start_callback[leaf_name] = partial(self.edit_item_popup, leaf_name)
             Clock.schedule_once(self._last_touch_start_callback[leaf_name], 1.5)  # edit item text
 
     def item_touch_up_handler(self, leaf_name, touch):
@@ -254,33 +315,6 @@ class MaioApp(KivyApp):
             self.change_app_state('font_size', font_size)
             self.display_list()
             self._multi_tap = 0
-
-    def leaf_edit_finished(self, text):
-        """ finished list edit callback """
-        self.dpo('leaf_edit_finished', text, self._current_widget)
-        liw = self._current_widget
-        if not liw:
-            self.dpo("last_edit_finished(): current widget unset in popup dismiss callback")
-            return  # sometimes this event is fired multiple times (on dismiss of popup)
-        self._current_widget = None  # release ref created by add_new_leaf()/edit_leaf()
-
-        remove_item = not text  # (text is None or text == '')
-        new_item = (liw.text == '')
-        if remove_item and new_item:
-            return      # user cancelled newly created but still not added list item
-        if text and self.find_item_index(text) != -1:
-            self.play_beep()
-            return      # prevent creation of duplicates
-
-        if remove_item:  # user cleared text of existing list item
-            self.delete_item_confirmed(liw.text)
-        elif new_item:  # user added new list item (with text)
-            self.add_leaf_confirmed(text, liw)
-        else:  # user edited list item
-            self.get_item_by_name(liw.text)['text'] = text
-            liw.text = text
-            self.change_app_state('current_item', text)
-        self.save_app_state()
 
     def display_list(self):
         """ refresh lists """

@@ -171,18 +171,30 @@
 
 <LeafEditor@Popup>:
     size_hint: 0.9, 0.3
-    on_dismiss: app.gui_app.leaf_edit_finished(txtInp.text)
+    on_dismiss: app.gui_app.edit_item_finished(itemTextInp.text, itemIsListInp.state)
     auto_dismiss: True
-    TextInput:
-        id: txtInp
-        text: root.title
-        focus: True
-        multiline: False
-        font_size: app.app_state['font_size']
-        height: self.font_size * 1.5
-        halign: 'left'
-        valign: 'middle'
-        text_size: app.gui_app._current_widget.size  # self.size
+    BoxLayout:
+        TextInput:
+            id: itemTextInp
+            text: root.title
+            focus: True
+            multiline: False
+            size_hint_x: 0.69
+            font_size: app.app_state['font_size']
+            height: self.font_size * 1.5
+            halign: 'left'
+            valign: 'middle'
+            text_size: app.gui_app._current_widget.size  # self.size
+        ToggleButton:
+            id: itemIsListInp
+            state: 'down' if 'sub_list' in app.gui_app.get_item_by_name(root.title) else 'normal'
+            text: '-- >'
+            size_hint_x: 0.30
+            font_size: app.app_state['font_size'] * 1.2
+            padding_x: sp(9)
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.size
 
 
 <ConfirmListDeletePopup@Popup>:
