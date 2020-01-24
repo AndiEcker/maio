@@ -23,7 +23,7 @@ def app_state_keys(cfg_parser: ConfigParser) -> Tuple:
     return tuple(cfg_parser.options(APP_STATE_SECTION_NAME))
 
 
-class GUIAppBase(ConsoleApp, ABC):
+class MainAppBase(ConsoleApp, ABC):
     """ abstract base class for to implement a GUIApp-conform app class """
 
     font_size: float = 30.                                  #: font size used for toolbar and leafs

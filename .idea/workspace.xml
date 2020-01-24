@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/maio.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/maio.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ae/GUIApp.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/GUIApp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ae/KivyApp.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/KivyApp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ae/tests/test_GUIApp.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/tests/test_GUIApp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.kv" beforeDir="false" afterPath="$PROJECT_DIR$/main.kv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/maio.ini" beforeDir="false" afterPath="$PROJECT_DIR$/maio.ini" afterDir="false" />
@@ -173,7 +177,14 @@
       <option name="project" value="LOCAL" />
       <updated>1579713659296</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 8">
+      <created>1579809455310</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1579809455310</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -186,7 +197,8 @@
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 5" />
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 6" />
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 7" />
-    <option name="LAST_COMMIT_MESSAGE" value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 7" />
+    <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 8" />
+    <option name="LAST_COMMIT_MESSAGE" value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 8" />
   </component>
   <component name="WindowStateProjectService">
     <state x="453" y="220" width="1084" height="718" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1579188392590">
@@ -205,14 +217,14 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="803" y="281" width="374" height="562" key="#com.intellij.ide.util.MemberChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1579186438040" />
-    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1579713658293">
+    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1579809454506">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1579713658293" />
-    <state width="1137" height="466" key="DebuggerActiveHint" timestamp="1579704645733">
+    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1579809454506" />
+    <state width="1253" height="767" key="DebuggerActiveHint" timestamp="1579885583734">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1137" height="466" key="DebuggerActiveHint/67.27.1853.1053@67.27.1853.1053" timestamp="1579704645733" />
+    <state width="1253" height="767" key="DebuggerActiveHint/67.27.1853.1053@67.27.1853.1053" timestamp="1579885583734" />
     <state x="218" y="162" width="1555" height="800" key="DiffContextDialog" timestamp="1577637894782">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -225,38 +237,38 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="740" y="305" width="501" height="513" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1579437859783" />
-    <state width="1734" height="322" key="GridCell.Tab.0.bottom" timestamp="1579809257212">
+    <state width="1734" height="322" key="GridCell.Tab.0.bottom" timestamp="1579891742561">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1734" height="322" key="GridCell.Tab.0.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1579809257212" />
-    <state width="1734" height="322" key="GridCell.Tab.0.center" timestamp="1579809257212">
+    <state width="1734" height="322" key="GridCell.Tab.0.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1579891742561" />
+    <state width="1734" height="322" key="GridCell.Tab.0.center" timestamp="1579891742561">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1734" height="322" key="GridCell.Tab.0.center/67.27.1853.1053@67.27.1853.1053" timestamp="1579809257212" />
-    <state width="1734" height="322" key="GridCell.Tab.0.left" timestamp="1579809257211">
+    <state width="1734" height="322" key="GridCell.Tab.0.center/67.27.1853.1053@67.27.1853.1053" timestamp="1579891742561" />
+    <state width="1734" height="322" key="GridCell.Tab.0.left" timestamp="1579891742560">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1734" height="322" key="GridCell.Tab.0.left/67.27.1853.1053@67.27.1853.1053" timestamp="1579809257211" />
-    <state width="1734" height="322" key="GridCell.Tab.0.right" timestamp="1579809257212">
+    <state width="1734" height="322" key="GridCell.Tab.0.left/67.27.1853.1053@67.27.1853.1053" timestamp="1579891742560" />
+    <state width="1734" height="322" key="GridCell.Tab.0.right" timestamp="1579891742561">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1734" height="322" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1579809257212" />
-    <state width="1734" height="322" key="GridCell.Tab.1.bottom" timestamp="1579809257078">
+    <state width="1734" height="322" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1579891742561" />
+    <state width="1734" height="322" key="GridCell.Tab.1.bottom" timestamp="1579891742470">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1734" height="322" key="GridCell.Tab.1.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1579809257078" />
-    <state width="1734" height="322" key="GridCell.Tab.1.center" timestamp="1579809257077">
+    <state width="1734" height="322" key="GridCell.Tab.1.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1579891742470" />
+    <state width="1734" height="322" key="GridCell.Tab.1.center" timestamp="1579891742470">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1734" height="322" key="GridCell.Tab.1.center/67.27.1853.1053@67.27.1853.1053" timestamp="1579809257077" />
-    <state width="1734" height="322" key="GridCell.Tab.1.left" timestamp="1579809257077">
+    <state width="1734" height="322" key="GridCell.Tab.1.center/67.27.1853.1053@67.27.1853.1053" timestamp="1579891742470" />
+    <state width="1734" height="322" key="GridCell.Tab.1.left" timestamp="1579891742469">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1734" height="322" key="GridCell.Tab.1.left/67.27.1853.1053@67.27.1853.1053" timestamp="1579809257077" />
-    <state width="1734" height="322" key="GridCell.Tab.1.right" timestamp="1579809257078">
+    <state width="1734" height="322" key="GridCell.Tab.1.left/67.27.1853.1053@67.27.1853.1053" timestamp="1579891742469" />
+    <state width="1734" height="322" key="GridCell.Tab.1.right" timestamp="1579891742470">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1734" height="322" key="GridCell.Tab.1.right/67.27.1853.1053@67.27.1853.1053" timestamp="1579809257078" />
+    <state width="1734" height="322" key="GridCell.Tab.1.right/67.27.1853.1053@67.27.1853.1053" timestamp="1579891742470" />
     <state x="635" y="256" key="SettingsEditor" timestamp="1579633123174">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -265,30 +277,30 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state width="498" height="446" key="SwitcherDM/67.27.1853.1053@67.27.1853.1053" timestamp="1579607445271" />
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1579713662193">
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1579809458812">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1579713662193" />
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1579809458812" />
     <state width="926" height="527" key="XDebugger.FullValuePopup" timestamp="1579616305267">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state width="926" height="527" key="XDebugger.FullValuePopup/67.27.1853.1053@67.27.1853.1053" timestamp="1579616305267" />
-    <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1577712108186">
+    <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1579891696683">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1577712108186" />
-    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog" timestamp="1579776183380">
+    <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1579891696683" />
+    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog" timestamp="1579860167495">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1579776183380" />
-    <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1579638660283">
+    <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1579860167495" />
+    <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1579881160070">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1579638660283" />
-    <state x="274" y="85" width="1474" height="968" key="find.popup" timestamp="1579804440565">
+    <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1579881160070" />
+    <state x="274" y="85" width="1474" height="968" key="find.popup" timestamp="1579890681735">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="274" y="85" width="1474" height="968" key="find.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1579804440565" />
+    <state x="274" y="85" width="1474" height="968" key="find.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1579890681735" />
     <state x="740" y="205" width="501" height="713" key="refactoring.ChangeSignatureDialog" timestamp="1579471839527">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>

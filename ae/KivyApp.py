@@ -2,7 +2,7 @@
 import os
 from typing import Any, Dict, Optional, TextIO
 
-from ae.GUIApp import GUIAppBase
+from ae.GUIApp import MainAppBase
 
 import kivy
 from kivy.app import App
@@ -38,7 +38,7 @@ DEBUG_BUBBLE_DEF = '''
 '''
 
 
-class FrameworkAppClass(App):
+class FrameworkApp(App):
     """ framework app class """
 
     landscape = BooleanProperty()
@@ -46,44 +46,44 @@ class FrameworkAppClass(App):
 
     # kivy App class methods and callbacks
 
-    def __init__(self, gui_app: 'KivyApp', **kwargs):
+    def __init__(self, main_app: 'KivyMainApp', **kwargs):
         """ init kivy app """
-        self.gui_app = gui_app
-        self.title = gui_app.app_title                      #: set kivy.app.App.title
+        self.main_app = main_app
+        self.title = main_app.app_title                      #: set kivy.app.App.title
         self.icon = os.path.join("img", "app_icon.png")     #: set kivy.app.App.icon
 
         super().__init__(**kwargs)
 
     def build(self):
         """ build app """
-        self.gui_app.po('App.build(), user_data_dir', self.user_data_dir,
-                        "config files", getattr(self.gui_app, '_cfg_files'))
+        self.main_app.po('App.build(), user_data_dir', self.user_data_dir,
+                        "config files", getattr(self.main_app, '_cfg_files'))
         Window.bind(on_resize=self.screen_size_changed)
         return Factory.MaioRoot()
 
     def screen_size_changed(self, *_):
         """ screen resize handler """
-        self.gui_app.po('screen_size_changed', self.root.width, self.root.height)
+        self.main_app.po('screen_size_changed', self.root.width, self.root.height)
         self.landscape = self.root.width >= self.root.height
 
     def on_start(self):
         """ app start event """
         self.screen_size_changed()  # init. app./self.landscape (on app startup and after build)
-        display_callback = getattr(self.gui_app, 'on_draw_gui', None)
+        display_callback = getattr(self.main_app, 'on_draw_gui', None)
         if display_callback:
             display_callback()
 
     def on_pause(self):
         """ app pause event """
-        self.gui_app.save_app_state()
+        self.main_app.save_app_state()
         return True
 
     def on_stop(self):
         """ quit app event """
-        self.gui_app.save_app_state()
+        self.main_app.save_app_state()
 
 
-class KivyApp(GUIAppBase):
+class KivyMainApp(MainAppBase):
     """ Kivy application """
     def change_app_state(self, state_name, new_value):
         """ change single app state item to value in self.attribute and app_state dict item """
@@ -103,7 +103,7 @@ class KivyApp(GUIAppBase):
 
     def on_init_app(self):
         """ initialize framework app instance """
-        self.framework_app = FrameworkAppClass(self)
+        self.framework_app = FrameworkApp(self)
         self.framework_app.kv_file = 'main.kv'
         self.font_size = MIN_FONT_SIZE                  #: font size used for toolbar and leafs
         self.win_rectangle = (sp(90), sp(90), sp(800), sp(600))   #: (x, y, width, height) of the app window

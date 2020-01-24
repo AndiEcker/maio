@@ -17,7 +17,8 @@
             "Touch short on leaf/list name for to toggle selection.\n"
             "Touch short on lists --> icon for\n"
             "to display their leafs and sub-lists.\n"
-            "Touch long on leaf/list name for to edit the name.",
+            "Touch long on leaf/list name for to change name\n"
+            "or for to add/remove sub-list",
             halign='center'),
             size_hint_y=.6
             ).open()
@@ -30,7 +31,7 @@
                 width: self.parent.height
             Label:
                 text:
-                    " / ".join(app.app_state['data_path'])[:18 if app.landscape else 3] \
+                    " / ".join(_[:18 if app.landscape else 3] for _ in app.app_state['data_path']) \
                     + (" ->" + app.app_state['current_item'][:18 if app.landscape else 3] \
                     if app.app_state['current_item'] else "")
                 size_hint_x: None
@@ -44,13 +45,14 @@
                 split_str: '...'
     Button:
         text: ' ^ '
-        on_release: app.gui_app.go_up_tree()
+        on_release: app.main_app.go_up_tree()
         font_size: app.app_state['font_size'] * 2.1
         size_hint_max_x: self.height * 2.
         size_hint_x: 1 if app.app_state['data_path'] else None
         width: self.height if app.app_state['data_path'] else 0
         disabled: not app.app_state['data_path']
         opacity: 1 if app.app_state['data_path'] else 0
+        valign: 'bottom'
     ListFiltButton:
         id: listFilterSelected
         text: 'B'
@@ -67,7 +69,7 @@
         state: 'down' if app.app_state['filter_unselected'] else 'normal'
     Button:
         text: '+'
-        on_release: app.gui_app.add_new_leaf()
+        on_release: app.main_app.add_new_item()
         font_size: self.size[1]
         size_hint_max_x: self.height * 2.
         background_color: [.9, .9, .9, .6]
@@ -82,7 +84,7 @@
                 size: self.size[0] - sp(12), self.size[1] - sp(12)
     Button:
         text: '-'
-        on_release: app.gui_app.delete_current_item()
+        on_release: app.main_app.delete_current_item()
         font_size: self.size[1]
         size_hint_max_x: self.height * 2.
         size_hint_x: 1 if app.app_state['current_item'] else None
@@ -115,23 +117,46 @@
         Rectangle:
             pos: self.pos
             size: self.size
-    on_release: app.gui_app.toggle_list_filter(self.text, self.state)
+    on_release: app.main_app.toggle_list_filter(self.text, self.state)
 
     
-<List@BoxLayout>:
-    state: selectButton.state
-    text: selectButton.text
+<ListItem@BoxLayout>:
+    item_data: app.main_app.update_item_data(self, toggleSelected.text, toggleSelected.state)
     size_hint_y: None
     height: app.app_state['font_size'] * 1.5
-    Leaf:
-        id: selectButton
-        state: root.state
-        text: root.text
-        size_hint_x: 0.69
+    ToggleButton:
+        id: toggleSelected
+        state: root.item_data.get('state', 'normal')
+        text: root.item_data.get('text', "")
+        size_hint: 0.69, None
+        font_size: app.app_state['font_size']
+        height: self.font_size * 1.5
+        padding_x: sp(9)
+        halign: 'left'
+        valign: 'middle'
+        text_size: self.size
+        shorten: True
+        shorten_from: 'right'
+        split_str: '..'
+        canvas:
+            Color:
+                rgba:
+                    app.app_state['selected_item_ink'] if self.state == 'down' else \
+                    app.app_state['unselected_item_ink']
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        on_touch_down: app.main_app.item_touch_down_handler(self.text, args[1])
+        on_touch_up: app.main_app.item_touch_up_handler(self.text, args[1])
+        on_state: app.main_app.toggle_leaf(self.text, self.state)
+
     Button:
-        id: enterButton
+        id: enterList
         text: '-- >'
-        size_hint_x: 0.30
+        on_release: app.main_app.go_down_tree(root.item_data['text'])
+        opacity: 1 if 'sub_list' in root.item_data else 0
+        size_hint_x: None
+        width: self.height * 1.8 if 'sub_list' in root.item_data else 0
         font_size: app.app_state['font_size'] * 1.2
         padding_x: sp(9)
         halign: 'center'
@@ -140,38 +165,27 @@
         canvas:
             Color:
                 rgba:
-                    app.app_state['selected_item_ink'] if selectButton.state == 'down' \
+                    app.app_state['selected_item_ink'] if root.item_data.get('state', 'normal') == 'down' \
                     else app.app_state['unselected_item_ink']
             Rectangle:
                 pos: self.pos
                 size: self.size
-        on_release: app.gui_app.go_down_tree(selectButton.text)
-
-<Leaf@ToggleButton>:
-    size_hint_y: None
-    font_size: app.app_state['font_size']
-    height: self.font_size * 1.5
-    padding_x: sp(9)
-    halign: 'left'
-    valign: 'middle'
-    text_size: self.size
-    shorten: True
-    shorten_from: 'right'
-    split_str: '..'
-    canvas:
-        Color:
-            rgba: app.app_state['selected_item_ink'] if self.state == 'down' else app.app_state['unselected_item_ink']
-        Rectangle:
-            pos: self.pos
-            size: self.size
-    on_touch_down: app.gui_app.item_touch_down_handler(self.text, args[1])
-    on_touch_up: app.gui_app.item_touch_up_handler(self.text, args[1])
-    on_state: app.gui_app.toggle_leaf(self.text, self.state)
+    Button:
+        id: glideStart
+        text: 'v^^v'
+        on_press: app.main_app.glide_start(root)
+        on_release: app.main_app.glide_stop(root)
+        size_hint_x: None
+        width: self.height * 2.7
+        font_size: app.app_state['font_size'] * 1.5
+        padding_x: sp(9)
+        halign: 'center'
+        valign: 'middle'
 
 
-<LeafEditor@Popup>:
+<ItemEditor@Popup>:
     size_hint: 0.9, 0.3
-    on_dismiss: app.gui_app.edit_item_finished(itemTextInp.text, itemIsListInp.state)
+    on_dismiss: app.main_app.edit_item_finished(itemTextInp.text, itemIsListInp.state)
     auto_dismiss: True
     BoxLayout:
         TextInput:
@@ -184,10 +198,10 @@
             height: self.font_size * 1.5
             halign: 'left'
             valign: 'middle'
-            text_size: app.gui_app._current_widget.size  # self.size
+            text_size: app.main_app._current_widget.size  # self.size
         ToggleButton:
             id: itemIsListInp
-            state: 'down' if 'sub_list' in app.gui_app.get_item_by_name(root.title) else 'normal'
+            state: 'down' if 'sub_list' in app.main_app.get_item_by_name(root.title) else 'normal'
             text: '-- >'
             size_hint_x: 0.30
             font_size: app.app_state['font_size'] * 1.2
@@ -200,12 +214,12 @@
 <ConfirmListDeletePopup@Popup>:
     size_hint: 0.9, 0.15
     auto_dismiss: True
-    title: "Confirm deletion of the list " + (root.what or "><") + " including all sub-items"
+    title: "Confirm deletion of the list " + root.what + " including all sub-leafs/-lists"
     title_align: 'center'
     what: self.what
     Button:
         text: "Ok"
-        on_release: app.gui_app.delete_item_confirmed(root.what); root.dismiss()
+        on_release: app.main_app.delete_item_confirmed(root.what); root.dismiss()
 
 
 <MaioRoot@FloatLayout>:
@@ -229,7 +243,7 @@
         background_color: [.9, .9, .9, .6]
         background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
         background_down: 'atlas://data/images/defaulttheme/slider_cursor'
-        on_release: app.gui_app.add_new_leaf()
+        on_release: app.main_app.add_new_item()
         canvas.after:
             Color:
                 rgba: 1, 0, 0, .6

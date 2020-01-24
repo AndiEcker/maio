@@ -3,7 +3,7 @@ import os
 import pytest
 from typing import Dict, Any
 
-from ae.GUIApp import GUIAppBase, APP_STATE_SECTION_NAME
+from ae.GUIApp import MainAppBase, APP_STATE_SECTION_NAME
 
 
 TST_VAR = 'tstVar'
@@ -11,7 +11,7 @@ TST_VAL = 'tstVal'
 TST_DICT = {TST_VAR: TST_VAL}
 
 
-class ImplementationOfABC(GUIAppBase):
+class ImplementationOfABC(MainAppBase):
     """ test abc implementation stub class """
     get_state_called = False
     init_called = False
