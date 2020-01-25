@@ -46,14 +46,10 @@ DEL_SUB_LIST_PREFIX = "from "               #: delete_item_confirmed() item_name
 
 class MaioApp(KivyMainApp):
     """ app class """
-    filter_selected: bool = True            #: True for to hide selected leafs
-    filter_unselected: bool = True          #: True for to hide unselected leafs
+    filter_selected: bool = True            #: True for to hide selected items
+    filter_unselected: bool = True          #: True for to hide unselected items
     data_tree: ListDataType = list()        #: app data
-    data_path: List[str] = list()   #: list of sub-list names, selected by user - last item can be a leaf name
-    current_item: str = ""                  #: name of the currently/last by the user touched list item (sub-list/leaf]
 
-    _edit_list_name: str = ''               #: list name to be initially edited ('' on add new list)
-    _copy_items_from: str = ''              #: list name of source list for list copy
     _current_list: ListDataType = list()    #: currently displayed sub-list
     _current_widget: Optional[Widget] = None          #: widget used for to add a new or edit a list item
     _multi_tap: int = 0                     #: used for listTouchDownHandler
@@ -68,16 +64,16 @@ class MaioApp(KivyMainApp):
             pass
         return err_msg
 
-    def on_draw_gui(self):
+    def on_framework_app_start(self):
         """ callback after app init/build for to draw/refresh gui. """
-        self.display_list()
+        self.on_context_draw()
 
-    # item search and navigation in currently displayed list
+    # item/widget search in currently displayed list
 
     def find_item_index(self, item_name: str) -> int:
         """ determine list index in the currently displayed list. """
         for idx, data in enumerate(self._current_list):
-            if data['text'] == item_name:
+            if data['id'] == item_name:
                 return idx
         return -1
 
@@ -92,41 +88,22 @@ class MaioApp(KivyMainApp):
         """ search list item widget """
         lcw = self.framework_app.root.ids.listContainer
         for liw in lcw.children:
-            if liw.item_data['text'] == item_name:
+            if liw.item_data['id'] == item_name:
                 return liw
-
-    def go_down_tree(self, list_name: str):
-        """ user navigates down in the tree into list_name """
-        self.data_path.append(list_name)
-        self._set_path_and_current_item('')
-
-    def go_up_tree(self):
-        """ user navigates up in the data tree """
-        list_name = self.data_path.pop()
-        self._set_path_and_current_item(list_name)
-
-    def _set_path_and_current_item(self, item_name):
-        """ propagate change of data path and current item,
-
-        :param item_name:   name of new current item.
-        """
-        self.change_app_state('data_path', self.data_path)
-        self.change_app_state('current_item', item_name)
-        self.display_list()
 
     # item (leaf/sub_list) add/delete/edit of name/copy/del
 
     def add_leaf_confirmed(self, item_name: str, liw: Widget):
         """ finish the addition of a new list item """
         # self._current_list.append(dict(text=item_name, state='normal'))
-        # liw.item_data['text'] = item_name
-        liw.item_data['text'] = item_name
+        # liw.item_data['id'] = item_name
+        liw.item_data['id'] = item_name
         self._current_list.append(liw.item_data)
         lcw = self.framework_app.root.ids.listContainer
         lcw.add_widget(liw)
         lcw.height += liw.height
 
-        self.change_app_state('current_item', item_name)
+        self.change_app_state('context_id', item_name)
 
     def add_list(self, list_name, copy_items_from=''):
         """ add new list """
@@ -134,20 +111,20 @@ class MaioApp(KivyMainApp):
             new_list = deepcopy(self.get_item_by_name(copy_items_from))
         else:
             new_list = dict(sub_list=list())
-        new_list['text'] = list_name
+        new_list['id'] = list_name
         self._current_list.append(new_list)
-        self.change_app_state('current_item', list_name)
+        self.change_app_state('context_id', list_name)
 
     def add_new_item(self):
         """ start/initiate the addition of a new list item """
-        self.change_app_state('current_item', '')
+        self.change_app_state('context_id', '')
         self._current_widget = Factory.ListItem(item_data=dict(text=''))
         pu = Factory.ItemEditor(title='')
         pu.open()  # calling self._current_widget on dismiss/close
 
     def delete_current_item(self):
         """ menu delete button callback for current/last touched item in current list """
-        item_name = self.current_item
+        item_name = self.context_id
         lid = self.get_item_by_name(item_name)
         if 'sub_list' in lid:
             if lid['sub_list']:
@@ -160,7 +137,7 @@ class MaioApp(KivyMainApp):
     def delete_data_item(self, item_name):
         """ delete list item """
         self._current_list.remove(self.get_item_by_name(item_name))
-        self.change_app_state('current_item', '')
+        self.change_app_state('context_id', '')
 
     def delete_item_confirmed(self, item_name):
         """ delete item or sub-list of this item """
@@ -186,53 +163,18 @@ class MaioApp(KivyMainApp):
         pu.what = list_name
         pu.open()
 
-    def display_list(self):
-        """ refresh lists """
-        current_item = self.current_item
-        self._current_list = self.data_tree
-        for sub_list in self.data_path:
-            self._current_list = self.get_item_by_name(sub_list)['sub_list']
-
-        lf_ds = self.framework_app.root.ids.menuBar.ids.listFilterSelected.state == 'normal'
-        lf_ns = self.framework_app.root.ids.menuBar.ids.listFilterUnselected.state == 'normal'
-
-        lcw = self.framework_app.root.ids.listContainer
-        lcw.clear_widgets()
-        h = 0
-        for lid in self._current_list:
-            sel_state = lid.get('state', 'normal') == 'down'
-            if lf_ds and sel_state or lf_ns and not sel_state:
-                # liw = Factory.List() if 'sub_list' in lid else Factory.Leaf()
-                # liw.text = lid['text']
-                # liw.state = lid.get('state', 'normal')
-                old_lid = lid.copy()
-                liw = Factory.ListItem(item_data=lid)
-                liw.ids.toggleSelected.text = old_lid['text']
-                liw.ids.toggleSelected.state = old_lid.get('state', 'normal')
-                # liw.item_data = lid
-
-                lcw.add_widget(liw)
-                h += liw.height
-        lcw.height = h
-
-        # ensure that current leaf/sub-list is visible - if still exists in current list
-        if current_item:
-            pass
-        # restore self.current_item (changed in list redraw by setting observed selectButton.state)
-        self.change_app_state('current_item', current_item)
-
     def edit_item_popup(self, item_name, *_):
         """ edit list item """
         self.dpo('edit long touched item', item_name)
         liw = self.get_widget_by_name(item_name)
         if liw:
-            self.change_app_state('current_item', item_name)
+            self.change_app_state('context_id', item_name)
             self._current_widget = liw
             svw = self.framework_app.root.ids.listContainer.parent
             border = (12, 3, 12, 3)   # (bottom, right, top, left)
             phx = (liw.x - border[3]) / Window.width  # svw.size[0]
             phy = (liw.y - (svw.viewport_size[1] - svw.size[1]) * svw.scroll_y - border[0]) / Window.height
-            pu = Factory.ItemEditor(title=liw.item_data['text'],
+            pu = Factory.ItemEditor(title=liw.item_data['id'],
                                     pos_hint=dict(x=phx, y=phy),
                                     size_hint=(None, None), size=(liw.width, liw.height * 3),
                                     background_color=(.6, .6, .6, .6),
@@ -255,25 +197,25 @@ class MaioApp(KivyMainApp):
 
         item_data = liw.item_data       # self.get_item_by_name(liw.text)
         remove_item = not text  # (text is None or text == '')
-        append_item = (item_data['text'] == '')
+        append_item = (item_data['id'] == '')
         if remove_item and append_item:
             return      # user cancelled newly created but still not added list item
-        if (append_item or text != item_data['text']) and self.find_item_index(text) != -1:
+        if (append_item or text != item_data['id']) and self.find_item_index(text) != -1:
             self.play_beep()
             return      # prevent creation of duplicates
 
         if remove_item:  # user cleared text of existing list item
             if item_data.get('sub_list'):
-                self.delete_list_popup(item_data['text'])
+                self.delete_list_popup(item_data['id'])
                 return
-            self.delete_item_confirmed(item_data['text'])
+            self.delete_item_confirmed(item_data['id'])
         elif append_item:  # user added new list item (with text)
             if state == 'down':
                 self.add_list(text)
             else:
                 self.add_leaf_confirmed(text, liw)
         else:  # user edited list item
-            item_data['text'] = text
+            item_data['id'] = text
             # liw.text = text
             if state != 'down' if 'sub_list' in item_data else 'normal':
                 if state == 'normal':
@@ -284,9 +226,9 @@ class MaioApp(KivyMainApp):
                         item_data.pop('sub_list')
                 else:
                     item_data['sub_list'] = list()
-            self.change_app_state('current_item', text)
+            self.change_app_state('context_id', text)
         self.save_app_state()
-        self.display_list()
+        self.on_context_draw()
 
     def glide_start(self, liw: Widget):
         """ start gliding for to move item in current list. """
@@ -301,11 +243,11 @@ class MaioApp(KivyMainApp):
         self.framework_app.root.remove_widget(liw)
         lcw.add_widget(liw)
         liw.gliding = False
-        self.display_list()
+        self.on_context_draw()
 
-    def item_touch_down_handler(self, leaf_name, touch):
+    def item_touch_down_handler(self, item_name, touch):
         """ long touch detection and double/triple tap event handlers for lists (only called if list is not empty) """
-        self.dpo('listTouchDownHandler', leaf_name, touch)
+        self.dpo('listTouchDownHandler', item_name, touch)
         if touch.is_double_tap:
             self._multi_tap = 1
             return
@@ -315,17 +257,17 @@ class MaioApp(KivyMainApp):
         lcw = self.framework_app.root.ids.listContainer
         local_touch_pos = lcw.to_local(touch.x, touch.y)
         self.dpo('..local', local_touch_pos)
-        liw = self.get_widget_by_name(leaf_name)
+        liw = self.get_widget_by_name(item_name)
         if liw and liw.collide_point(*local_touch_pos):
-            self.dpo('....touched widget', leaf_name)
-            self._last_touch_start_callback[leaf_name] = partial(self.edit_item_popup, leaf_name)
-            Clock.schedule_once(self._last_touch_start_callback[leaf_name], 1.5)  # edit item text
+            self.dpo('....touched widget', item_name)
+            self._last_touch_start_callback[item_name] = partial(self.edit_item_popup, item_name)
+            Clock.schedule_once(self._last_touch_start_callback[item_name], 0.9)
 
-    def item_touch_up_handler(self, leaf_name, touch):
+    def item_touch_up_handler(self, item_name, touch):
         """ touch up detection and multi-tap event handlers for lists """
-        self.dpo('listTouchUpHandler', leaf_name, touch)
-        if leaf_name in self._last_touch_start_callback:
-            Clock.unschedule(self._last_touch_start_callback[leaf_name])
+        self.dpo('listTouchUpHandler', item_name, touch)
+        if item_name in self._last_touch_start_callback:
+            Clock.unschedule(self._last_touch_start_callback[item_name])
         if self._multi_tap:
             # double/triple click allows to in-/decrease the list item font size
             font_size = self.font_size
@@ -338,17 +280,39 @@ class MaioApp(KivyMainApp):
                 font_size = MAX_FONT_SIZE
                 self.dpo(f"   .. CORRECTED to MAX={font_size}")
             self.change_app_state('font_size', font_size)
-            self.display_list()
+            self.on_context_draw()
             self._multi_tap = 0
 
-    def toggle_leaf(self, item_name, state):
-        """ toggle list item """
-        self.dpo('toggle_leaf', item_name, state)
-        self.get_item_by_name(item_name)['state'] = state
-        self.change_app_state('current_item', item_name)
-        self.save_app_state()
-        # if self.filter_selected or self.filter_unselected:
-        #     self.display_list()  # refresh only needed if one filter is active
+    def on_context_draw(self):
+        """ refresh lists """
+        context_id = self.context_id
+        self._current_list = self.data_tree
+        for sub_list in self.context_path:
+            self._current_list = self.get_item_by_name(sub_list)['sub_list']
+
+        lf_ds = self.framework_app.root.ids.menuBar.ids.listFilterSelected.state == 'normal'
+        lf_ns = self.framework_app.root.ids.menuBar.ids.listFilterUnselected.state == 'normal'
+
+        lcw = self.framework_app.root.ids.listContainer
+        lcw.clear_widgets()
+        h = 0
+        for lid in self._current_list:
+            sel_state = lid.get('sel')
+            if lf_ds and sel_state or lf_ns and not sel_state:
+                old_lid = lid.copy()
+                liw = Factory.ListItem(item_data=lid)
+                liw.ids.toggleSelected.text = old_lid['id']
+                liw.ids.toggleSelected.state = 'down' if old_lid.get('sel') else 'normal'
+
+                lcw.add_widget(liw)
+                h += liw.height
+        lcw.height = h
+
+        # ensure that current leaf/sub-list is visible - if still exists in current list
+        if context_id:
+            pass
+        # restore self.context_id (changed in list redraw by setting observed selectButton.state)
+        self.change_app_state('context_id', context_id)
 
     def toggle_list_filter(self, filter_button_text, filter_button_state):
         """ list item filter """
@@ -364,12 +328,16 @@ class MaioApp(KivyMainApp):
             if filtering and self.filter_selected:
                 self.change_app_state('filter_selected', False)
         self.save_app_state()
-        self.display_list()
+        self.on_context_draw()
 
     @staticmethod
     def update_item_data(liw: Widget, item_name: str, state: str) -> ItemDataType:
         """ update item_data of ListItem widget """
-        liw.item_data.update(text=item_name, state=state)
+        liw.item_data['id'] = item_name
+        if state == 'down':
+            liw.item_data['sel'] = 1
+        elif 'sel' in liw.item_data:
+            liw.item_data.pop('sel')
         return liw.item_data
 
 
@@ -384,7 +352,7 @@ class ListItem(BoxLayout):
         """ move gliding list item widget """
         if not self.gliding:
             return
-        self.pos = touch.pos
+        self.pos = touch.pos[0] - self.ids.glideStart.x, touch.pos[1]
 
 
 # app start

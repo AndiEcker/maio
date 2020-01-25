@@ -31,9 +31,9 @@
                 width: self.parent.height
             Label:
                 text:
-                    " / ".join(_[:18 if app.landscape else 3] for _ in app.app_state['data_path']) \
-                    + (" ->" + app.app_state['current_item'][:18 if app.landscape else 3] \
-                    if app.app_state['current_item'] else "")
+                    " / ".join(_[:18 if app.landscape else 3] for _ in app.app_state['context_path']) \
+                    + (" ->" + app.app_state['context_id'][:18 if app.landscape else 3] \
+                    if app.app_state['context_id'] else "")
                 size_hint_x: None
                 width: self.parent.width - self.parent.height
                 font_size: app.app_state['font_size'] * 1.2
@@ -44,14 +44,14 @@
                 shorten_from: 'left'
                 split_str: '...'
     Button:
-        text: ' ^ '
-        on_release: app.main_app.go_up_tree()
+        text: '< --'
+        on_release: app.main_app.context_leave()
         font_size: app.app_state['font_size'] * 2.1
         size_hint_max_x: self.height * 2.
-        size_hint_x: 1 if app.app_state['data_path'] else None
-        width: self.height if app.app_state['data_path'] else 0
-        disabled: not app.app_state['data_path']
-        opacity: 1 if app.app_state['data_path'] else 0
+        size_hint_x: 1 if app.app_state['context_path'] else None
+        width: self.height if app.app_state['context_path'] else 0
+        disabled: not app.app_state['context_path']
+        opacity: 1 if app.app_state['context_path'] else 0
         valign: 'bottom'
     ListFiltButton:
         id: listFilterSelected
@@ -87,10 +87,10 @@
         on_release: app.main_app.delete_current_item()
         font_size: self.size[1]
         size_hint_max_x: self.height * 2.
-        size_hint_x: 1 if app.app_state['current_item'] else None
-        width: self.height if app.app_state['current_item'] else 0
-        disabled: not app.app_state['current_item']
-        opacity: 1 if app.app_state['current_item'] else 0
+        size_hint_x: 1 if app.app_state['context_id'] else None
+        width: self.height if app.app_state['context_id'] else 0
+        disabled: not app.app_state['context_id']
+        opacity: 1 if app.app_state['context_id'] else 0
         background_color: [.9, .9, .9, .6]
         background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
         background_down: 'atlas://data/images/defaulttheme/slider_cursor'
@@ -124,14 +124,19 @@
     item_data: app.main_app.update_item_data(self, toggleSelected.text, toggleSelected.state)
     size_hint_y: None
     height: app.app_state['font_size'] * 1.5
+    canvas.after:
+        Color:
+            rgba: 0.99, 0.99, 0.3, .18 if app.app_state['context_id'] == root.item_data['id'] else 0
+        Ellipse:
+            pos: self.pos[0] - sp(3), self.pos[1] - sp(3)
+            size: self.size[0] + sp(6), self.size[1] + sp(6)
     ToggleButton:
         id: toggleSelected
-        state: root.item_data.get('state', 'normal')
-        text: root.item_data.get('text', "")
+        state: 'down' if root.item_data.get('sel') else 'normal'
+        text: root.item_data['id']      # .get('id', "")
         size_hint: 0.69, None
         font_size: app.app_state['font_size']
         height: self.font_size * 1.5
-        padding_x: sp(9)
         halign: 'left'
         valign: 'middle'
         text_size: self.size
@@ -148,24 +153,21 @@
                 size: self.size
         on_touch_down: app.main_app.item_touch_down_handler(self.text, args[1])
         on_touch_up: app.main_app.item_touch_up_handler(self.text, args[1])
-        on_state: app.main_app.toggle_leaf(self.text, self.state)
-
     Button:
         id: enterList
         text: '-- >'
-        on_release: app.main_app.go_down_tree(root.item_data['text'])
+        on_release: app.main_app.context_enter(root.item_data['id'])
         opacity: 1 if 'sub_list' in root.item_data else 0
         size_hint_x: None
         width: self.height * 1.8 if 'sub_list' in root.item_data else 0
         font_size: app.app_state['font_size'] * 1.2
-        padding_x: sp(9)
         halign: 'center'
         valign: 'middle'
         text_size: self.size
         canvas:
             Color:
                 rgba:
-                    app.app_state['selected_item_ink'] if root.item_data.get('state', 'normal') == 'down' \
+                    app.app_state['selected_item_ink'] if root.item_data.get('sel') \
                     else app.app_state['unselected_item_ink']
             Rectangle:
                 pos: self.pos
@@ -178,7 +180,6 @@
         size_hint_x: None
         width: self.height * 2.7
         font_size: app.app_state['font_size'] * 1.5
-        padding_x: sp(9)
         halign: 'center'
         valign: 'middle'
 

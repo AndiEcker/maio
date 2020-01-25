@@ -24,7 +24,7 @@ class ImplementationOfABC(MainAppBase):
         self.get_state_called = True
         return TST_DICT
 
-    def on_init_app(self):
+    def on_framework_app_init(self):
         """ init app """
         self.init_called = True
 

@@ -57,7 +57,7 @@ class FrameworkApp(App):
     def build(self):
         """ build app """
         self.main_app.po('App.build(), user_data_dir', self.user_data_dir,
-                        "config files", getattr(self.main_app, '_cfg_files'))
+                         "config files", getattr(self.main_app, '_cfg_files'))
         Window.bind(on_resize=self.screen_size_changed)
         return Factory.MaioRoot()
 
@@ -69,9 +69,9 @@ class FrameworkApp(App):
     def on_start(self):
         """ app start event """
         self.screen_size_changed()  # init. app./self.landscape (on app startup and after build)
-        display_callback = getattr(self.main_app, 'on_draw_gui', None)
-        if display_callback:
-            display_callback()
+        event_callback = getattr(self.main_app, 'on_framework_app_start', None)
+        if event_callback:
+            event_callback()
 
     def on_pause(self):
         """ app pause event """
@@ -85,11 +85,6 @@ class FrameworkApp(App):
 
 class KivyMainApp(MainAppBase):
     """ Kivy application """
-    def change_app_state(self, state_name, new_value):
-        """ change single app state item to value in self.attribute and app_state dict item """
-        setattr(self, state_name, new_value)
-        self.framework_app.app_state[state_name] = new_value
-
     def set_app_state(self, app_state: Dict[str, Any]) -> str:
         """ set/change the state of a running app, called for to prepare app.run_app """
         err_msg = super().set_app_state(app_state)
@@ -101,12 +96,12 @@ class KivyMainApp(MainAppBase):
 
         return err_msg
 
-    def on_init_app(self):
+    def on_framework_app_init(self):
         """ initialize framework app instance """
         self.framework_app = FrameworkApp(self)
         self.framework_app.kv_file = 'main.kv'
-        self.font_size = MIN_FONT_SIZE                  #: font size used for toolbar and leafs
-        self.win_rectangle = (sp(90), sp(90), sp(800), sp(600))   #: (x, y, width, height) of the app window
+        self.font_size = MIN_FONT_SIZE                              #: font size - initial set to minimum
+        self.win_rectangle = (sp(90), sp(90), sp(800), sp(600))     #: (x, y, width, height) of the app window
 
     def run_app(self):
         """ startup/display the application """
