@@ -8,6 +8,12 @@
     size_hint_y: None
     height: app.app_state['font_size'] * 1.8
     Button:
+        text: '< --'
+        on_release: app.main_app.context_leave()
+        font_size: app.app_state['font_size'] * 2.1
+        size_hint_max_x: self.height * 2.
+        disabled: not app.app_state['context_path']
+    Button:
         width: sp(369)
         font_size: app.app_state['font_size'] * 1.5
         on_release:
@@ -18,7 +24,8 @@
             "Touch short on lists --> icon for\n"
             "to display their leafs and sub-lists.\n"
             "Touch long on leaf/list name for to change name\n"
-            "or for to add/remove sub-list",
+            "or for to add/remove sub-list\n"
+            "Drag leaf/list item on the right for to move it.",
             halign='center'),
             size_hint_y=.6
             ).open()
@@ -43,16 +50,6 @@
                 shorten: True
                 shorten_from: 'left'
                 split_str: '...'
-    Button:
-        text: '< --'
-        on_release: app.main_app.context_leave()
-        font_size: app.app_state['font_size'] * 2.1
-        size_hint_max_x: self.height * 2.
-        size_hint_x: 1 if app.app_state['context_path'] else None
-        width: self.height if app.app_state['context_path'] else 0
-        disabled: not app.app_state['context_path']
-        opacity: 1 if app.app_state['context_path'] else 0
-        valign: 'bottom'
     ListFiltButton:
         id: listFilterSelected
         text: 'B'
@@ -120,8 +117,11 @@
     on_release: app.main_app.toggle_list_filter(self.text, self.state)
 
     
-<ListItem@BoxLayout>:
+<ListItem>:
     item_data: app.main_app.update_item_data(self, toggleSelected.text, toggleSelected.state)
+    drag_rectangle: toggleSelected.x, toggleSelected.y, toggleSelected.width, toggleSelected.height
+    drag_timeout: 100000000
+    drag_distance: 0
     size_hint_y: None
     height: app.app_state['font_size'] * 1.5
     canvas.after:
@@ -172,16 +172,17 @@
             Rectangle:
                 pos: self.pos
                 size: self.size
-    Button:
+    Label:
         id: glideStart
         text: 'v^^v'
-        on_press: app.main_app.glide_start(root)
-        on_release: app.main_app.glide_stop(root)
+        #on_press: app.main_app.glide_start(root)
+        #on_release: app.main_app.glide_stop(root)
         size_hint_x: None
         width: self.height * 2.7
         font_size: app.app_state['font_size'] * 1.5
         halign: 'center'
         valign: 'middle'
+        text_size: self.size
 
 
 <ItemEditor@Popup>:
@@ -221,6 +222,16 @@
     Button:
         text: "Ok"
         on_release: app.main_app.delete_item_confirmed(root.what); root.dismiss()
+
+
+<DropPlaceholder@Widget>
+    size_hint_y: None
+    canvas:
+        Color:
+            rgba: 1, 1, 0, 0.6
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
 
 <MaioRoot@FloatLayout>:
