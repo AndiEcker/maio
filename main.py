@@ -31,7 +31,6 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.metrics import sp
-from kivy.uix.behaviors import DragBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
@@ -59,8 +58,6 @@ class MaioApp(KivyMainApp):
     placeholders_below: Dict[int, Widget] = dict()  #: added placeholder below widgets (used for drag+drop)
 
     _current_widget: Optional[Widget]       #: widget used for to add a new or edit a list item
-    _multi_tap: int = 0                     #: used for listTouchDownHandler
-    _last_touch_start_callback: Dict = dict()
 
     # app init
 
@@ -147,6 +144,7 @@ class MaioApp(KivyMainApp):
         for placeholder in placeholders:
             # if placeholder.parent:
             placeholder.parent.remove_widget(placeholder)
+            assert placeholder.parent is None
 
         self.placeholders_above.clear()
         self.placeholders_below.clear()
@@ -175,8 +173,8 @@ class MaioApp(KivyMainApp):
         liw.list_idx = idx
         widgets.append(liw)
 
-        if idx in self.placeholders_above:
-            widgets.append(self.placeholders_above[idx])
+        if idx in self.placeholders_below:
+            widgets.append(self.placeholders_below[idx])
 
         return widgets
 
@@ -288,63 +286,6 @@ class MaioApp(KivyMainApp):
         self.save_app_state()
         self.on_context_draw()
 
-    def glide_start(self, liw: Widget):
-        """ start gliding for to move item in current list. """
-        liw.gliding = True
-        lcw = self.framework_app.root.ids.listContainer
-        lcw.remove_widget(liw)
-        self.framework_app.root.add_widget(liw)
-
-    def glide_stop(self, liw: Widget):
-        """ stop gliding and move item in current list. """
-        lcw = self.framework_app.root.ids.listContainer
-        self.framework_app.root.remove_widget(liw)
-        lcw.add_widget(liw)
-        liw.gliding = False
-        self.on_context_draw()
-
-    def item_touch_down_handler(self, item_name, touch):
-        """ long touch detection and double/triple tap event handlers for lists (only called if list is not empty) """
-        self.dpo('listTouchDownHandler', item_name, touch)
-        if touch.is_double_tap:
-            self._multi_tap = 1
-            return
-        elif touch.is_triple_tap:
-            self._multi_tap = -2  # -2 because couldn't prevent the double tap before/on triple tap
-            return
-        lcw = self.framework_app.root.ids.listContainer
-        local_touch_pos = lcw.to_local(touch.x, touch.y)
-        self.dpo('..local', local_touch_pos)
-        liw = self.get_widget_by_name(item_name)
-        if liw and liw.collide_point(*local_touch_pos):
-            self.dpo('....touched widget', item_name)
-            self._last_touch_start_callback[item_name] = partial(self.edit_item_popup, item_name)
-            Clock.schedule_once(self._last_touch_start_callback[item_name], 0.9)
-            return True
-        return False
-
-    def item_touch_up_handler(self, item_name, touch):
-        """ touch up detection and multi-tap event handlers for lists """
-        self.dpo('listTouchUpHandler', item_name, touch)
-        if item_name in self._last_touch_start_callback:
-            Clock.unschedule(self._last_touch_start_callback[item_name])
-        if self._multi_tap:
-            # double/triple click allows to in-/decrease the list item font size
-            font_size = self.font_size
-            self.dpo(f"FONT SIZE CHANGE from {font_size} to {font_size + sp(3) * self._multi_tap}")
-            font_size += sp(3) * self._multi_tap
-            if font_size < MIN_FONT_SIZE:
-                font_size = MIN_FONT_SIZE
-                self.dpo(f"   .. CORRECTED to MIN={font_size}")
-            elif font_size > MAX_FONT_SIZE:
-                font_size = MAX_FONT_SIZE
-                self.dpo(f"   .. CORRECTED to MAX={font_size}")
-            self.change_app_state('font_size', font_size)
-            self.on_context_draw()
-            self._multi_tap = 0
-            return True
-        return False
-
     def on_context_draw(self):
         """ refresh lists """
         context_id = self.context_id
@@ -400,7 +341,7 @@ class MaioApp(KivyMainApp):
         return liw.item_data
 
 
-class ListItem(DragBehavior, BoxLayout):
+class ListItem(BoxLayout):
     """ widget to display data item in list. """
     def __init__(self, **kwargs):
         self.item_data = kwargs.pop('item_data')
@@ -413,27 +354,31 @@ class ListItem(DragBehavior, BoxLayout):
         self.dragged_from_list = None
         self.dragged_from_idx = None
         self.list_idx = -1
-        # self.new_idx = -1
 
-        self.gliding = False
+        self._multi_tap: int = 0                     #: used for listTouchDownHandler
+        self._last_touch_start_callback: Dict = dict()
 
-    def on_touch_down(self, touch):
-        """ move gliding list item widget """
-        self._po('DOWN', touch)
-        if not self.ids.glideStart.collide_point(*touch.pos):
-            return False
-
+    def _drag_start(self, touch):
         self.dragged_from_list = self.main_app.current_list
         self.dragged_from_idx = self.main_app.dragging_idx = self.list_idx
         self.parent.remove_widget(self)
 
-        self.x = touch.pos[0] - self.ids.glideStart.x - self.ids.glideStart.width / 2
+        self.x = touch.pos[0] - self.ids.dragHandle.x - self.ids.dragHandle.width / 2
         # Window.mouse_pos[0] - (touch.pos[0] - self.x)
         self.y = Window.mouse_pos[1] - self.height / 2  # Window.mouse_pos[1] - (touch.pos[1] - self.y)
         self.app_root.add_widget(self)
         touch.pos = Window.mouse_pos
 
-        print('RETURN touch', touch)
+        print('RETURN FALSE from drag start with modified touch', touch)
+        return False
+
+    def on_touch_down(self, touch):
+        """ move gliding list item widget """
+        self._po('DOWN', touch)
+        if self.ids.dragHandle.collide_point(*touch.pos):
+            return self._drag_start(touch)
+        elif self.ids.toggleSelected.collide_point(*touch.pos):
+            return self._toggle_selection_start(touch)
         return super().on_touch_down(touch)
 
     def on_touch_move(self, touch):
@@ -442,7 +387,7 @@ class ListItem(DragBehavior, BoxLayout):
         # if touch.grab_current is not self:
         #     return False
         ma = self.main_app
-        self.pos = touch.pos[0] - self.ids.glideStart.x - self.ids.glideStart.width / 2, touch.pos[1] - self.height / 2
+        self.pos = touch.pos[0] - self.ids.dragHandle.x - self.ids.dragHandle.width / 2, touch.pos[1] - self.height / 2
         if self.lcw.collide_point(*touch.pos):
             placeholders = list(ma.placeholders_above.values()) + list(ma.placeholders_below.values())
             for idx, liw in enumerate(self.lcw.children):
@@ -456,7 +401,7 @@ class ListItem(DragBehavior, BoxLayout):
 
         # if not self.gliding:
         #     return
-        # self.pos = touch.pos[0] - self.ids.glideStart.x, touch.pos[1]
+        # self.pos = touch.pos[0] - self.ids.dragHandle.x, touch.pos[1]
         print('RETURN TRUE')
         return True
 
@@ -467,26 +412,75 @@ class ListItem(DragBehavior, BoxLayout):
         if touch.grab_current is not self:
             return super().on_touch_up(touch)     # False
 
-        if self.main_app.placeholders_above and self.main_app.placeholders_below:   # drop into sub list
+        ma = self.main_app
+        if ma.placeholders_above and ma.placeholders_below:   # drop into sub list
             sub_list = self.dragged_from_list[self.dragged_from_idx]['sub_list']
             sub_list.insert(0, self.item_data)
-        else:
-            if self.main_app.placeholders_above:
-                idx = list(self.main_app.placeholders_above.keys())[0]
+        elif ma.placeholders_above or ma.placeholders_below:
+            if ma.placeholders_above:
+                idx = list(ma.placeholders_above.keys())[0]
             else:
-                idx = list(self.main_app.placeholders_below.keys())[0] + 1
+                idx = list(ma.placeholders_below.keys())[0] + 1
             item_data = self.dragged_from_list[self.dragged_from_idx]
             self.dragged_from_list.remove(item_data)
-            self.main_app.current_list.insert(idx, item_data)
+            ma.current_list.insert(idx, item_data)
 
         self.dragged_from_list = None
         self.dragged_from_idx = None
-        self.main_app.dragging_idx = None
+        ma.dragging_idx = None
         self.app_root.remove_widget(self)
-        self.main_app.cleanup_placeholder()
+        ma.cleanup_placeholder()
 
         print('RETURN TRUE')
         return True
+
+    def _toggle_selection_start(self, touch):
+        """ long touch detection and double/triple tap event handlers for lists (only called if list is not empty) """
+        ma = self.main_app
+        item_name = self.item_data['id']
+        ma.dpo('listTouchDownHandler', item_name, touch)
+
+        if touch.is_double_tap:
+            self._multi_tap = 1
+            return False
+        elif touch.is_triple_tap:
+            self._multi_tap = -2  # -2 because couldn't prevent the double tap before/on triple tap
+            return False
+
+        local_touch_pos = self.lcw.to_local(touch.x, touch.y)
+        ma.dpo('..local', local_touch_pos)
+        if self.ids.toggleSelected.collide_point(*local_touch_pos):
+            ma.dpo('....touched item name', item_name)
+            self._last_touch_start_callback[item_name] = partial(ma.edit_item_popup, item_name)
+            Clock.schedule_once(self._last_touch_start_callback[item_name], 1.5)
+            return True
+
+        return super().on_touch_down(touch)
+
+    def _toggle_selection_finished(self, touch):
+        """ touch up detection and multi-tap event handlers for lists """
+        ma = self.main_app
+        item_name = self.item_data['id']
+        ma.dpo('listTouchUpHandler', item_name, touch)
+        if item_name in self._last_touch_start_callback:
+            Clock.unschedule(self._last_touch_start_callback[item_name])
+        if self._multi_tap:
+            # double/triple click allows to in-/decrease the list item font size
+            font_size = ma.font_size
+            ma.dpo(f"FONT SIZE CHANGE from {font_size} to {font_size + sp(3) * self._multi_tap}")
+            font_size += sp(3) * self._multi_tap
+            if font_size < MIN_FONT_SIZE:
+                font_size = MIN_FONT_SIZE
+                ma.dpo(f"   .. CORRECTED to MIN={font_size}")
+            elif font_size > MAX_FONT_SIZE:
+                font_size = MAX_FONT_SIZE
+                ma.dpo(f"   .. CORRECTED to MAX={font_size}")
+            ma.change_app_state('font_size', font_size)
+            self.on_context_draw()
+            self._multi_tap = 0
+            return True
+        #self.item_data['sel'] = 0 if self.item_data.get('sel', False) else 1
+        return False
 
     def _po(self, title, touch):
         """ debug helper """
@@ -502,7 +496,7 @@ class ListItem(DragBehavior, BoxLayout):
         print("   SroPos ", lcw.parent.pos, lcw.parent.size, len(lcw.parent.children))
         print("   ContPos", lcw.pos, lcw.size, len(lcw.children))
         print("   ItemPos", self.pos, self.size)
-        print("   GliPos ", self.ids.glideStart.pos, self.ids.glideStart.size)
+        print("   GliPos ", self.ids.dragHandle.pos, self.ids.dragHandle.size)
         print("   TouPos ", touch.pos, touch)
         print("   MouPos ", Window.mouse_pos)
 

@@ -151,8 +151,6 @@
             Rectangle:
                 pos: self.pos
                 size: self.size
-        on_touch_down: app.main_app.item_touch_down_handler(self.text, args[1])
-        on_touch_up: app.main_app.item_touch_up_handler(self.text, args[1])
     Button:
         id: enterList
         text: '-- >'
@@ -173,7 +171,7 @@
                 pos: self.pos
                 size: self.size
     Label:
-        id: glideStart
+        id: dragHandle
         text: 'v^^v'
         #on_press: app.main_app.glide_start(root)
         #on_release: app.main_app.glide_stop(root)
