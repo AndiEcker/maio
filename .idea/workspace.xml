@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/andi.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/andi.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.kv" beforeDir="false" afterPath="$PROJECT_DIR$/main.kv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
@@ -201,7 +202,14 @@
       <option name="project" value="LOCAL" />
       <updated>1580085563877</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 12&#10;&#10;adding item move via drag and drop">
+      <created>1580157427618</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1580157427618</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -218,7 +226,8 @@
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 9" />
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 10" />
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 11&#10;&#10;adding item move via drag and drop" />
-    <option name="LAST_COMMIT_MESSAGE" value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 11&#10;&#10;adding item move via drag and drop" />
+    <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 12&#10;&#10;adding item move via drag and drop" />
+    <option name="LAST_COMMIT_MESSAGE" value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 12&#10;&#10;adding item move via drag and drop" />
   </component>
   <component name="WindowStateProjectService">
     <state x="453" y="220" width="1084" height="718" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1579188392590">
@@ -237,10 +246,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="803" y="281" width="374" height="562" key="#com.intellij.ide.util.MemberChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1579186438040" />
-    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1580085563717">
+    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1580157426617">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1580085563717" />
+    <state x="238" y="158" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1580157426617" />
     <state width="1253" height="767" key="DebuggerActiveHint" timestamp="1579981029180">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -257,38 +266,38 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="740" y="305" width="501" height="513" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1580049487454" />
-    <state width="1733" height="398" key="GridCell.Tab.0.bottom" timestamp="1580156400776">
+    <state width="1733" height="287" key="GridCell.Tab.0.bottom" timestamp="1580268952994">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="398" key="GridCell.Tab.0.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1580156400776" />
-    <state width="1733" height="398" key="GridCell.Tab.0.center" timestamp="1580156400775">
+    <state width="1733" height="287" key="GridCell.Tab.0.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1580268952994" />
+    <state width="1733" height="287" key="GridCell.Tab.0.center" timestamp="1580268952992">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="398" key="GridCell.Tab.0.center/67.27.1853.1053@67.27.1853.1053" timestamp="1580156400775" />
-    <state width="1733" height="398" key="GridCell.Tab.0.left" timestamp="1580156400775">
+    <state width="1733" height="287" key="GridCell.Tab.0.center/67.27.1853.1053@67.27.1853.1053" timestamp="1580268952992" />
+    <state width="1733" height="287" key="GridCell.Tab.0.left" timestamp="1580268952991">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="398" key="GridCell.Tab.0.left/67.27.1853.1053@67.27.1853.1053" timestamp="1580156400775" />
-    <state width="1733" height="398" key="GridCell.Tab.0.right" timestamp="1580156400776">
+    <state width="1733" height="287" key="GridCell.Tab.0.left/67.27.1853.1053@67.27.1853.1053" timestamp="1580268952991" />
+    <state width="1733" height="287" key="GridCell.Tab.0.right" timestamp="1580268952993">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="398" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1580156400776" />
-    <state width="1733" height="398" key="GridCell.Tab.1.bottom" timestamp="1580156400696">
+    <state width="1733" height="287" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1580268952993" />
+    <state width="1733" height="287" key="GridCell.Tab.1.bottom" timestamp="1580268927687">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="398" key="GridCell.Tab.1.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1580156400696" />
-    <state width="1733" height="398" key="GridCell.Tab.1.center" timestamp="1580156400695">
+    <state width="1733" height="287" key="GridCell.Tab.1.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1580268927687" />
+    <state width="1733" height="287" key="GridCell.Tab.1.center" timestamp="1580268927687">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="398" key="GridCell.Tab.1.center/67.27.1853.1053@67.27.1853.1053" timestamp="1580156400695" />
-    <state width="1733" height="398" key="GridCell.Tab.1.left" timestamp="1580156400695">
+    <state width="1733" height="287" key="GridCell.Tab.1.center/67.27.1853.1053@67.27.1853.1053" timestamp="1580268927687" />
+    <state width="1733" height="287" key="GridCell.Tab.1.left" timestamp="1580268927687">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="398" key="GridCell.Tab.1.left/67.27.1853.1053@67.27.1853.1053" timestamp="1580156400695" />
-    <state width="1733" height="398" key="GridCell.Tab.1.right" timestamp="1580156400695">
+    <state width="1733" height="287" key="GridCell.Tab.1.left/67.27.1853.1053@67.27.1853.1053" timestamp="1580268927687" />
+    <state width="1733" height="287" key="GridCell.Tab.1.right" timestamp="1580268927687">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="398" key="GridCell.Tab.1.right/67.27.1853.1053@67.27.1853.1053" timestamp="1580156400695" />
+    <state width="1733" height="287" key="GridCell.Tab.1.right/67.27.1853.1053@67.27.1853.1053" timestamp="1580268927687" />
     <state x="635" y="256" key="SettingsEditor" timestamp="1580038675052">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -297,18 +306,22 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state width="498" height="446" key="SwitcherDM/67.27.1853.1053@67.27.1853.1053" timestamp="1579607445271" />
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1580085570058">
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1580157430161">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1580085570058" />
-    <state width="926" height="527" key="XDebugger.FullValuePopup" timestamp="1580152962883">
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1580157430161" />
+    <state width="926" height="527" key="XDebugger.FullValuePopup" timestamp="1580262448441">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="926" height="527" key="XDebugger.FullValuePopup/67.27.1853.1053@67.27.1853.1053" timestamp="1580152962883" />
-    <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1579891696683">
+    <state width="926" height="527" key="XDebugger.FullValuePopup/67.27.1853.1053@67.27.1853.1053" timestamp="1580262448441" />
+    <state x="-89" y="27" width="1970" height="1053" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1580266459982">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="218" y="162" width="1555" height="800" key="com.intellij.history.integration.ui.views.FileHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1579891696683" />
+    <state x="-89" y="27" width="1970" height="1053" key="com.intellij.history.integration.ui.views.FileHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1580266459982" />
+    <state x="264" y="138" width="1556" height="800" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog" timestamp="1580265396524">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="264" y="138" width="1556" height="800" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1580265396524" />
     <state x="651" y="389" width="966" height="486" key="com.intellij.ide.util.TipDialog" timestamp="1580038562554">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -317,10 +330,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1580080608019" />
-    <state x="270" y="84" width="1474" height="968" key="find.popup" timestamp="1580154646748">
+    <state x="270" y="84" width="1474" height="968" key="find.popup" timestamp="1580268113066">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="270" y="84" width="1474" height="968" key="find.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1580154646748" />
+    <state x="270" y="84" width="1474" height="968" key="find.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1580268113066" />
     <state x="740" y="205" width="501" height="713" key="refactoring.ChangeSignatureDialog" timestamp="1580064968299">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -329,10 +342,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="606" y="230" width="800" height="677" key="scopes/67.27.1853.1053@67.27.1853.1053" timestamp="1579707492889" />
-    <state x="658" y="281" width="672" height="678" key="search.everywhere.popup" timestamp="1580155955940">
+    <state x="846" y="277" width="672" height="678" key="search.everywhere.popup" timestamp="1580240543974">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="658" y="281" width="672" height="678" key="search.everywhere.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1580155955940" />
+    <state x="846" y="277" width="672" height="678" key="search.everywhere.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1580240543974" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

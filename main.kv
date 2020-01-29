@@ -97,6 +97,15 @@
             Ellipse:
                 pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
                 size: self.size[0] - sp(12), self.size[1] - sp(12)
+    Button:
+        text: '/'
+        on_release: app.main_app.edit_item_popup(app.app_state['context_id'])
+        font_size: self.size[1]
+        size_hint_max_x: self.height * 2.
+        size_hint_x: 1 if app.app_state['context_id'] else None
+        width: self.height if app.app_state['context_id'] else 0
+        disabled: not app.app_state['context_id']
+        opacity: 1 if app.app_state['context_id'] else 0
 
 
 <ListFiltButton@ToggleButton>:
@@ -214,7 +223,7 @@
 <ConfirmListDeletePopup@Popup>:
     size_hint: 0.9, 0.15
     auto_dismiss: True
-    title: "Confirm deletion of the list " + root.what + " including all sub-leafs/-lists"
+    title: "Confirm deletion of the list " + str(root.what) + " including all sub-leafs/-lists"
     title_align: 'center'
     what: self.what
     Button:

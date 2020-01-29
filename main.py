@@ -23,19 +23,16 @@
 
 """
 from copy import deepcopy
-import datetime
-from functools import partial
 from typing import Any, Dict, List, Optional
 
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.factory import Factory
-from kivy.metrics import sp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 
-from ae.KivyApp import MIN_FONT_SIZE, MAX_FONT_SIZE, KivyMainApp
+from ae.KivyApp import KivyMainApp
 
 
 __version__ = '0.12'
@@ -126,24 +123,25 @@ class MaioApp(KivyMainApp):
         pu = Factory.ItemEditor(title='')
         pu.open()  # calling self._current_widget on dismiss/close
 
-    def create_placeholder(self, idx, liw, part):
+    def create_placeholder(self, idx, liw, touch_y):
         """ create placeholder data structures. """
         self.cleanup_placeholder(redraw=False)
-
-        if 'syb_list' in liw.item_data and 1 < part < 2:
-            self.placeholders_above[idx] = Factory.DropPlaceholder(height=liw.height / 2)
-            self.placeholders_below[idx] = Factory.DropPlaceholder(height=liw.height / 2)
+        part = (touch_y - liw.y) / (liw.height / 3)
+        self.dpo("create placeholder", idx, liw.y, liw.height, touch_y, part)
+        if 'sub_list' in liw.item_data and 0.9 <= part <= 2.1:
+            self.placeholders_above[idx] = Factory.DropPlaceholder(height=liw.height / 1.8)
+            self.placeholders_below[idx] = Factory.DropPlaceholder(height=liw.height / 1.8)
         else:
             placeholders = self.placeholders_above if part > 1.5 else self.placeholders_below
-            placeholders[idx] = Factory.DropPlaceholder(height=liw.height)
+            placeholders[idx] = Factory.DropPlaceholder(height=liw.height * 1.2)
         self.on_context_draw()
 
     def cleanup_placeholder(self, redraw=True):
         """ cleanup placeholder data and widgets. """
         placeholders = list(self.placeholders_above.values()) + list(self.placeholders_below.values())
         for placeholder in placeholders:
-            # if placeholder.parent:
-            placeholder.parent.remove_widget(placeholder)
+            if placeholder.parent:
+                placeholder.parent.remove_widget(placeholder)
             assert placeholder.parent is None
 
         self.placeholders_above.clear()
@@ -345,160 +343,86 @@ class ListItem(BoxLayout):
     """ widget to display data item in list. """
     def __init__(self, **kwargs):
         self.item_data = kwargs.pop('item_data')
-        super(ListItem, self).__init__(**kwargs)
+        self.list_idx = kwargs.pop('list_idx', -1)
+        super().__init__(**kwargs)
 
         kivy_app = App.get_running_app()
         self.app_root = kivy_app.root       # MaioRoot
         self.main_app = kivy_app.main_app   # MaioApp
         self.lcw = kivy_app.root.ids.listContainer
         self.dragged_from_list = None
-        self.dragged_from_idx = None
-        self.list_idx = -1
-
-        self._multi_tap: int = 0                     #: used for listTouchDownHandler
-        self._last_touch_start_callback: Dict = dict()
-
-    def _drag_start(self, touch):
-        self.dragged_from_list = self.main_app.current_list
-        self.dragged_from_idx = self.main_app.dragging_idx = self.list_idx
-        self.parent.remove_widget(self)
-
-        self.x = touch.pos[0] - self.ids.dragHandle.x - self.ids.dragHandle.width / 2
-        # Window.mouse_pos[0] - (touch.pos[0] - self.x)
-        self.y = Window.mouse_pos[1] - self.height / 2  # Window.mouse_pos[1] - (touch.pos[1] - self.y)
-        self.app_root.add_widget(self)
-        touch.pos = Window.mouse_pos
-
-        print('RETURN FALSE from drag start with modified touch', touch)
-        return False
 
     def on_touch_down(self, touch):
         """ move gliding list item widget """
-        self._po('DOWN', touch)
-        if self.ids.dragHandle.collide_point(*touch.pos):
-            return self._drag_start(touch)
-        elif self.ids.toggleSelected.collide_point(*touch.pos):
-            return self._toggle_selection_start(touch)
-        return super().on_touch_down(touch)
+        if not self.ids.dragHandle.collide_point(*touch.pos):
+            return super().on_touch_down(touch)
+
+        touch.grab(self)
+        touch.ud[self] = 'drag'
+        self.dragged_from_list = self.main_app.current_list
+        self.main_app.dragging_idx = self.list_idx
+        assert self.list_idx == self.dragged_from_list.index(self.item_data)
+        self.parent.remove_widget(self)
+        self.x = touch.pos[0] - self.ids.dragHandle.x - self.ids.dragHandle.width / 2
+        self.y = Window.mouse_pos[1] - self.height / 2
+        self.app_root.add_widget(self)
+        return True
 
     def on_touch_move(self, touch):
         """ move gliding list item widget """
-        self._po('MOVE', touch)
-        # if touch.grab_current is not self:
-        #     return False
-        ma = self.main_app
+        if touch.grab_current is not self or touch.ud.get(self) != 'drag':
+            return False
+
         self.pos = touch.pos[0] - self.ids.dragHandle.x - self.ids.dragHandle.width / 2, touch.pos[1] - self.height / 2
-        if self.lcw.collide_point(*touch.pos):
+
+        ma = self.main_app
+        svw = self.lcw.parent
+        if svw.collide_point(*svw.parent.to_local(*touch.pos)):
             placeholders = list(ma.placeholders_above.values()) + list(ma.placeholders_below.values())
-            for idx, liw in enumerate(self.lcw.children):
-                if liw.collide_point(*touch.pos):
+            for idx, liw in enumerate(reversed(self.lcw.children)):
+                lc_pos = self.lcw.to_local(*svw.to_local(*touch.pos))
+                if liw.collide_point(*lc_pos):
                     if liw not in placeholders:
-                        ma.create_placeholder(idx, liw, (touch.x - liw.x) + liw.height / 3)
-                    print('INNER RETURN TRUE')
+                        ma.create_placeholder(idx, liw, lc_pos[1])
                     return True
 
         ma.cleanup_placeholder()
 
-        # if not self.gliding:
-        #     return
-        # self.pos = touch.pos[0] - self.ids.dragHandle.x, touch.pos[1]
-        print('RETURN TRUE')
+        mb = self.app_root.ids.MenuBar
+        bb = mb.children[-1]
+        if not bb.disabled and bb.collide_point(mb.to_local(*touch.pos)):
+            bb.background_color = 1, 1, 1, 1
+
         return True
 
     def on_touch_up(self, touch):
         """ drop / finish drag """
-        self._po("UP", touch)
-
         if touch.grab_current is not self:
-            return super().on_touch_up(touch)     # False
+            return super().on_touch_up(touch)
+        if touch.ud[self] != 'drag':
+            return False
 
         ma = self.main_app
-        if ma.placeholders_above and ma.placeholders_below:   # drop into sub list
-            sub_list = self.dragged_from_list[self.dragged_from_idx]['sub_list']
-            sub_list.insert(0, self.item_data)
-        elif ma.placeholders_above or ma.placeholders_below:
-            if ma.placeholders_above:
-                idx = list(ma.placeholders_above.keys())[0]
+        if ma.placeholders_above or ma.placeholders_below:
+            if ma.placeholders_above and ma.placeholders_below:   # drop into sub list
+                dst_idx = list(ma.placeholders_below.keys())[0]
+                dst_list = self.dragged_from_list[dst_idx]['sub_list']
+                dst_idx = 0
             else:
-                idx = list(ma.placeholders_below.keys())[0] + 1
-            item_data = self.dragged_from_list[self.dragged_from_idx]
-            self.dragged_from_list.remove(item_data)
-            ma.current_list.insert(idx, item_data)
+                dst_list = ma.current_list
+                if ma.placeholders_above:
+                    dst_idx = list(ma.placeholders_above.keys())[0]
+                else:
+                    dst_idx = list(ma.placeholders_below.keys())[0] + 1
+            self.dragged_from_list.remove(self.item_data)
+            dst_list.insert(dst_idx, self.item_data)
 
         self.dragged_from_list = None
-        self.dragged_from_idx = None
         ma.dragging_idx = None
         self.app_root.remove_widget(self)
         ma.cleanup_placeholder()
-
-        print('RETURN TRUE')
+        touch.ungrab(self)
         return True
-
-    def _toggle_selection_start(self, touch):
-        """ long touch detection and double/triple tap event handlers for lists (only called if list is not empty) """
-        ma = self.main_app
-        item_name = self.item_data['id']
-        ma.dpo('listTouchDownHandler', item_name, touch)
-
-        if touch.is_double_tap:
-            self._multi_tap = 1
-            return False
-        elif touch.is_triple_tap:
-            self._multi_tap = -2  # -2 because couldn't prevent the double tap before/on triple tap
-            return False
-
-        local_touch_pos = self.lcw.to_local(touch.x, touch.y)
-        ma.dpo('..local', local_touch_pos)
-        if self.ids.toggleSelected.collide_point(*local_touch_pos):
-            ma.dpo('....touched item name', item_name)
-            self._last_touch_start_callback[item_name] = partial(ma.edit_item_popup, item_name)
-            Clock.schedule_once(self._last_touch_start_callback[item_name], 1.5)
-            return True
-
-        return super().on_touch_down(touch)
-
-    def _toggle_selection_finished(self, touch):
-        """ touch up detection and multi-tap event handlers for lists """
-        ma = self.main_app
-        item_name = self.item_data['id']
-        ma.dpo('listTouchUpHandler', item_name, touch)
-        if item_name in self._last_touch_start_callback:
-            Clock.unschedule(self._last_touch_start_callback[item_name])
-        if self._multi_tap:
-            # double/triple click allows to in-/decrease the list item font size
-            font_size = ma.font_size
-            ma.dpo(f"FONT SIZE CHANGE from {font_size} to {font_size + sp(3) * self._multi_tap}")
-            font_size += sp(3) * self._multi_tap
-            if font_size < MIN_FONT_SIZE:
-                font_size = MIN_FONT_SIZE
-                ma.dpo(f"   .. CORRECTED to MIN={font_size}")
-            elif font_size > MAX_FONT_SIZE:
-                font_size = MAX_FONT_SIZE
-                ma.dpo(f"   .. CORRECTED to MAX={font_size}")
-            ma.change_app_state('font_size', font_size)
-            self.on_context_draw()
-            self._multi_tap = 0
-            return True
-        #self.item_data['sel'] = 0 if self.item_data.get('sel', False) else 1
-        return False
-
-    def _po(self, title, touch):
-        """ debug helper """
-        print()
-        print(title, self.item_data.get('id', '-PH-'), datetime.datetime.now())
-
-        root = self.get_root_window()
-        if root:
-            print("   WidRoot", root.left, root.top, root.width, root.height, len(root.children))
-        root = App.get_running_app().root
-        print("   AppRoot", root.pos, root.size, len(root.children))
-        lcw = root.ids.listContainer
-        print("   SroPos ", lcw.parent.pos, lcw.parent.size, len(lcw.parent.children))
-        print("   ContPos", lcw.pos, lcw.size, len(lcw.children))
-        print("   ItemPos", self.pos, self.size)
-        print("   GliPos ", self.ids.dragHandle.pos, self.ids.dragHandle.size)
-        print("   TouPos ", touch.pos, touch)
-        print("   MouPos ", Window.mouse_pos)
 
 
 # app start
