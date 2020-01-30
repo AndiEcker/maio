@@ -18,7 +18,7 @@ class ImplementationOfABC(MainAppBase):
     run_called = False
     set_state_called = False
 
-    def get_app_state(self) -> Dict[str, Any]:
+    def retrieve_app_state(self) -> Dict[str, Any]:
         """ get app state """
         global TST_DICT
         self.get_state_called = True
@@ -33,17 +33,17 @@ class ImplementationOfABC(MainAppBase):
         self.run_called = True
         return ""
 
-    def set_app_state(self, app_state: Dict[str, Any]) -> str:
+    def apply_app_state(self, app_state: Dict[str, Any]) -> str:
         """ set app state """
         self.set_state_called = True
         return ""
 
 
 class TestCallbacks:
-    def test_get_state(self):
+    def test_retrieve_app_state(self):
         app = ImplementationOfABC()
         assert not app.get_state_called
-        app.get_app_state()
+        app.retrieve_app_state()
         assert app.get_state_called
 
     def test_init(self):
@@ -53,13 +53,13 @@ class TestCallbacks:
     def test_run(self):
         app = ImplementationOfABC()
         assert not app.get_state_called
-        app.get_app_state()
+        app.retrieve_app_state()
         assert app.get_state_called
 
-    def test_set_state(self):
+    def test_apply_app_state(self):
         app = ImplementationOfABC()
         assert not app.set_state_called
-        app.set_app_state(TST_DICT)
+        app.apply_app_state(TST_DICT)
         assert app.set_state_called
 
 
@@ -79,7 +79,7 @@ class TestLoadSaveAppState:
         assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
 
         assert app.load_app_state() == ""
-        assert app.get_app_state() == TST_DICT
+        assert app.retrieve_app_state() == TST_DICT
 
     def test_save(self, ini_file):
         global TST_DICT
@@ -89,10 +89,10 @@ class TestLoadSaveAppState:
             chg_val = 'ChangedVal'
             TST_DICT = {TST_VAR: chg_val}
             assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
-            assert app.get_app_state() == TST_DICT
+            assert app.retrieve_app_state() == TST_DICT
 
             assert app.save_app_state() == ""
             assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == chg_val
-            assert app.get_app_state() == TST_DICT
+            assert app.retrieve_app_state() == TST_DICT
         finally:
             TST_DICT = old_dict

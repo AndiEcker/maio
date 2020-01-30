@@ -13,6 +13,13 @@
         font_size: app.app_state['font_size'] * 2.1
         size_hint_max_x: self.height * 2.
         disabled: not app.app_state['context_path']
+        background_color: [.9, .9, .9, .6]
+        canvas.after:
+            Color:
+                rgba: 1, 1, 0, .36
+            Ellipse:
+                pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
+                size: self.size[0] - sp(12), self.size[1] - sp(12)
     Button:
         width: sp(369)
         font_size: app.app_state['font_size'] * 1.5
@@ -23,9 +30,10 @@
             "Touch short on leaf/list name for to toggle selection.\n"
             "Touch short on lists --> icon for\n"
             "to display their leafs and sub-lists.\n"
-            "Touch long on leaf/list name for to change name\n"
-            "or for to add/remove sub-list\n"
-            "Drag leaf/list item on the right for to move it.",
+            "Edit selected leaf/list for to change name\n"
+            "or for to add/remove their sub-list.\n"
+            "Drag leaf/list item with the icon on the right\n"
+            "of the leaf/list item for to move it.",
             halign='center'),
             size_hint_y=.6
             ).open()
@@ -52,18 +60,24 @@
                 split_str: '...'
     ListFiltButton:
         id: listFilterSelected
-        text: 'B'
+        # text: 'B'
         state: 'down' if app.app_state['filter_selected'] else 'normal'
         canvas:
             Color:
-                rgba: (0, 0, 1, .21)     # add blue
-            Rectangle:
+                rgba: app.app_state['unselected_item_ink']  # (0, 0, 1, .21)     # add blue
+            RoundedRectangle:
                 pos: self.pos
                 size: self.size
     ListFiltButton:
         id: listFilterUnselected
-        text: 'G'
+        # text: 'G'
         state: 'down' if app.app_state['filter_unselected'] else 'normal'
+        canvas:
+            Color:
+                rgba: app.app_state['selected_item_ink']
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
     Button:
         text: '+'
         on_release: app.main_app.add_new_item()
@@ -106,43 +120,42 @@
         width: self.height if app.app_state['context_id'] else 0
         disabled: not app.app_state['context_id']
         opacity: 1 if app.app_state['context_id'] else 0
+        background_color: [.9, .9, .9, .6]
+        canvas.after:
+            Color:
+                rgba: 1, 1, 0, .36
+            Ellipse:
+                pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
+                size: self.size[0] - sp(12), self.size[1] - sp(12)
 
 
 <ListFiltButton@ToggleButton>:
     # exchanging down/normal state and using radio button mode results in
     # .. automatic selection of at least one button (preventing empty list)
-    important: True
+    on_release: app.main_app.toggle_list_filter(self.text, self.state)
     minimum_width: self.height
     font_size: app.app_state['font_size'] * 1.5
     size_hint_max_x: self.height * 2.
     background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
     background_down: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
-    canvas:
-        Color: 
-            rgba: app.app_state['selected_item_ink']
-        Rectangle:
-            pos: self.pos
-            size: self.size
-    on_release: app.main_app.toggle_list_filter(self.text, self.state)
 
     
 <ListItem>:
     item_data: app.main_app.update_item_data(self, toggleSelected.text, toggleSelected.state)
-    drag_rectangle: toggleSelected.x, toggleSelected.y, toggleSelected.width, toggleSelected.height
-    drag_timeout: 100000000
-    drag_distance: 0
     size_hint_y: None
     height: app.app_state['font_size'] * 1.5
     canvas.after:
         Color:
-            rgba: 0.99, 0.99, 0.3, .18 if app.app_state['context_id'] == root.item_data['id'] else 0
+            rgba: 0.99, 0.99, 0.15, .18 if app.app_state['context_id'] == root.item_data['id'] else 0
         Ellipse:
-            pos: self.pos[0] - sp(3), self.pos[1] - sp(3)
-            size: self.size[0] + sp(6), self.size[1] + sp(6)
+            pos: self.pos[0] + self.width / 8, self.pos[1]
+            size: self.size[0] - self.width / 4, self.size[1]
     ToggleButton:
         id: toggleSelected
         state: 'down' if root.item_data.get('sel') else 'normal'
-        text: root.item_data['id']      # .get('id', "")
+        text: root.item_data['id']
+        on_state: app.main_app.change_app_state('context_id', self.text)
+        on_text: app.main_app.change_app_state('context_id', self.text)
         size_hint: 0.69, None
         font_size: app.app_state['font_size']
         height: self.font_size * 1.5
@@ -157,7 +170,7 @@
                 rgba:
                     app.app_state['selected_item_ink'] if self.state == 'down' else \
                     app.app_state['unselected_item_ink']
-            Rectangle:
+            RoundedRectangle:
                 pos: self.pos
                 size: self.size
     Button:
@@ -166,7 +179,7 @@
         on_release: app.main_app.context_enter(root.item_data['id'])
         opacity: 1 if 'sub_list' in root.item_data else 0
         size_hint_x: None
-        width: self.height * 1.8 if 'sub_list' in root.item_data else 0
+        width: self.height * 2.7 if 'sub_list' in root.item_data else 0
         font_size: app.app_state['font_size'] * 1.2
         halign: 'center'
         valign: 'middle'
@@ -174,22 +187,28 @@
         canvas:
             Color:
                 rgba:
-                    app.app_state['selected_item_ink'] if root.item_data.get('sel') \
-                    else app.app_state['unselected_item_ink']
+                    app.app_state['selected_item_ink'] if root.item_data.get('sel') else \
+                    app.app_state['unselected_item_ink']
             Rectangle:
                 pos: self.pos
                 size: self.size
-    Label:
+    Button:
         id: dragHandle
-        text: 'v^^v'
-        #on_press: app.main_app.glide_start(root)
-        #on_release: app.main_app.glide_stop(root)
+        text: '^v^'
         size_hint_x: None
-        width: self.height * 2.7
+        width: self.height * 1.8
         font_size: app.app_state['font_size'] * 1.5
         halign: 'center'
         valign: 'middle'
         text_size: self.size
+        canvas:
+            Color:
+                rgba:
+                    app.app_state['selected_item_ink'] if root.item_data.get('sel') else \
+                    app.app_state['unselected_item_ink']
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
 
 
 <ItemEditor@Popup>:
@@ -231,12 +250,15 @@
         on_release: app.main_app.delete_item_confirmed(root.what); root.dismiss()
 
 
-<DropPlaceholder@Widget>
+<DropPlaceholder>
     size_hint_y: None
+    dark: False
     canvas:
         Color:
-            rgba: 1, 1, 0, 0.6
-        Rectangle:
+            rgba:
+                app.app_state['placeholder_item_ink'] if root.dark else \
+                app.app_state['placeholder_sub_ink']
+        RoundedRectangle:
             pos: self.pos
             size: self.size
 

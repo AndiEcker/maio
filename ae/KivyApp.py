@@ -58,17 +58,21 @@ class FrameworkApp(App):
         """ build app """
         self.main_app.po('App.build(), user_data_dir', self.user_data_dir,
                          "config files", getattr(self.main_app, '_cfg_files'))
-        Window.bind(on_resize=self.screen_size_changed)
+        Window.bind(on_resize=self.win_pos_size_changed)
+        Window.bind(left=self.win_pos_size_changed)
+        Window.bind(top=self.win_pos_size_changed)
+
         return Factory.MaioRoot()
 
-    def screen_size_changed(self, *_):
+    def win_pos_size_changed(self, *_):
         """ screen resize handler """
-        self.main_app.po('screen_size_changed', self.root.width, self.root.height)
+        self.main_app.po('win_pos_size_changed', self.root.width, self.root.height)
         self.landscape = self.root.width >= self.root.height
+        self.main_app.change_app_state('win_rectangle', (Window.left, Window.top, Window.width, Window.height))
 
     def on_start(self):
         """ app start event """
-        self.screen_size_changed()  # init. app./self.landscape (on app startup and after build)
+        self.win_pos_size_changed()  # init. app./self.landscape (on app startup and after build)
         event_callback = getattr(self.main_app, 'on_framework_app_start', None)
         if event_callback:
             event_callback()
@@ -85,9 +89,9 @@ class FrameworkApp(App):
 
 class KivyMainApp(MainAppBase):
     """ Kivy application """
-    def set_app_state(self, app_state: Dict[str, Any]) -> str:
+    def apply_app_state(self, app_state: Dict[str, Any]) -> str:
         """ set/change the state of a running app, called for to prepare app.run_app """
-        err_msg = super().set_app_state(app_state)
+        err_msg = super().apply_app_state(app_state)
         if not err_msg:
             win_rect = app_state['win_rectangle']
             if win_rect:
@@ -107,7 +111,7 @@ class KivyMainApp(MainAppBase):
         """ startup/display the application """
         if self.debug_bubble:
             Builder.load_string(DEBUG_BUBBLE_DEF)
-        self.framework_app.app_state = self.get_app_state()
+        self.framework_app.app_state = self.retrieve_app_state()
         self.framework_app.run()
 
     def show_bubble(self, *objects, file: Optional[TextIO] = None, **kwargs):

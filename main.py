@@ -45,22 +45,22 @@ DEL_SUB_LIST_PREFIX = "from "               #: delete_item_confirmed() item_name
 
 class MaioApp(KivyMainApp):
     """ app class """
-    filter_selected: bool = True            #: True for to hide selected items
-    filter_unselected: bool = True          #: True for to hide unselected items
-    data_tree: ListDataType = list()        #: app data
+    filter_selected: bool = True                #: True for to hide selected items
+    filter_unselected: bool = True              #: True for to hide unselected items
+    data_tree: ListDataType = list()            #: app data
 
-    current_list: ListDataType = list()     #: item data of currently displayed sub-list
-    dragging_idx: Optional[int] = None      #: index of dragged data in current list if in drag mode else None
+    current_list: ListDataType = list()         #: item data of currently displayed sub-list
+    dragging_list_idx: Optional[int] = None     #: index of dragged data in current list if in drag mode else None
     placeholders_above: Dict[int, Widget] = dict()  #: added placeholder above widgets (used for drag+drop)
     placeholders_below: Dict[int, Widget] = dict()  #: added placeholder below widgets (used for drag+drop)
 
-    _current_widget: Optional[Widget]       #: widget used for to add a new or edit a list item
+    _current_widget: Optional[Widget]           #: widget used for to add a new or edit a list item
 
     # app init
 
-    def set_app_state(self, app_state: Dict[str, Any]) -> str:
+    def apply_app_state(self, app_state: Dict[str, Any]) -> str:
         """ set/change the state of a running app, called for to prepare app.run_app """
-        err_msg = super().set_app_state(app_state)
+        err_msg = super().apply_app_state(app_state)
         if not err_msg:
             pass
         return err_msg
@@ -71,25 +71,38 @@ class MaioApp(KivyMainApp):
 
     # item/widget search in currently displayed list
 
-    def find_item_index(self, item_name: str) -> int:
+    def find_item_index(self, item_name: str, searched_list: Optional[ListDataType] = None) -> int:
         """ determine list index in the currently displayed list. """
-        for idx, data in enumerate(self.current_list):
+        if searched_list is None:
+            searched_list = self.current_list
+        for list_idx, data in enumerate(searched_list):
             if data['id'] == item_name:
-                return idx
+                return list_idx
         return -1
 
-    def get_item_by_name(self, item_name: str) -> ItemDataType:
+    def get_context_list(self, path_end_idx: Optional[int] = None):
+        """ get list name and data of the current context list. """
+        current_list = self.data_tree
+        sub_list = ''
+        for sub_list in self.context_path[:path_end_idx]:
+            current_list = self.get_item_by_name(sub_list, searched_list=current_list)['sub_list']
+        return sub_list, current_list
+
+    def get_item_by_name(self, item_name: str, searched_list: Optional[ListDataType] = None) -> ItemDataType:
         """ search list item in current list """
-        lx = self.find_item_index(item_name)
+        if searched_list is None:
+            searched_list = self.current_list
+        lx = self.find_item_index(item_name, searched_list=searched_list)
         if lx != -1:
-            return self.current_list[lx]
+            return searched_list[lx]
         return dict(id='')
 
     def get_widget_by_name(self, item_name: str) -> Optional[Widget]:
         """ search list item widget """
         lcw = self.framework_app.root.ids.listContainer
         for liw in lcw.children:
-            if liw.item_data['id'] == item_name:
+            item_data = getattr(liw, 'item_data', None)
+            if item_data and item_data['id'] == item_name:
                 return liw
 
     # item (leaf/sub_list) add/delete/edit of name/copy/del
@@ -119,60 +132,81 @@ class MaioApp(KivyMainApp):
     def add_new_item(self):
         """ start/initiate the addition of a new list item """
         self.change_app_state('context_id', '')
-        self._current_widget = Factory.ListItem(item_data=dict(id=''))
+        self._current_widget = Factory.ListItem()
         pu = Factory.ItemEditor(title='')
         pu.open()  # calling self._current_widget on dismiss/close
 
-    def create_placeholder(self, idx, liw, touch_y):
+    def create_placeholder(self, child_idx: int, liw: Widget, touch_y: float) -> bool:
         """ create placeholder data structures. """
-        self.cleanup_placeholder(redraw=False)
-        part = (touch_y - liw.y) / (liw.height / 3)
-        self.dpo("create placeholder", idx, liw.y, liw.height, touch_y, part)
-        if 'sub_list' in liw.item_data and 0.9 <= part <= 2.1:
-            self.placeholders_above[idx] = Factory.DropPlaceholder(height=liw.height / 1.8)
-            self.placeholders_below[idx] = Factory.DropPlaceholder(height=liw.height / 1.8)
+        child_idx -= self.cleanup_placeholder(child_idx=child_idx)
+        part = (touch_y - liw.y) / liw.height
+        list_idx = liw.list_idx
+        self.dpo(f"create placeholder {child_idx:2} {list_idx:2} {liw.item_data['id'][:9]:9}"
+                 f" {liw.y:4.2f} {touch_y:4.2f} {part:4.2f}")
+        if 'sub_list' in liw.item_data and 0.249 < part < 0.75:
+            self.placeholders_above[list_idx] = Factory.DropPlaceholder(height=liw.height / 2.7)
+            self.placeholders_below[list_idx] = Factory.DropPlaceholder(height=liw.height / 2.7)
+        elif part <= 1.11:
+            placeholders = self.placeholders_above if part >= 0.501 else self.placeholders_below
+            placeholders[list_idx] = Factory.DropPlaceholder(dark=True, height=liw.height * 1.11)
         else:
-            placeholders = self.placeholders_above if part > 1.5 else self.placeholders_below
-            placeholders[idx] = Factory.DropPlaceholder(height=liw.height * 1.2)
-        self.on_context_draw()
+            return False
 
-    def cleanup_placeholder(self, redraw=True):
+        # add widgets without redrawing (self.on_context_draw())
+        lcw = self.framework_app.root.ids.listContainer
+        for phw in self.placeholders_below.values():
+            lcw.add_widget(phw, index=child_idx)
+            lcw.height += phw.height
+            child_idx += 1
+        for phw in self.placeholders_above.values():
+            lcw.add_widget(phw, index=child_idx + 1)
+            lcw.height += phw.height
+
+        return True
+
+    def cleanup_placeholder(self, child_idx=0):
         """ cleanup placeholder data and widgets. """
+        delta_idx = 0
         placeholders = list(self.placeholders_above.values()) + list(self.placeholders_below.values())
         for placeholder in placeholders:
-            if placeholder.parent:
-                placeholder.parent.remove_widget(placeholder)
-            assert placeholder.parent is None
+            lcw = placeholder.parent
+            if lcw:
+                del_idx = lcw.children.index(placeholder)
+                if del_idx < child_idx:
+                    delta_idx = 1
+                lcw.remove_widget(placeholder)
+                lcw.height -= placeholder.height
 
         self.placeholders_above.clear()
         self.placeholders_below.clear()
 
-        if redraw:
-            self.on_context_draw()
+        return delta_idx
 
-    def create_item_widgets(self, idx: int, lid: ItemDataType) -> List[Widget]:
+    def create_item_widgets(self, list_idx: int, lid: ItemDataType) -> List[Widget]:
         """ create widgets for to display one item, optionally with placeholder markers
 
-        :param idx:
-        :param lid:
-        :return:
+        :param list_idx:    index of item_data within current list.
+        :param lid:         list item data.
+        :return:            list of created widgets: one ListItem widget with item_data from lid and
+                            optional placeholders above/below.
         """
         widgets = list()
 
-        if idx in self.placeholders_above:
-            widgets.append(self.placeholders_above[idx])
+        if list_idx in self.placeholders_above:
+            widgets.append(self.placeholders_above[list_idx])
 
-        old_lid = lid.copy()    # save item data because will be reset by new widget
-        liw = Factory.ListItem(item_data=lid)
-        liw.ids.toggleSelected.text = old_lid['id']
-        liw.ids.toggleSelected.state = 'down' if old_lid.get('sel') else 'normal'
-        assert liw.item_data == old_lid
-
-        liw.list_idx = idx
+        # original item data dict passed to ListItem.__init__ will be reset by kv rules of the new widget
+        # .. also toggleButton state will not be set correctly if assigning only item data with: liw.item_data = lid
+        ori_lid = lid.copy()
+        liw = Factory.ListItem(item_data=lid, list_idx=list_idx)
+        liw.ids.toggleSelected.text = ori_lid['id']
+        liw.ids.toggleSelected.state = 'down' if ori_lid.get('sel') else 'normal'
         widgets.append(liw)
+        assert liw.item_data is lid
+        assert liw.list_idx == list_idx
 
-        if idx in self.placeholders_below:
-            widgets.append(self.placeholders_below[idx])
+        if list_idx in self.placeholders_below:
+            widgets.append(self.placeholders_below[list_idx])
 
         return widgets
 
@@ -219,17 +253,21 @@ class MaioApp(KivyMainApp):
 
     def edit_item_popup(self, item_name, *_):
         """ edit list item """
-        self.dpo('edit long touched item', item_name)
+        self.dpo('edit item', item_name)
         liw = self.get_widget_by_name(item_name)
         if liw:
             self.change_app_state('context_id', item_name)
             self._current_widget = liw
-            svw = self.framework_app.root.ids.listContainer.parent
+            root = self.framework_app.root
+            svw = root.ids.listContainer.parent
+            svw.scroll_to(liw)
             border = (12, 3, 12, 3)   # (bottom, right, top, left)
-            phx = (liw.x - border[3]) / Window.width  # svw.size[0]
-            phy = (liw.y - (svw.viewport_size[1] - svw.size[1]) * svw.scroll_y - border[0]) / Window.height
+            phx = (liw.x - border[3])  # svw.size[0]
+            phy = (liw.y - (svw.viewport_size[1] - svw.size[1]) * svw.scroll_y - border[0])
+            px, py = root.to_window(*svw.to_window(*liw.pos))
+            print("ItemEditor", phx, px, phy, py)
             pu = Factory.ItemEditor(title=liw.item_data['id'],
-                                    pos_hint=dict(x=phx, y=phy),
+                                    pos_hint=dict(x=px / Window.width, y=phy / Window.height),
                                     size_hint=(None, None), size=(liw.width, liw.height * 3),
                                     background_color=(.6, .6, .6, .6),
                                     border=border,
@@ -287,28 +325,31 @@ class MaioApp(KivyMainApp):
     def on_context_draw(self):
         """ refresh lists """
         context_id = self.context_id
-        self.current_list = self.data_tree
-        for sub_list in self.context_path:
-            self.current_list = self.get_item_by_name(sub_list)['sub_list']
+        sub_list, self.current_list = self.get_context_list()
+        self.dpo("on_context_draw", sub_list or 'RooT', context_id)
 
         lf_ds = self.framework_app.root.ids.menuBar.ids.listFilterSelected.state == 'normal'
         lf_ns = self.framework_app.root.ids.menuBar.ids.listFilterUnselected.state == 'normal'
-
         lcw = self.framework_app.root.ids.listContainer
         lcw.clear_widgets()
         h = 0
-        for idx, lid in enumerate(self.current_list):
-            if idx != self.dragging_idx:
+        for list_idx, lid in enumerate(self.current_list):
+            if list_idx != self.dragging_list_idx:
                 sel_state = lid.get('sel')
                 if lf_ds and sel_state or lf_ns and not sel_state:
-                    for liw in self.create_item_widgets(idx, lid):
+                    for liw in self.create_item_widgets(list_idx, lid):
                         lcw.add_widget(liw)
                         h += liw.height
         lcw.height = h
 
         # ensure that current leaf/sub-list is visible - if still exists in current list
         if context_id:
-            pass
+            liw = self.get_widget_by_name(context_id)
+            if liw:
+                lcw.parent.scroll_to(liw)
+            else:
+                context_id = ''     # last current item got filtered by user
+
         # restore self.context_id (changed in list redraw by setting observed selectButton.state)
         self.change_app_state('context_id', context_id)
 
@@ -342,7 +383,7 @@ class MaioApp(KivyMainApp):
 class ListItem(BoxLayout):
     """ widget to display data item in list. """
     def __init__(self, **kwargs):
-        self.item_data = kwargs.pop('item_data')
+        self.item_data = kwargs.pop('item_data', dict(id=''))
         self.list_idx = kwargs.pop('list_idx', -1)
         super().__init__(**kwargs)
 
@@ -351,6 +392,7 @@ class ListItem(BoxLayout):
         self.main_app = kivy_app.main_app   # MaioApp
         self.lcw = kivy_app.root.ids.listContainer
         self.dragged_from_list = None
+        self.dragging_on_back = None
 
     def on_touch_down(self, touch):
         """ move gliding list item widget """
@@ -360,7 +402,7 @@ class ListItem(BoxLayout):
         touch.grab(self)
         touch.ud[self] = 'drag'
         self.dragged_from_list = self.main_app.current_list
-        self.main_app.dragging_idx = self.list_idx
+        self.main_app.dragging_list_idx = self.list_idx
         assert self.list_idx == self.dragged_from_list.index(self.item_data)
         self.parent.remove_widget(self)
         self.x = touch.pos[0] - self.ids.dragHandle.x - self.ids.dragHandle.width / 2
@@ -379,19 +421,25 @@ class ListItem(BoxLayout):
         svw = self.lcw.parent
         if svw.collide_point(*svw.parent.to_local(*touch.pos)):
             placeholders = list(ma.placeholders_above.values()) + list(ma.placeholders_below.values())
-            for idx, liw in enumerate(reversed(self.lcw.children)):
+            for child_idx, liw in enumerate(self.lcw.children):
                 lc_pos = self.lcw.to_local(*svw.to_local(*touch.pos))
-                if liw.collide_point(*lc_pos):
-                    if liw not in placeholders:
-                        ma.create_placeholder(idx, liw, lc_pos[1])
+                if liw not in placeholders and liw.collide_point(*lc_pos) \
+                        and ma.create_placeholder(child_idx, liw, lc_pos[1]):
+                    self._restore_menu_bar()
                     return True
 
-        ma.cleanup_placeholder()
-
-        mb = self.app_root.ids.MenuBar
+        mb = self.app_root.ids.menuBar
         bb = mb.children[-1]
-        if not bb.disabled and bb.collide_point(mb.to_local(*touch.pos)):
-            bb.background_color = 1, 1, 1, 1
+        if not bb.disabled and bb.collide_point(*mb.to_local(*touch.pos)):
+            ma.cleanup_placeholder()
+            if not self.dragging_on_back:
+                self.dragging_on_back = bb
+                mb.remove_widget(bb)
+                mb.add_widget(Factory.DropPlaceholder(size=bb.size), index=len(mb.children))
+        elif touch.pos[1] < self.height:
+            svw.scroll_y = min(max(0, svw.scroll_y - svw.convert_distance_to_scroll(0, self.height)[1]), 1)
+        elif touch.pos[1] > svw.top - self.height:
+            svw.scroll_y = min(max(0, svw.scroll_y + svw.convert_distance_to_scroll(0, self.height)[1]), 1)
 
         return True
 
@@ -403,26 +451,52 @@ class ListItem(BoxLayout):
             return False
 
         ma = self.main_app
-        if ma.placeholders_above or ma.placeholders_below:
-            if ma.placeholders_above and ma.placeholders_below:   # drop into sub list
-                dst_idx = list(ma.placeholders_below.keys())[0]
-                dst_list = self.dragged_from_list[dst_idx]['sub_list']
-                dst_idx = 0
+
+        if self.dragging_on_back or ma.placeholders_above or ma.placeholders_below:
+            if self.dragging_on_back:
+                _, dst_list = self.main_app.get_context_list(path_end_idx=-1)
+                list_idx = 0
+            elif ma.placeholders_above and ma.placeholders_below:   # drop into sub list
+                list_idx = list(ma.placeholders_below.keys())[0]
+                dst_list = self.dragged_from_list[list_idx]['sub_list']
+                list_idx = 0
             else:
-                dst_list = ma.current_list
+                dst_list = self.dragged_from_list
                 if ma.placeholders_above:
-                    dst_idx = list(ma.placeholders_above.keys())[0]
+                    list_idx = list(ma.placeholders_above.keys())[0]
                 else:
-                    dst_idx = list(ma.placeholders_below.keys())[0] + 1
+                    list_idx = list(ma.placeholders_below.keys())[0] + 1
+            assert self.dragged_from_list.index(self.item_data) == self.list_idx
             self.dragged_from_list.remove(self.item_data)
-            dst_list.insert(dst_idx, self.item_data)
+            if list_idx > self.list_idx:
+                list_idx -= 1
+            dst_list.insert(list_idx, self.item_data)
 
         self.dragged_from_list = None
-        ma.dragging_idx = None
+        ma.dragging_list_idx = None
+        self._restore_menu_bar()
         self.app_root.remove_widget(self)
         ma.cleanup_placeholder()
+        ma.on_context_draw()
         touch.ungrab(self)
+
         return True
+
+    def _restore_menu_bar(self):
+        if self.dragging_on_back:
+            mb = self.app_root.ids.menuBar
+            bb = self.dragging_on_back
+            ph = mb.children[-1]
+            mb.remove_widget(ph)
+            mb.add_widget(bb, index=len(mb.children))
+            self.dragging_on_back = None
+
+
+class DropPlaceholder(Widget):
+    """ placeholder for to display screen box to drop a dragged item onto """
+    def __init__(self, **kwargs):
+        self.dark = kwargs.pop('dark', False)
+        super().__init__(**kwargs)
 
 
 # app start
