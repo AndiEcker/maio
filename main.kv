@@ -1,7 +1,72 @@
 #: import version main.__version__
-#: import os os
+#: import MIN_FONT_SIZE main.MIN_FONT_SIZE
+#: import MAX_FONT_SIZE main.MAX_FONT_SIZE
+
+# needed for dynamic (c) Popup and FontSizeDropDown
 #: import Label kivy.uix.label.Label
 #: import Popup kivy.uix.popup.Popup
+#: import Factory kivy.factory
+
+
+<MaioRoot@FloatLayout>:
+    id: maioRoot
+    BoxLayout:
+        orientation: 'vertical'
+        MaioMenuBar:
+            id: menuBar
+        ScrollView:
+            do_scroll_x: False
+            BoxLayout:
+                id: listContainer
+                orientation: 'vertical'
+                size_hint_y: None
+    BoxLayout:
+        orientation: 'horizontal' if app.landscape else 'vertical'
+        size_hint: None, None
+        size:
+            app.app_state['font_size'] * (2.4 * (3 if app.app_state['context_id'] else 1) if app.landscape else 1.8), \
+            app.app_state['font_size'] * (1.8 if app.landscape else 2.4 * len(self.children))
+        pos_hint: {'right': 0.93}
+        ContextButton:
+            text: '/'
+            on_release: app.main_app.edit_item_popup(app.app_state['context_id'])
+            font_size: self.size[1]
+            size_hint_max_x: self.height * 1.5
+            size_hint_x: 1 if app.app_state['context_id'] else None
+            width: self.height if app.app_state['context_id'] else 0
+            disabled: not app.app_state['context_id']
+            opacity: 1 if app.app_state['context_id'] else 0
+            canvas.after:
+                Color:
+                    rgba: app.app_state['context_id_ink']
+                Ellipse:
+                    pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
+                    size: self.size[0] - sp(12), self.size[1] - sp(12)
+        ContextButton:
+            text: '-'
+            on_release: app.main_app.delete_current_item()
+            font_size: self.size[1]
+            size_hint_max_x: self.height * 2.1
+            size_hint_x: 1 if app.app_state['context_id'] else None
+            width: self.height if app.app_state['context_id'] else 0
+            disabled: not app.app_state['context_id']
+            opacity: 1 if app.app_state['context_id'] else 0
+            canvas.after:
+                Color:
+                    rgba: app.app_state['context_id_ink']
+                Ellipse:
+                    pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
+                    size: self.size[0] - sp(12), self.size[1] - sp(12)
+        ContextButton:
+            text: '+'
+            on_release: app.main_app.add_new_item()
+            font_size: self.size[1]
+            canvas.after:
+                Color:
+                    rgba: 1, 0, 0, .69
+                Ellipse:
+                    pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
+                    size: self.size[0] - sp(12), self.size[1] - sp(12)
 
 
 <MaioMenuBar@BoxLayout>:
@@ -10,13 +75,12 @@
     Button:
         text: '< --'
         on_release: app.main_app.context_leave()
-        font_size: app.app_state['font_size'] * 2.1
-        size_hint_max_x: self.height * 2.
+        font_size: app.app_state['font_size'] * 1.5
+        size_hint_max_x: self.height * 2.1
         disabled: not app.app_state['context_path']
-        background_color: [.9, .9, .9, .6]
         canvas.after:
             Color:
-                rgba: 1, 1, 0, .36
+                rgba: app.app_state['context_id_ink']
             Ellipse:
                 pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
                 size: self.size[0] - sp(12), self.size[1] - sp(12)
@@ -24,7 +88,7 @@
         width: sp(369)
         font_size: app.app_state['font_size'] * 1.5
         on_release:
-            Popup(title="Irmi's shopping list V " + version + "   (c) 2020 Andi Ecker",
+            Popup(title=f"{app.main_app.app_title} V {version}    (c) 2020 Andi Ecker",
             title_align='center',
             content=Label(text=
             "Touch short on leaf/list name for to toggle selection.\n"
@@ -58,98 +122,80 @@
                 shorten: True
                 shorten_from: 'left'
                 split_str: '...'
+    FontSizeDropDown:
     ListFiltButton:
         id: listFilterSelected
-        # text: 'B'
         state: 'down' if app.app_state['filter_selected'] else 'normal'
-        canvas:
-            Color:
-                rgba: app.app_state['unselected_item_ink']  # (0, 0, 1, .21)     # add blue
-            RoundedRectangle:
-                pos: self.pos
-                size: self.size
-    ListFiltButton:
-        id: listFilterUnselected
-        # text: 'G'
-        state: 'down' if app.app_state['filter_unselected'] else 'normal'
         canvas:
             Color:
                 rgba: app.app_state['selected_item_ink']
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
-    Button:
-        text: '+'
-        on_release: app.main_app.add_new_item()
-        font_size: self.size[1]
-        size_hint_max_x: self.height * 2.
-        background_color: [.9, .9, .9, .6]
-        background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
-        background_down: 'atlas://data/images/defaulttheme/slider_cursor'
-        #icon: 'atlas://data/images/defaulttheme/audio-volume-high'
-        canvas.after:
+    ListFiltButton:
+        id: listFilterUnselected
+        state: 'down' if app.app_state['filter_unselected'] else 'normal'
+        canvas:
             Color:
-                rgba: 1, 0, 0, .6
-            Ellipse:
-                pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
-                size: self.size[0] - sp(12), self.size[1] - sp(12)
-    Button:
-        text: '-'
-        on_release: app.main_app.delete_current_item()
-        font_size: self.size[1]
-        size_hint_max_x: self.height * 2.
-        size_hint_x: 1 if app.app_state['context_id'] else None
-        width: self.height if app.app_state['context_id'] else 0
-        disabled: not app.app_state['context_id']
-        opacity: 1 if app.app_state['context_id'] else 0
-        background_color: [.9, .9, .9, .6]
-        background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
-        background_down: 'atlas://data/images/defaulttheme/slider_cursor'
-        canvas.after:
-            Color:
-                rgba: 1, .3, 0, .36
-            Ellipse:
-                pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
-                size: self.size[0] - sp(12), self.size[1] - sp(12)
-    Button:
-        text: '/'
-        on_release: app.main_app.edit_item_popup(app.app_state['context_id'])
-        font_size: self.size[1]
-        size_hint_max_x: self.height * 2.
-        size_hint_x: 1 if app.app_state['context_id'] else None
-        width: self.height if app.app_state['context_id'] else 0
-        disabled: not app.app_state['context_id']
-        opacity: 1 if app.app_state['context_id'] else 0
-        background_color: [.9, .9, .9, .6]
-        canvas.after:
-            Color:
-                rgba: 1, 1, 0, .36
-            Ellipse:
-                pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
-                size: self.size[0] - sp(12), self.size[1] - sp(12)
+                rgba: app.app_state['unselected_item_ink']
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
 
 
 <ListFiltButton@ToggleButton>:
-    # exchanging down/normal state and using radio button mode results in
-    # .. automatic selection of at least one button (preventing empty list)
-    on_release: app.main_app.toggle_list_filter(self.text, self.state)
+    on_release: app.main_app.toggle_list_filter(self)
     minimum_width: self.height
-    font_size: app.app_state['font_size'] * 1.5
-    size_hint_max_x: self.height * 2.
+    size_hint_max_x: self.height * 2.1
     background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
     background_down: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
 
-    
+
+<FontSizeDropDown@BoxLayout>:
+    size_hint_max_x: self.height * 1.2
+    Button:
+        text: 'Aa'
+        on_parent: dropDown.dismiss()
+        on_release: dropDown.open(self)
+        font_size: app.app_state['font_size'] * 1.5
+        DropDown:
+            id: dropDown
+            on_select: app.main_app.set_font_size(args[1])
+            auto_width: False
+            width: root.parent.right - root.x - sp(9)
+            Button:
+                text: f'Aa Bb Zz {round(MIN_FONT_SIZE)}'
+                on_release: dropDown.select(MIN_FONT_SIZE)
+                font_size: MIN_FONT_SIZE
+                size_hint_y: None
+                size: self.texture_size
+            Button:
+                text: f'Aa Bb Zz {round((MIN_FONT_SIZE + MAX_FONT_SIZE) / 2)}'
+                on_release: dropDown.select((MIN_FONT_SIZE + MAX_FONT_SIZE) / 2)
+                font_size: (MIN_FONT_SIZE + MAX_FONT_SIZE) / 2
+                size_hint_y: None
+                size: self.texture_size
+            Button:
+                text: f'Aa Bb Zz {round(MAX_FONT_SIZE)}'
+                on_release: dropDown.select(MAX_FONT_SIZE)
+                font_size: MAX_FONT_SIZE
+                size_hint_y: None
+                size: self.texture_size
+
+
 <ListItem>:
     item_data: app.main_app.update_item_data(self, toggleSelected.text, toggleSelected.state)
     size_hint_y: None
     height: app.app_state['font_size'] * 1.5
+    padding: [sp(3), sp(3)]
     canvas.after:
         Color:
-            rgba: 0.99, 0.99, 0.15, .18 if app.app_state['context_id'] == root.item_data['id'] else 0
-        Ellipse:
-            pos: self.pos[0] + self.width / 8, self.pos[1]
-            size: self.size[0] - self.width / 4, self.size[1]
+            rgba:
+                app.app_state['context_id_ink'][:3] \
+                + (.69 if app.app_state['context_id'] == root.item_data['id'] else 0, )
+        Line:
+            width: sp(3)
+            rectangle: self.x, self.y, self.width, self.height
     ToggleButton:
         id: toggleSelected
         state: 'down' if root.item_data.get('sel') else 'normal'
@@ -158,10 +204,10 @@
         on_text: app.main_app.change_app_state('context_id', self.text)
         size_hint: 0.69, None
         font_size: app.app_state['font_size']
-        height: self.font_size * 1.5
+        height: self.font_size * 1.5 - 2 * root.padding[1]
         halign: 'left'
         valign: 'middle'
-        text_size: self.size
+        text_size: self.size[0] - 2 * root.padding[0], self.size[1] - 2 * root.padding[1]
         shorten: True
         shorten_from: 'right'
         split_str: '..'
@@ -173,7 +219,7 @@
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
-    Button:
+    ToggleButton:
         id: enterList
         text: '-- >'
         on_release: app.main_app.context_enter(root.item_data['id'])
@@ -226,7 +272,7 @@
             height: self.font_size * 1.5
             halign: 'left'
             valign: 'middle'
-            text_size: app.main_app._current_widget.size  # self.size
+            text_size: app.main_app._current_widget.size
         ToggleButton:
             id: itemIsListInp
             state: 'down' if 'sub_list' in app.main_app.get_item_by_name(root.title) else 'normal'
@@ -256,39 +302,13 @@
     canvas:
         Color:
             rgba:
-                app.app_state['placeholder_item_ink'] if root.dark else \
-                app.app_state['placeholder_sub_ink']
+                app.app_state['context_path_ink'] if root.dark else \
+                app.app_state['context_id_ink']
         RoundedRectangle:
             pos: self.pos
             size: self.size
 
 
-<MaioRoot@FloatLayout>:
-    id: maioRoot
-    BoxLayout:
-        orientation: 'vertical'
-        MaioMenuBar:
-            id: menuBar
-        ScrollView:
-            do_scroll_x: False
-            BoxLayout:
-                id: listContainer
-                orientation: 'vertical'
-                size_hint_y: None
-    Button:
-        text: '+'
-        size_hint: None, None
-        size: sp(60) if app.landscape else sp(90), sp(90) if app.landscape else sp(60)
-        font_size: self.size[1]
-        pos_hint: {'right': 1.0}
-        background_color: [.9, .9, .9, .6]
-        background_normal: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
-        background_down: 'atlas://data/images/defaulttheme/slider_cursor'
-        on_release: app.main_app.add_new_item()
-        canvas.after:
-            Color:
-                rgba: 1, 0, 0, .6
-            Ellipse:
-                pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
-                size: self.size[0] - sp(12), self.size[1] - sp(12)
-                source: 'img/app_icon.jpg'
+<ContextButton@Button>:
+    background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
+    background_down: 'atlas://data/images/defaulttheme/slider_cursor_disabled'

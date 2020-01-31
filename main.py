@@ -2,7 +2,7 @@
 """ My All In One - (c) 2020 Andi Ecker.
 
   version history:
-    0.1     first beta (mini shopping list for Irma with 4 static lists Lidl/Mercadona/Nor/Sur).
+    0.1     first beta (mini shopping list for Irmi with 4 static lists Lidl/Mercadona/Nor/Sur).
     0.2     enhanced icons/texts, fixed problems with ActionBar and Popup for to edit list item, moved data to sdcard.
     0.3     changed to dynamic lists, changed data file extension to txt (for easier device maintenance),
             added app version to data file
@@ -32,10 +32,12 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 
-from ae.KivyApp import KivyMainApp
+from ae.KivyApp import KivyMainApp, MIN_FONT_SIZE, MAX_FONT_SIZE
 
 
 __version__ = '0.12'
+
+assert MIN_FONT_SIZE < MAX_FONT_SIZE
 
 ItemDataType = Dict[str, Any]
 ListDataType = List[ItemDataType]
@@ -69,7 +71,27 @@ class MaioApp(KivyMainApp):
         """ callback after app init/build for to draw/refresh gui. """
         self.on_context_draw()
 
-    # item/widget search in currently displayed list
+    def on_key_press(self, key_code, _modifiers):
+        """ key press event. """
+        if key_code == 'down':
+            self.set_next_context_id()
+        elif key_code == 'up':
+            self.set_prev_context_id()
+        elif key_code == ' ' and self.context_id:    # key string 'space' is not in Window.command_keys
+            liw = self.get_widget_by_name(self.context_id)
+            new_state = 'normal' if liw.ids.toggleSelected.state == 'down' else 'down'
+            self.update_item_data(liw, self.context_id, new_state)
+            self.on_context_draw()
+        elif key_code == 'enter' and self.context_id \
+                and 'sub_list' in self.get_widget_by_name(self.context_id).item_data:
+            self.context_enter(self.context_id)
+        elif key_code == 'escape' and self.framework_app.app_state['context_path']:
+            self.context_leave()
+        else:
+            return False
+        return True
+
+    # item/widget search in currently displayed list (context)
 
     def find_item_index(self, item_name: str, searched_list: Optional[ListDataType] = None) -> int:
         """ determine list index in the currently displayed list. """
@@ -105,6 +127,32 @@ class MaioApp(KivyMainApp):
             if item_data and item_data['id'] == item_name:
                 return liw
 
+    def set_next_context_id(self):
+        """ move context id to next item. """
+        context_id = self.context_id
+        current_list = self.current_list
+        if current_list:
+            if context_id:
+                idx = self.find_item_index(context_id) + 1
+                if idx < len(current_list):
+                    context_id = current_list[idx]['id']
+            else:
+                context_id = current_list[0]['id']
+            self.set_context(context_id)
+
+    def set_prev_context_id(self):
+        """ move context id to next item. """
+        context_id = self.context_id
+        current_list = self.current_list
+        if current_list:
+            if context_id:
+                idx = self.find_item_index(context_id) - 1
+                if idx >= 0:
+                    context_id = current_list[idx]['id']
+            else:
+                context_id = current_list[-1]['id']
+            self.set_context(context_id)
+
     # item (leaf/sub_list) add/delete/edit of name/copy/del
 
     def add_leaf_confirmed(self, item_name: str, liw: Widget):
@@ -117,7 +165,7 @@ class MaioApp(KivyMainApp):
         lcw.add_widget(liw)
         lcw.height += liw.height
 
-        self.change_app_state('context_id', item_name)
+        self.set_context(item_name)
 
     def add_list(self, list_name, copy_items_from=''):
         """ add new list """
@@ -127,11 +175,11 @@ class MaioApp(KivyMainApp):
             new_list = dict(sub_list=list())
         new_list['id'] = list_name
         self.current_list.append(new_list)
-        self.change_app_state('context_id', list_name)
+        self.set_context(list_name)
 
     def add_new_item(self):
         """ start/initiate the addition of a new list item """
-        self.change_app_state('context_id', '')
+        self.set_context('')
         self._current_widget = Factory.ListItem()
         pu = Factory.ItemEditor(title='')
         pu.open()  # calling self._current_widget on dismiss/close
@@ -225,7 +273,7 @@ class MaioApp(KivyMainApp):
     def delete_data_item(self, item_name):
         """ delete list item """
         self.current_list.remove(self.get_item_by_name(item_name))
-        self.change_app_state('context_id', '')
+        self.set_context('')
 
     def delete_item_confirmed(self, item_name):
         """ delete item or sub-list of this item """
@@ -256,7 +304,7 @@ class MaioApp(KivyMainApp):
         self.dpo('edit item', item_name)
         liw = self.get_widget_by_name(item_name)
         if liw:
-            self.change_app_state('context_id', item_name)
+            self.set_context(item_name)
             self._current_widget = liw
             root = self.framework_app.root
             svw = root.ids.listContainer.parent
@@ -318,7 +366,7 @@ class MaioApp(KivyMainApp):
                         item_data.pop('sub_list')
                 else:
                     item_data['sub_list'] = list()
-            self.change_app_state('context_id', text)
+            self.set_context(text)
         self.save_app_state()
         self.on_context_draw()
 
@@ -343,20 +391,23 @@ class MaioApp(KivyMainApp):
         lcw.height = h
 
         # ensure that current leaf/sub-list is visible - if still exists in current list
+        redraw = False
         if context_id:
             liw = self.get_widget_by_name(context_id)
             if liw:
                 lcw.parent.scroll_to(liw)
             else:
                 context_id = ''     # last current item got filtered by user
+                redraw = True
 
         # restore self.context_id (changed in list redraw by setting observed selectButton.state)
-        self.change_app_state('context_id', context_id)
+        self.set_context(context_id, redraw=redraw)
 
-    def toggle_list_filter(self, filter_button_text, filter_button_state):
+    def toggle_list_filter(self, filter_button):
         """ list item filter """
-        self.dpo('toggle_list_filter', filter_button_text, filter_button_state)
-        toggle_selected_filter = filter_button_text == "B"
+        filter_button_state = filter_button.state
+        self.dpo('toggle_list_filter', filter_button, filter_button_state)
+        toggle_selected_filter = filter_button == self.framework_app.root.ids.menuBar.ids.listFilterSelected
         filtering = filter_button_state == 'down'
         if toggle_selected_filter:
             self.change_app_state('filter_selected', filtering)
@@ -501,4 +552,4 @@ class DropPlaceholder(Widget):
 
 # app start
 if __name__ in ('__android__', '__main__'):
-    MaioApp(app_name='maio', app_title="Irmi's Shopping Listz").run_app()
+    MaioApp(app_name='maio', app_title="Irmi's Shopping Lisz").run_app()

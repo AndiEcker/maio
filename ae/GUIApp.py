@@ -32,8 +32,8 @@ class MainAppBase(ConsoleApp, ABC):
     framework_app: Any = None                               #: app class instance of the used GUI framework
     selected_item_ink: Tuple = (0.69, 1.0, 0.39, 0.18)      #: rgba color tuple for list items (selected)
     unselected_item_ink: Tuple = (0.39, 0.39, 0.39, 0.18)   #: rgba color tuple for list items (unselected)
-    placeholder_item_ink: Tuple = (0.99, 0.99, 0.39, 0.48)  #: rgba color tuple for drag&drop item placeholder
-    placeholder_sub_ink:Tuple = (0.99, 0.99, 0.69, 0.69)    #: rgba color tuple for drag&drop sub_list placeholder
+    context_path_ink: Tuple = (0.99, 0.99, 0.39, 0.48)      #: rgba color tuple for drag&drop item placeholder
+    context_id_ink: Tuple = (0.99, 0.99, 0.69, 0.69)        #: rgba color tuple for drag&drop sub_list placeholder
 
     win_rectangle: Tuple = (0, 0, 800, 600)
 
@@ -70,7 +70,13 @@ class MainAppBase(ConsoleApp, ABC):
                 setattr(self, key, app_state[key])
         return ""
 
-    def change_app_state(self, state_name, new_value):
+    def call_event(self, method: str, *args, **kwargs) -> Any:
+        """ dispatch event to inheriting instances. """
+        event_callback = getattr(self, method, None)
+        if event_callback:
+            return event_callback(*args, **kwargs)
+
+    def change_app_state(self, state_name: str, new_value: Any):
         """ change single app state item to value in self.attribute and app_state dict item """
         setattr(self, state_name, new_value)
         self.framework_app.app_state[state_name] = new_value
@@ -78,12 +84,12 @@ class MainAppBase(ConsoleApp, ABC):
     def context_enter(self, context_id: str, next_context_id: str = ''):
         """ user extending/entering/adding new context_id (e.g. navigates down in the app context path/tree) """
         self.context_path.append(context_id)
-        self._set_context_path_and_id(next_context_id)
+        self.set_context(next_context_id)
 
-    def context_leave(self):
+    def context_leave(self, next_context_id: str = ''):
         """ user navigates up in the data tree """
         list_name = self.context_path.pop()
-        self._set_context_path_and_id(list_name)
+        self.set_context(next_context_id or list_name)
 
     def load_app_state(self) -> str:
         """ load application state for to prepare app.run_app """
@@ -122,14 +128,18 @@ class MainAppBase(ConsoleApp, ABC):
         self.load_cfg_files()
         return err_msg
 
-    def _set_context_path_and_id(self, context_id):
+    def set_context(self, context_id: str, redraw: bool = True):
         """ propagate change of context path and context/current id/item and display changed context.
 
-        :param context_id:   name of new current item.
+        :param context_id:  name of new current item.
+        :param redraw:      pass False to prevent to redraw the context screens.
         """
         self.change_app_state('context_path', self.context_path)
         self.change_app_state('context_id', context_id)
+        if redraw:
+            self.call_event('on_context_draw')
 
-        event_callback = getattr(self, 'on_context_draw', None)
-        if event_callback:
-            event_callback()
+    def set_font_size(self, font_size: float):
+        """ change font size. """
+        self.change_app_state('font_size', font_size)
+        self.call_event('on_context_draw')

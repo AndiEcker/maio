@@ -13,7 +13,7 @@ from kivy.clock import Clock
 from kivy.metrics import sp
 from kivy.lang import Builder
 
-kivy.require('1.11.1')  # currently using 1.11.1 but at least 1.9.1 is needed for Window.softinput_mode 'below_target'
+kivy.require('1.9.1')  # currently using 1.11.1 but at least 1.9.1 is needed for Window.softinput_mode 'below_target'
 Window.softinput_mode = 'below_target'  # ensure android keyboard is not covering Popup/text input
 
 
@@ -58,24 +58,28 @@ class FrameworkApp(App):
         """ build app """
         self.main_app.po('App.build(), user_data_dir', self.user_data_dir,
                          "config files", getattr(self.main_app, '_cfg_files'))
-        Window.bind(on_resize=self.win_pos_size_changed)
-        Window.bind(left=self.win_pos_size_changed)
-        Window.bind(top=self.win_pos_size_changed)
+        Window.bind(on_resize=self.win_pos_size_changed,
+                    left=self.win_pos_size_changed,
+                    top=self.win_pos_size_changed,
+                    on_key_down=self.on_key_down,
+                    on_key_up=self.on_key_up)
 
         return Factory.MaioRoot()
 
-    def win_pos_size_changed(self, *_):
-        """ screen resize handler """
-        self.main_app.po('win_pos_size_changed', self.root.width, self.root.height)
-        self.landscape = self.root.width >= self.root.height
-        self.main_app.change_app_state('win_rectangle', (Window.left, Window.top, Window.width, Window.height))
+    def on_key_down(self, keyboard, key_code, _scan_code, key_text, modifiers):
+        """ key press event. """
+        return self.main_app.call_event('on_key_press',
+                                        key_text or keyboard.command_keys.get(key_code, key_code),
+                                        modifiers)
+
+    def on_key_up(self, keyboard, key_code, _scan_code):
+        """ key release event. """
+        return self.main_app.call_event('on_key_release', keyboard.command_keys.get(key_code, key_code))
 
     def on_start(self):
         """ app start event """
         self.win_pos_size_changed()  # init. app./self.landscape (on app startup and after build)
-        event_callback = getattr(self.main_app, 'on_framework_app_start', None)
-        if event_callback:
-            event_callback()
+        self.main_app.call_event('on_framework_app_start')
 
     def on_pause(self):
         """ app pause event """
@@ -85,6 +89,12 @@ class FrameworkApp(App):
     def on_stop(self):
         """ quit app event """
         self.main_app.save_app_state()
+
+    def win_pos_size_changed(self, *_):
+        """ screen resize handler """
+        self.main_app.po('win_pos_size_changed', self.root.width, self.root.height)
+        self.landscape = self.root.width >= self.root.height
+        self.main_app.change_app_state('win_rectangle', (Window.left, Window.top, Window.width, Window.height))
 
 
 class KivyMainApp(MainAppBase):
@@ -104,8 +114,6 @@ class KivyMainApp(MainAppBase):
         """ initialize framework app instance """
         self.framework_app = FrameworkApp(self)
         self.framework_app.kv_file = 'main.kv'
-        self.font_size = MIN_FONT_SIZE                              #: font size - initial set to minimum
-        self.win_rectangle = (sp(90), sp(90), sp(800), sp(600))     #: (x, y, width, height) of the app window
 
     def run_app(self):
         """ startup/display the application """
