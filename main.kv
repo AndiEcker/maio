@@ -28,9 +28,12 @@
             app.app_state['font_size'] * (1.8 if app.landscape else 2.4 * len(self.children))
         pos_hint: {'right': 0.93}
         ContextButton:
-            text: '/'
+            text: './'
             on_release: app.main_app.edit_item_popup(app.app_state['context_id'])
-            font_size: self.size[1]
+            font_size: self.size[1] * 0.63
+            text_size: self.size
+            valign: 'top'
+            halign: 'center'
             size_hint_max_x: self.height * 1.5
             size_hint_x: 1 if app.app_state['context_id'] else None
             width: self.height if app.app_state['context_id'] else 0
@@ -38,14 +41,17 @@
             opacity: 1 if app.app_state['context_id'] else 0
             canvas.after:
                 Color:
-                    rgba: app.app_state['context_id_ink']
+                    rgba: app.app_state['context_id_ink'][:3] + (0.78, )
                 Ellipse:
                     pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
                     size: self.size[0] - sp(12), self.size[1] - sp(12)
         ContextButton:
             text: '-'
             on_release: app.main_app.delete_current_item()
-            font_size: self.size[1]
+            font_size: self.size[1] * 3
+            text_size: self.size
+            halign: 'center'
+            valign: 'top'
             size_hint_max_x: self.height * 2.1
             size_hint_x: 1 if app.app_state['context_id'] else None
             width: self.height if app.app_state['context_id'] else 0
@@ -53,17 +59,17 @@
             opacity: 1 if app.app_state['context_id'] else 0
             canvas.after:
                 Color:
-                    rgba: app.app_state['context_id_ink']
-                Ellipse:
-                    pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
-                    size: self.size[0] - sp(12), self.size[1] - sp(12)
+                    rgba: app.app_state['context_id_ink'][:3] + ((app.app_state['context_id_ink'][3] + 1.0) / 2.0, )
+                Rectangle:
+                    pos: self.pos[0] + sp(15), self.pos[1] + 2.1 * self.height / 5.4
+                    size: self.size[0] - sp(30), self.size[1] - 4.2 * self.height / 5.4
         ContextButton:
             text: '+'
             on_release: app.main_app.add_new_item()
-            font_size: self.size[1]
+            font_size: self.size[1] * 1.2
             canvas.after:
                 Color:
-                    rgba: 1, 0, 0, .69
+                    rgba: 1, 0, 0, .63
                 Ellipse:
                     pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
                     size: self.size[0] - sp(12), self.size[1] - sp(12)
@@ -98,7 +104,9 @@
             "or for to add/remove their sub-list.\n"
             "Drag leaf/list item with the icon on the right\n"
             "of the leaf/list item for to move it.",
-            halign='center'),
+            halign='center',
+            font_size=app.app_state['font_size']
+            ),
             size_hint_y=.6
             ).open()
         StackLayout:
@@ -123,6 +131,7 @@
                 shorten_from: 'left'
                 split_str: '...'
     FontSizeDropDown:
+        id: fontSizer
     ListFiltButton:
         id: listFilterSelected
         state: 'down' if app.app_state['filter_selected'] else 'normal'
@@ -219,7 +228,7 @@
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
-    ToggleButton:
+    Button:
         id: enterList
         text: '-- >'
         on_release: app.main_app.context_enter(root.item_data['id'])

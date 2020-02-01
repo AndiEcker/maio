@@ -3,9 +3,13 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.buildozer" />
+      <excludeFolder url="file://$MODULE_DIR$/.mypy_cache" />
+      <excludeFolder url="file://$MODULE_DIR$/.pytest_cache" />
       <excludeFolder url="file://$MODULE_DIR$/ae/.pytest_cache" />
-      <excludeFolder url="file://$MODULE_DIR$/ae/tests/.pytest_cache" />
       <excludeFolder url="file://$MODULE_DIR$/bin" />
+      <excludeFolder url="file://$MODULE_DIR$/htmlcov" />
+      <excludeFolder url="file://$MODULE_DIR$/mypy_report" />
+      <excludeFolder url="file://$MODULE_DIR$/tests/.pytest_cache" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.6 (kivy_env)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

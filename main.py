@@ -25,14 +25,16 @@
 from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
+from kivy.animation import Animation
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 
-from ae.KivyApp import KivyMainApp, MIN_FONT_SIZE, MAX_FONT_SIZE
+from ae.kivy_app import KivyMainApp, MIN_FONT_SIZE, MAX_FONT_SIZE
 
 
 __version__ = '0.12'
@@ -43,6 +45,8 @@ ItemDataType = Dict[str, Any]
 ListDataType = List[ItemDataType]
 
 DEL_SUB_LIST_PREFIX = "from "               #: delete_item_confirmed() item_name prefix: if list or sub_list get deleted
+
+weak_ref_bug_workaround = dict()
 
 
 class MaioApp(KivyMainApp):
@@ -60,9 +64,9 @@ class MaioApp(KivyMainApp):
 
     # app init
 
-    def apply_app_state(self, app_state: Dict[str, Any]) -> str:
-        """ set/change the state of a running app, called for to prepare app.run_app """
-        err_msg = super().apply_app_state(app_state)
+    def setup_app_state(self, app_state: Dict[str, Any]) -> str:
+        """ put app state variables into main app instance for to prepare framework app.run_app """
+        err_msg = super().setup_app_state(app_state)
         if not err_msg:
             pass
         return err_msg
@@ -70,26 +74,7 @@ class MaioApp(KivyMainApp):
     def on_framework_app_start(self):
         """ callback after app init/build for to draw/refresh gui. """
         self.on_context_draw()
-
-    def on_key_press(self, key_code, _modifiers):
-        """ key press event. """
-        if key_code == 'down':
-            self.set_next_context_id()
-        elif key_code == 'up':
-            self.set_prev_context_id()
-        elif key_code == ' ' and self.context_id:    # key string 'space' is not in Window.command_keys
-            liw = self.get_widget_by_name(self.context_id)
-            new_state = 'normal' if liw.ids.toggleSelected.state == 'down' else 'down'
-            self.update_item_data(liw, self.context_id, new_state)
-            self.on_context_draw()
-        elif key_code == 'enter' and self.context_id \
-                and 'sub_list' in self.get_widget_by_name(self.context_id).item_data:
-            self.context_enter(self.context_id)
-        elif key_code == 'escape' and self.framework_app.app_state['context_path']:
-            self.context_leave()
-        else:
-            return False
-        return True
+        weak_ref_bug_workaround['fontSizer'] = self.framework_app.root.ids.menuBar.ids.fontSizer
 
     # item/widget search in currently displayed list (context)
 
@@ -121,7 +106,7 @@ class MaioApp(KivyMainApp):
 
     def get_widget_by_name(self, item_name: str) -> Optional[Widget]:
         """ search list item widget """
-        lcw = self.framework_app.root.ids.listContainer
+        lcw = self.root_layout.ids.listContainer
         for liw in lcw.children:
             item_data = getattr(liw, 'item_data', None)
             if item_data and item_data['id'] == item_name:
@@ -161,7 +146,7 @@ class MaioApp(KivyMainApp):
         # liw.item_data['id'] = item_name
         liw.item_data['id'] = item_name
         self.current_list.append(liw.item_data)
-        lcw = self.framework_app.root.ids.listContainer
+        lcw = self.root_layout.ids.listContainer
         lcw.add_widget(liw)
         lcw.height += liw.height
 
@@ -184,6 +169,20 @@ class MaioApp(KivyMainApp):
         pu = Factory.ItemEditor(title='')
         pu.open()  # calling self._current_widget on dismiss/close
 
+    def context_enter(self, context_id: str, next_context_id: str = ''):
+        """ overwrite to animate. """
+        super().context_enter(context_id, next_context_id=next_context_id)
+        lcw = self.root_layout.ids.listContainer
+        ani = Animation(x=Window.width, d=0.003) + Animation(x=lcw.x, d=0.27)
+        ani.start(lcw)
+
+    def context_leave(self, next_context_id: str = ''):
+        """ overwrite to animate. """
+        super().context_leave(next_context_id=next_context_id)
+        lcw = self.root_layout.ids.listContainer
+        ani = Animation(y=100, right=100, d=0.06) + Animation(y=lcw.y, right=lcw.right, d=0.21)
+        ani.start(lcw)
+
     def create_placeholder(self, child_idx: int, liw: Widget, touch_y: float) -> bool:
         """ create placeholder data structures. """
         child_idx -= self.cleanup_placeholder(child_idx=child_idx)
@@ -201,7 +200,7 @@ class MaioApp(KivyMainApp):
             return False
 
         # add widgets without redrawing (self.on_context_draw())
-        lcw = self.framework_app.root.ids.listContainer
+        lcw = self.root_layout.ids.listContainer
         for phw in self.placeholders_below.values():
             lcw.add_widget(phw, index=child_idx)
             lcw.height += phw.height
@@ -282,7 +281,7 @@ class MaioApp(KivyMainApp):
             del_sub_list = True
         else:
             del_sub_list = False
-        lcw = self.framework_app.root.ids.listContainer
+        lcw = self.root_layout.ids.listContainer
         liw = self.get_widget_by_name(item_name)
         if liw:
             if del_sub_list:
@@ -306,23 +305,28 @@ class MaioApp(KivyMainApp):
         if liw:
             self.set_context(item_name)
             self._current_widget = liw
-            root = self.framework_app.root
-            svw = root.ids.listContainer.parent
+            root = self.root_layout
+            lcw = root.ids.listContainer
+            svw = lcw.parent
             svw.scroll_to(liw)
-            border = (12, 3, 12, 3)   # (bottom, right, top, left)
-            phx = (liw.x - border[3])  # svw.size[0]
-            phy = (liw.y - (svw.viewport_size[1] - svw.size[1]) * svw.scroll_y - border[0])
-            px, py = root.to_window(*svw.to_window(*liw.pos))
-            print("ItemEditor", phx, px, phy, py)
+            pos = svw.parent.to_widget(*liw.to_window(*liw.pos))    # - (lcw.size[1] - svw.size[1]) * svw.scroll_y
+            border = Popup.border.defaultvalue   # (bottom, right, top, left)
+            phx = pos[0] - border[3]
+            phy = pos[1] - border[0]
+            if svw.top > lcw.top:
+                phy += svw.top - lcw.top
+            else:
+                phy += svw.g_translate.xy[1]
+            print(phx, phy, svw.g_translate.xy, svw.scroll_y)
             pu = Factory.ItemEditor(title=liw.item_data['id'],
-                                    pos_hint=dict(x=px / Window.width, y=phy / Window.height),
-                                    size_hint=(None, None), size=(liw.width, liw.height * 3),
-                                    background_color=(.6, .6, .6, .6),
+                                    pos_hint=dict(x=phx / Window.width, y=phy / Window.height),
+                                    size_hint=(None, None), size=(svw.width + border[1] + border[3], liw.height * 2.4),
+                                    background_color=(.9, .6, .6, .6),
                                     border=border,
                                     separator_height=3,
                                     title_align='center',
                                     title_color=self.selected_item_ink,
-                                    title_size=self.font_size / 1.8)
+                                    title_size=self.font_size / 80.1)
             # pu.open()  # calling edit_item_finished() on dismiss/close
             Clock.schedule_once(pu.open, 1.2)       # focus is still going away with touch_up
 
@@ -376,9 +380,9 @@ class MaioApp(KivyMainApp):
         sub_list, self.current_list = self.get_context_list()
         self.dpo("on_context_draw", sub_list or 'RooT', context_id)
 
-        lf_ds = self.framework_app.root.ids.menuBar.ids.listFilterSelected.state == 'normal'
-        lf_ns = self.framework_app.root.ids.menuBar.ids.listFilterUnselected.state == 'normal'
-        lcw = self.framework_app.root.ids.listContainer
+        lf_ds = self.root_layout.ids.menuBar.ids.listFilterSelected.state == 'normal'
+        lf_ns = self.root_layout.ids.menuBar.ids.listFilterUnselected.state == 'normal'
+        lcw = self.root_layout.ids.listContainer
         lcw.clear_widgets()
         h = 0
         for list_idx, lid in enumerate(self.current_list):
@@ -403,11 +407,40 @@ class MaioApp(KivyMainApp):
         # restore self.context_id (changed in list redraw by setting observed selectButton.state)
         self.set_context(context_id, redraw=redraw)
 
+    def on_key_press(self, key_code, _modifiers):
+        """ key press event. """
+        if key_code == 'down':
+            self.set_next_context_id()
+        elif key_code == 'up':
+            self.set_prev_context_id()
+        elif key_code == ' ' and self.context_id:    # key string 'space' is not in Window.command_keys
+            liw = self.get_widget_by_name(self.context_id)
+            new_state = 'normal' if liw.ids.toggleSelected.state == 'down' else 'down'
+            self.update_item_data(liw, self.context_id, new_state)
+            self.on_context_draw()
+        elif key_code == 'enter' and self.context_id \
+                and 'sub_list' in self.get_widget_by_name(self.context_id).item_data:
+            self.context_enter(self.context_id)
+        elif key_code == 'escape' and len(self.root_win.children) > 1:
+            for pu in self.pop_ups_opened():
+                pu.dismiss()
+        elif key_code == 'escape' and self.framework_app.app_state['context_path']:
+            self.context_leave()
+        else:
+            return False
+        return True
+
+    def pop_ups_opened(self):
+        """ determine tuple of all opened PopUp instances. """
+        for wid in self.root_win.children:     # PopUps are attached to the (SDL) Window instance
+            if isinstance(wid, Popup):
+                yield wid
+
     def toggle_list_filter(self, filter_button):
         """ list item filter """
         filter_button_state = filter_button.state
         self.dpo('toggle_list_filter', filter_button, filter_button_state)
-        toggle_selected_filter = filter_button == self.framework_app.root.ids.menuBar.ids.listFilterSelected
+        toggle_selected_filter = filter_button == self.root_layout.ids.menuBar.ids.listFilterSelected
         filtering = filter_button_state == 'down'
         if toggle_selected_filter:
             self.change_app_state('filter_selected', filtering)
@@ -519,6 +552,8 @@ class ListItem(BoxLayout):
                     list_idx = list(ma.placeholders_below.keys())[0] + 1
             assert self.dragged_from_list.index(self.item_data) == self.list_idx
             self.dragged_from_list.remove(self.item_data)
+            if list_idx != 0:
+                self.main_app.set_context(self.item_data['id'], redraw=False)
             if list_idx > self.list_idx:
                 list_idx -= 1
             dst_list.insert(list_idx, self.item_data)

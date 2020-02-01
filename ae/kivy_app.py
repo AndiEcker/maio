@@ -2,23 +2,23 @@
 import os
 from typing import Any, Dict, Optional, TextIO
 
-from ae.GUIApp import MainAppBase
+import kivy                                                             # type: ignore
+from kivy.app import App                                                # type: ignore
+from kivy.core.window import Window                                     # type: ignore
+from kivy.factory import Factory                                        # type: ignore
+from kivy.properties import BooleanProperty, DictProperty               # type: ignore
+from kivy.clock import Clock                                            # type: ignore
+from kivy.metrics import sp                                             # type: ignore
+from kivy.lang import Builder                                           # type: ignore
 
-import kivy
-from kivy.app import App
-from kivy.core.window import Window
-from kivy.factory import Factory
-from kivy.properties import BooleanProperty, DictProperty
-from kivy.clock import Clock
-from kivy.metrics import sp
-from kivy.lang import Builder
+from ae.gui_app import MainAppBase
 
 kivy.require('1.9.1')  # currently using 1.11.1 but at least 1.9.1 is needed for Window.softinput_mode 'below_target'
 Window.softinput_mode = 'below_target'  # ensure android keyboard is not covering Popup/text input
 
 
-MIN_FONT_SIZE = sp(24)
-MAX_FONT_SIZE = sp(33)
+MIN_FONT_SIZE = sp(18)
+MAX_FONT_SIZE = sp(30)
 
 
 # adapted from: https://stackoverflow.com/questions/23055696
@@ -79,6 +79,8 @@ class FrameworkApp(App):
     def on_start(self):
         """ app start event """
         self.win_pos_size_changed()  # init. app./self.landscape (on app startup and after build)
+        self.main_app.root_layout = self.root
+        self.main_app.root_win = self.root.parent
         self.main_app.call_event('on_framework_app_start')
 
     def on_pause(self):
@@ -99,19 +101,13 @@ class FrameworkApp(App):
 
 class KivyMainApp(MainAppBase):
     """ Kivy application """
-    def apply_app_state(self, app_state: Dict[str, Any]) -> str:
-        """ set/change the state of a running app, called for to prepare app.run_app """
-        err_msg = super().apply_app_state(app_state)
-        if not err_msg:
-            win_rect = app_state['win_rectangle']
-            if win_rect:
-                Window.left, Window.top = win_rect[:2]
-                Window.size = win_rect[2:]
-
-        return err_msg
-
     def on_framework_app_init(self):
         """ initialize framework app instance """
+        win_rect = self.win_rectangle
+        if win_rect:
+            Window.left, Window.top = win_rect[:2]
+            Window.size = win_rect[2:]
+
         self.framework_app = FrameworkApp(self)
         self.framework_app.kv_file = 'main.kv'
 
@@ -119,7 +115,9 @@ class KivyMainApp(MainAppBase):
         """ startup/display the application """
         if self.debug_bubble:
             Builder.load_string(DEBUG_BUBBLE_DEF)
+
         self.framework_app.app_state = self.retrieve_app_state()
+
         self.framework_app.run()
 
     def show_bubble(self, *objects, file: Optional[TextIO] = None, **kwargs):

@@ -3,9 +3,9 @@ from abc import ABC, abstractmethod
 from configparser import ConfigParser
 from typing import Any, Dict, Tuple, List
 
-from ae.core import DEBUG_LEVEL_VERBOSE
-from ae.literal import Literal
-from ae.console import ConsoleApp
+from ae.core import DEBUG_LEVEL_VERBOSE         # type: ignore
+from ae.literal import Literal                  # type: ignore
+from ae.console import ConsoleApp               # type: ignore
 
 
 AppStateType = Dict[str, Any]           #: app state config variable type
@@ -35,10 +35,13 @@ class MainAppBase(ConsoleApp, ABC):
     context_path_ink: Tuple = (0.99, 0.99, 0.39, 0.48)      #: rgba color tuple for drag&drop item placeholder
     context_id_ink: Tuple = (0.99, 0.99, 0.69, 0.69)        #: rgba color tuple for drag&drop sub_list placeholder
 
-    win_rectangle: Tuple = (0, 0, 800, 600)
+    win_rectangle: Tuple = (0, 0, 800, 600)                 #: app window coordinates
 
-    debug_bubble: bool = False              #: visibility of a popup/bubble showing debugging info
-    info_bubble: Any = None                 #: optional DebugBubble widget
+    debug_bubble: bool = False                              #: visibility of a popup/bubble showing debugging info
+    info_bubble: Any = None                                 #: optional DebugBubble widget
+
+    root_win: Any = None                                    #: app window
+    root_layout: Any = None                                 #: app root layout
 
     def __init__(self, debug_bubble: bool = False, **console_app_kwargs):
         """ create instance of app class.
@@ -63,8 +66,8 @@ class MainAppBase(ConsoleApp, ABC):
 
     # base implementation helper methods (can be overwritten by framework portion or by user main app)
 
-    def apply_app_state(self, app_state: AppStateType) -> str:
-        """ set/change the state of a running app """
+    def setup_app_state(self, app_state: AppStateType) -> str:
+        """ put app state variables into main app instance for to prepare framework app.run_app """
         for key in app_state_keys(self._cfg_parser):
             if key in app_state and (hasattr(self, key) or hasattr(self.__class__, key)):
                 setattr(self, key, app_state[key])
@@ -75,6 +78,7 @@ class MainAppBase(ConsoleApp, ABC):
         event_callback = getattr(self, method, None)
         if event_callback:
             return event_callback(*args, **kwargs)
+        return None
 
     def change_app_state(self, state_name: str, new_value: Any):
         """ change single app state item to value in self.attribute and app_state dict item """
@@ -95,13 +99,14 @@ class MainAppBase(ConsoleApp, ABC):
         """ load application state for to prepare app.run_app """
         self.debug_bubble = self.get_opt('debugLevel') >= DEBUG_LEVEL_VERBOSE
 
-        items = self._cfg_parser.items(APP_STATE_SECTION_NAME)
         app_state = dict()
-        for key, state in items:
-            lit = Literal(state, value_type=type(getattr(self, key, "")))
-            app_state[key] = lit.value
+        if self._cfg_parser.has_section(APP_STATE_SECTION_NAME):
+            items = self._cfg_parser.items(APP_STATE_SECTION_NAME)
+            for key, state in items:
+                lit = Literal(state, value_type=type(getattr(self, key, "")))
+                app_state[key] = lit.value
 
-        return self.apply_app_state(app_state)
+        return self.setup_app_state(app_state)
 
     @staticmethod
     def play_beep():

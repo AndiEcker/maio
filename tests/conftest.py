@@ -50,11 +50,11 @@ def cons_app(restore_app_env):
     yield ConsoleApp()
 
 
-@pytest.fixture
-def tst_system(cons_app):
-    """ CURRENTLY NOT USED """
-    from ae.sys_core import SystemBase
-    yield SystemBase('Tst', cons_app, dict(User='TstUsr', Password='TstPwd', Dsn='TstDb@TstHost'))
+# @pytest.fixture
+# def tst_system(cons_app):
+#     """ CURRENTLY NOT USED """
+#     from ae.sys_core import SystemBase
+#     yield SystemBase('Tst', cons_app, dict(User='TstUsr', Password='TstPwd', Dsn='TstDb@TstHost'))
 
 
 def delete_files(file_name, keep_ext=False, ret_type='count'):
