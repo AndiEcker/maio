@@ -5,7 +5,6 @@
 # needed for dynamic (c) Popup and FontSizeDropDown
 #: import Label kivy.uix.label.Label
 #: import Popup kivy.uix.popup.Popup
-#: import Factory kivy.factory
 
 
 <MaioRoot@FloatLayout>:
@@ -162,6 +161,8 @@
 
 <FontSizeDropDown@BoxLayout>:
     size_hint_max_x: self.height * 1.2
+    # fix weak ref bug: https://stackoverflow.com/questions/49367546/kivy-weakly-referenced-object-no-longer-exists
+    drop_down_id_weak_ref_fix: dropDown.__self__
     Button:
         text: 'Aa'
         on_parent: dropDown.dismiss()
@@ -197,14 +198,14 @@
     size_hint_y: None
     height: app.app_state['font_size'] * 1.5
     padding: [sp(3), sp(3)]
-    canvas.after:
+    canvas.before:
         Color:
             rgba:
                 app.app_state['context_id_ink'][:3] \
                 + (.69 if app.app_state['context_id'] == root.item_data['id'] else 0, )
         Line:
-            width: sp(3)
-            rectangle: self.x, self.y, self.width, self.height
+            width: sp(1.8)
+            rectangle: self.x + sp(2), self.y + sp(2), self.width - sp(4), self.height - sp(4)
     ToggleButton:
         id: toggleSelected
         state: 'down' if root.item_data.get('sel') else 'normal'

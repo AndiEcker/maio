@@ -1,6 +1,6 @@
 """ GUIApp-conform Kivy app """
 import os
-from typing import Any, Dict, Optional, TextIO
+from typing import Optional, TextIO
 
 import kivy                                                             # type: ignore
 from kivy.app import App                                                # type: ignore
@@ -110,6 +110,8 @@ class KivyMainApp(MainAppBase):
 
         self.framework_app = FrameworkApp(self)
         self.framework_app.kv_file = 'main.kv'
+
+        self.framework_app.app_state.update(self.retrieve_app_state())  # copy app states to duplicate DictProperty
 
     def run_app(self):
         """ startup/display the application """

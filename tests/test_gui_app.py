@@ -1,17 +1,33 @@
-""" test ae.GUIApp """
+""" test ae.gui_app portion """
 import os
 import pytest
 from typing import Dict, Any
 
-from ae.gui_app import MainAppBase, APP_STATE_SECTION_NAME
+from ae.gui_app import MainAppBase, APP_STATE_SECTION_NAME, app_state_keys
 
 
-TST_VAR = 'tstVar'
+TST_VAR = 'tst_var'
 TST_VAL = 'tstVal'
 TST_DICT = {TST_VAR: TST_VAL}
 
 
-class ImplementationOfABC(MainAppBase):
+@pytest.fixture
+def ini_file(restore_app_env):
+    """ provide test config file """
+    fn = 'tests/tst.ini'
+    with open(fn, 'w') as file_handle:
+        file_handle.write("[" + APP_STATE_SECTION_NAME + "]\n" + TST_VAR + " = " + TST_VAL)
+    yield fn
+    if os.path.exists(fn):      # some exception/error-check tests need to delete the INI
+        os.remove(fn)
+
+
+class FrameworkApp:
+    """ gui framework app stub """
+    app_state = dict()
+
+
+class ImplementationOfMainApp(MainAppBase):
     """ test abc implementation stub class """
     retrieve_state_called = False
     init_called = False
@@ -20,20 +36,23 @@ class ImplementationOfABC(MainAppBase):
     setup_state_called = False
     context_draw_called = False
 
+    tst_var: str = ""
+    font_size: float = 0.0
+
     def setup_app_state(self, app_state: Dict[str, Any]) -> str:
         """ setup app state """
         self.setup_state_called = True
-        return ""
+        return super().setup_app_state(app_state)
 
     def on_framework_app_init(self):
         """ init app """
+        self.framework_app = FrameworkApp()
         self.init_called = True
 
     def retrieve_app_state(self) -> Dict[str, Any]:
         """ get app state """
-        global TST_DICT
         self.retrieve_state_called = True
-        return TST_DICT
+        return super().retrieve_app_state()
 
     def run_app(self) -> str:
         """ run app """
@@ -49,70 +68,206 @@ class ImplementationOfABC(MainAppBase):
         self.context_draw_called = True
 
 
+class TestHelpers:
+    def test_app_state_keys(self, ini_file):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        keys = app_state_keys(app._cfg_parser)
+        assert isinstance(keys, tuple)
+        assert len(keys) == 1
+        assert keys[0] == TST_VAR
+
+
 class TestCallbacks:
-    def test_setup_app_state(self, restore_app_env):
-        app = ImplementationOfABC()
+    def test_setup_app_state(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         assert app.setup_state_called
 
-    def test_retrieve_app_state(self, restore_app_env):
-        app = ImplementationOfABC()
+    def test_retrieve_app_state(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         assert not app.retrieve_state_called
         app.retrieve_app_state()
         assert app.retrieve_state_called
 
     def test_init(self, restore_app_env):
-        app = ImplementationOfABC()
+        app = ImplementationOfMainApp()
         assert app.init_called
 
     def test_run(self, restore_app_env):
-        app = ImplementationOfABC()
+        app = ImplementationOfMainApp()
         assert not app.run_called
         app.run_app()
         assert app.run_called
 
     def test_start(self, restore_app_env):
-        app = ImplementationOfABC()
+        app = ImplementationOfMainApp()
         assert not app.start_called
         app.on_framework_app_start()
         assert app.start_called
 
     def test_context_draw(self, restore_app_env):
-        app = ImplementationOfABC()
+        app = ImplementationOfMainApp()
         assert not app.context_draw_called
         app.on_context_draw()
         assert app.context_draw_called
 
 
-@pytest.fixture
-def ini_file(restore_app_env):
-    """ provide test config file """
-    fn = 'tests/tst.ini'
-    with open(fn, 'w') as file_handle:
-        file_handle.write("[" + APP_STATE_SECTION_NAME + "]\n" + TST_VAR + " = " + TST_VAL)
-    yield fn
-    os.remove(fn)
+class TestAppState:
+    def test_retrieve_app_state(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
+        assert app.retrieve_app_state() == TST_DICT
 
-
-class TestLoadSaveAppState:
     def test_load(self, ini_file, restore_app_env):
-        app = ImplementationOfABC(additional_cfg_files=(ini_file, ))
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
 
         assert app.load_app_state() == ""
+        assert getattr(app, TST_VAR) == TST_VAL
+        assert app.framework_app.app_state == TST_DICT
         assert app.retrieve_app_state() == TST_DICT
+
+    def test_setup_app_state(self, ini_file, restore_app_env):
+        assert ImplementationOfMainApp.tst_var == ""
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert getattr(app, TST_VAR) == TST_VAL
+        assert app.setup_app_state(TST_DICT) == ""
+        assert getattr(app, TST_VAR) == TST_VAL
+
+    def test_change_app_state(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert app.save_app_state() == ""
+        assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
+        assert app.retrieve_app_state() == TST_DICT
+
+        chg_val = 'ChangedVal'
+        chg_dict = {TST_VAR: chg_val}
+        app.change_app_state(TST_VAR, chg_val)
+
+        assert getattr(app, TST_VAR) == chg_val
+        assert app.framework_app.app_state == chg_dict
+        assert app.retrieve_app_state() == chg_dict
+
+        assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
+        assert app.save_app_state() == ""
+        assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == chg_val
 
     def test_save(self, ini_file, restore_app_env):
         global TST_DICT
-        app = ImplementationOfABC(additional_cfg_files=(ini_file, ))
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         old_dict = TST_DICT.copy()
         try:
-            chg_val = 'ChangedVal'
-            TST_DICT = {TST_VAR: chg_val}
             assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
             assert app.retrieve_app_state() == TST_DICT
 
+            chg_val = 'ChangedVal'
+            TST_DICT = {TST_VAR: chg_val}
+            setattr(app, TST_VAR, chg_val)
             assert app.save_app_state() == ""
             assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == chg_val
             assert app.retrieve_app_state() == TST_DICT
         finally:
             TST_DICT = old_dict
+
+    def test_save_exception(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        os.remove(ini_file)
+        assert app.save_app_state() != ""
+
+    def test_set_font_size(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert app.font_size == 0.0
+        assert not app.context_draw_called
+
+        font_size = 99.9
+        app.set_font_size(font_size)
+        assert app.font_size == font_size
+        assert app.context_draw_called
+
+
+class TestHelperMethods:
+    def test_call_event_valid_method(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert not app.context_draw_called
+        assert app.call_event('on_context_draw') is None
+        assert app.context_draw_called
+
+    def test_call_event_return(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert not app.run_called
+        assert app.call_event('run_app') == ""
+        assert app.run_called
+
+    def test_call_event_invalid_method(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert app.call_event('invalid_method_name') is None
+
+    def test_play_beep(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert app.play_beep() is None
+
+
+class TestContext:
+    def test_set_context_with_redraw(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert len(app.context_path) == 0
+        assert app.context_id == ""
+        assert not app.context_draw_called
+
+        ctx1 = 'first_context'
+        app.set_context(ctx1)
+        assert len(app.context_path) == 0
+        assert app.context_id == ctx1
+        assert app.context_draw_called
+
+    def test_set_context_without_redraw(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert len(app.context_path) == 0
+        assert app.context_id == ""
+        assert not app.context_draw_called
+
+        ctx1 = 'first_context'
+        app.set_context(ctx1, redraw=False)
+        assert len(app.context_path) == 0
+        assert app.context_id == ctx1
+        assert not app.context_draw_called
+
+    def test_context_enter(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert len(app.context_path) == 0
+        ctx1 = 'first_context'
+        app.context_enter(ctx1)
+        assert len(app.context_path) == 1
+        assert app.context_path[0] == ctx1
+
+    def test_context_enter_next_id(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        assert len(app.context_path) == 0
+        assert app.context_id == ""
+        ctx1 = 'first_context'
+        ctx2 = '2nd_context'
+        app.context_enter(ctx1, ctx2)
+        assert len(app.context_path) == 1
+        assert app.context_path[0] == ctx1
+        assert app.context_id == ctx2
+
+    def test_context_leave(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        ctx1 = 'first_context'
+        app.context_enter(ctx1)
+
+        app.context_leave()
+
+        assert len(app.context_path) == 0
+        assert app.context_id == ctx1
+
+    def test_context_leave_next_id(self, ini_file, restore_app_env):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        ctx1 = 'first_context'
+        ctx2 = '2nd_context'
+        ctx3 = '3rd_context'
+        app.context_enter(ctx1, ctx2)
+
+        app.context_leave(next_context_id=ctx3)
+
+        assert len(app.context_path) == 0
+        assert app.context_id == ctx3

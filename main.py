@@ -15,10 +15,8 @@
     0.10    started moving add/delete from ActionBar into menu and floating buttons.
     0.11    extended/corrected leafs to the ones in Irmi's mobile phone, fixed bugs, added DEBUG_BUBBLE.
     0.12    big refactoring of UI (migrate to KivyMainApp) and data structure (allow list in list).
+    0.13    finished unit tests for gui_app portion.
   ToDo:
-    - better handling of doubletap/tripletap
-    - allow user to change order of item in list
-    - nicer UI (from kivy.uix.effectwidget import EffectWidget, InvertEffect, HorizontalBlurEffect, VerticalBlurEffect)
     - user specific app theme (color, fonts) config screen
 
 """
@@ -37,7 +35,7 @@ from kivy.core.window import Window
 from ae.kivy_app import KivyMainApp, MIN_FONT_SIZE, MAX_FONT_SIZE
 
 
-__version__ = '0.12'
+__version__ = '0.13'
 
 assert MIN_FONT_SIZE < MAX_FONT_SIZE
 
@@ -45,8 +43,6 @@ ItemDataType = Dict[str, Any]
 ListDataType = List[ItemDataType]
 
 DEL_SUB_LIST_PREFIX = "from "               #: delete_item_confirmed() item_name prefix: if list or sub_list get deleted
-
-weak_ref_bug_workaround = dict()
 
 
 class MaioApp(KivyMainApp):
@@ -74,7 +70,6 @@ class MaioApp(KivyMainApp):
     def on_framework_app_start(self):
         """ callback after app init/build for to draw/refresh gui. """
         self.on_context_draw()
-        weak_ref_bug_workaround['fontSizer'] = self.framework_app.root.ids.menuBar.ids.fontSizer
 
     # item/widget search in currently displayed list (context)
 
@@ -171,17 +166,17 @@ class MaioApp(KivyMainApp):
 
     def context_enter(self, context_id: str, next_context_id: str = ''):
         """ overwrite to animate. """
-        super().context_enter(context_id, next_context_id=next_context_id)
         lcw = self.root_layout.ids.listContainer
-        ani = Animation(x=Window.width, d=0.003) + Animation(x=lcw.x, d=0.27)
+        ani = Animation(x=Window.width, d=0.003) + Animation(x=lcw.x, d=0.21, t='out_quint')
         ani.start(lcw)
+        super().context_enter(context_id, next_context_id=next_context_id)
 
     def context_leave(self, next_context_id: str = ''):
         """ overwrite to animate. """
-        super().context_leave(next_context_id=next_context_id)
         lcw = self.root_layout.ids.listContainer
-        ani = Animation(y=100, right=100, d=0.06) + Animation(y=lcw.y, right=lcw.right, d=0.21)
+        ani = Animation(y=100, right=100, d=0.006) + Animation(y=lcw.y, right=lcw.right, d=0.21, t='out_quint')
         ani.start(lcw)
+        super().context_leave(next_context_id=next_context_id)
 
     def create_placeholder(self, child_idx: int, liw: Widget, touch_y: float) -> bool:
         """ create placeholder data structures. """
@@ -317,16 +312,14 @@ class MaioApp(KivyMainApp):
                 phy += svw.top - lcw.top
             else:
                 phy += svw.g_translate.xy[1]
-            print(phx, phy, svw.g_translate.xy, svw.scroll_y)
             pu = Factory.ItemEditor(title=liw.item_data['id'],
                                     pos_hint=dict(x=phx / Window.width, y=phy / Window.height),
                                     size_hint=(None, None), size=(svw.width + border[1] + border[3], liw.height * 2.4),
                                     background_color=(.9, .6, .6, .6),
                                     border=border,
-                                    separator_height=3,
-                                    title_align='center',
-                                    title_color=self.selected_item_ink,
-                                    title_size=self.font_size / 80.1)
+                                    separator_height=0,
+                                    title_size=self.font_size / 80.1,
+                                    )
             # pu.open()  # calling edit_item_finished() on dismiss/close
             Clock.schedule_once(pu.open, 1.2)       # focus is still going away with touch_up
 

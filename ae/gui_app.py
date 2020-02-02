@@ -20,13 +20,15 @@ def app_state_keys(cfg_parser: ConfigParser) -> Tuple:
                             :class:`~ae.console.ConsoleApp`.
     :return:                tuple of all app state item keys.
     """
-    return tuple(cfg_parser.options(APP_STATE_SECTION_NAME))
+    if cfg_parser.has_section(APP_STATE_SECTION_NAME):
+        return tuple(cfg_parser.options(APP_STATE_SECTION_NAME))
+    return tuple()
 
 
 class MainAppBase(ConsoleApp, ABC):
     """ abstract base class for to implement a GUIApp-conform app class """
 
-    context_path: List[str] = list()                        #: list of context ids, reflecting recent user actions
+    context_path: List[str]                                 #: list of context ids, reflecting recent user actions
     context_id: str = ""                                    #: id of the current app context (entered by the app user)
     font_size: float = 30.                                  #: font size used for toolbar and context screens
     framework_app: Any = None                               #: app class instance of the used GUI framework
@@ -49,6 +51,7 @@ class MainAppBase(ConsoleApp, ABC):
         :param debug_bubble:
         :param console_app_kwargs:
         """
+        self.context_path = list()
         self.debug_bubble = debug_bubble
         super().__init__(**console_app_kwargs)
         self.load_app_state()
@@ -70,7 +73,8 @@ class MainAppBase(ConsoleApp, ABC):
         """ put app state variables into main app instance for to prepare framework app.run_app """
         for key in app_state_keys(self._cfg_parser):
             if key in app_state and (hasattr(self, key) or hasattr(self.__class__, key)):
-                setattr(self, key, app_state[key])
+                # set main app instance attribute and update also self.framework_app.app_state (if exists/initialized)
+                self.change_app_state(key, app_state[key])
         return ""
 
     def call_event(self, method: str, *args, **kwargs) -> Any:
@@ -81,9 +85,10 @@ class MainAppBase(ConsoleApp, ABC):
         return None
 
     def change_app_state(self, state_name: str, new_value: Any):
-        """ change single app state item to value in self.attribute and app_state dict item """
+        """ change single app state item to value in self.attribute and app_state dict item. """
         setattr(self, state_name, new_value)
-        self.framework_app.app_state[state_name] = new_value
+        if self.framework_app and self.framework_app.app_state:     # if framework needs duplicate DictProperty
+            self.framework_app.app_state[state_name] = new_value
 
     def context_enter(self, context_id: str, next_context_id: str = ''):
         """ user extending/entering/adding new context_id (e.g. navigates down in the app context path/tree) """
