@@ -39,20 +39,21 @@ class ImplementationOfMainApp(MainAppBase):
     tst_var: str = ""
     font_size: float = 0.0
 
-    def setup_app_state(self, app_state: Dict[str, Any]) -> str:
+    def setup_app_states(self, app_state: Dict[str, Any]) -> str:
         """ setup app state """
         self.setup_state_called = True
-        return super().setup_app_state(app_state)
+        return super().setup_app_states(app_state)
 
     def on_framework_app_init(self):
         """ init app """
         self.framework_app = FrameworkApp()
+        self.framework_app.app_state.update(self.retrieve_app_states())
         self.init_called = True
 
-    def retrieve_app_state(self) -> Dict[str, Any]:
+    def retrieve_app_states(self) -> Dict[str, Any]:
         """ get app state """
         self.retrieve_state_called = True
-        return super().retrieve_app_state()
+        return super().retrieve_app_states()
 
     def run_app(self) -> str:
         """ run app """
@@ -78,14 +79,12 @@ class TestHelpers:
 
 
 class TestCallbacks:
-    def test_setup_app_state(self, ini_file, restore_app_env):
+    def test_setup_app_states(self, ini_file, restore_app_env):
         app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         assert app.setup_state_called
 
-    def test_retrieve_app_state(self, ini_file, restore_app_env):
-        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
-        assert not app.retrieve_state_called
-        app.retrieve_app_state()
+    def test_retrieve_app_states(self, restore_app_env):
+        app = ImplementationOfMainApp()
         assert app.retrieve_state_called
 
     def test_init(self, restore_app_env):
@@ -112,32 +111,32 @@ class TestCallbacks:
 
 
 class TestAppState:
-    def test_retrieve_app_state(self, ini_file, restore_app_env):
+    def test_retrieve_app_states(self, ini_file, restore_app_env):
         app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
-        assert app.retrieve_app_state() == TST_DICT
+        assert app.retrieve_app_states() == TST_DICT
 
-    def test_load(self, ini_file, restore_app_env):
+    def test_load_app_states(self, ini_file, restore_app_env):
         app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
 
-        assert app.load_app_state() == ""
+        assert app.load_app_states() == ""
         assert getattr(app, TST_VAR) == TST_VAL
         assert app.framework_app.app_state == TST_DICT
-        assert app.retrieve_app_state() == TST_DICT
+        assert app.retrieve_app_states() == TST_DICT
 
-    def test_setup_app_state(self, ini_file, restore_app_env):
+    def test_setup_app_states(self, ini_file, restore_app_env):
         assert ImplementationOfMainApp.tst_var == ""
         app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         assert getattr(app, TST_VAR) == TST_VAL
-        assert app.setup_app_state(TST_DICT) == ""
+        assert app.setup_app_states(TST_DICT) == ""
         assert getattr(app, TST_VAR) == TST_VAL
 
     def test_change_app_state(self, ini_file, restore_app_env):
         app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
-        assert app.save_app_state() == ""
+        assert app.save_app_states() == ""
         assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
-        assert app.retrieve_app_state() == TST_DICT
+        assert app.retrieve_app_states() == TST_DICT
 
         chg_val = 'ChangedVal'
         chg_dict = {TST_VAR: chg_val}
@@ -145,33 +144,33 @@ class TestAppState:
 
         assert getattr(app, TST_VAR) == chg_val
         assert app.framework_app.app_state == chg_dict
-        assert app.retrieve_app_state() == chg_dict
+        assert app.retrieve_app_states() == chg_dict
 
         assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
-        assert app.save_app_state() == ""
+        assert app.save_app_states() == ""
         assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == chg_val
 
-    def test_save(self, ini_file, restore_app_env):
+    def test_save_app_states(self, ini_file, restore_app_env):
         global TST_DICT
         app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         old_dict = TST_DICT.copy()
         try:
             assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == TST_VAL
-            assert app.retrieve_app_state() == TST_DICT
+            assert app.retrieve_app_states() == TST_DICT
 
             chg_val = 'ChangedVal'
             TST_DICT = {TST_VAR: chg_val}
             setattr(app, TST_VAR, chg_val)
-            assert app.save_app_state() == ""
+            assert app.save_app_states() == ""
             assert app.get_var(TST_VAR, section=APP_STATE_SECTION_NAME) == chg_val
-            assert app.retrieve_app_state() == TST_DICT
+            assert app.retrieve_app_states() == TST_DICT
         finally:
             TST_DICT = old_dict
 
-    def test_save_exception(self, ini_file, restore_app_env):
+    def test_save_app_states_exception(self, ini_file, restore_app_env):
         app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         os.remove(ini_file)
-        assert app.save_app_state() != ""
+        assert app.save_app_states() != ""
 
     def test_set_font_size(self, ini_file, restore_app_env):
         app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))

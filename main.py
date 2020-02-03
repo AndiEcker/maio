@@ -32,12 +32,11 @@ from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 
-from ae.kivy_app import KivyMainApp, MIN_FONT_SIZE, MAX_FONT_SIZE
+from ae.kivy_app import KivyMainApp
 
 
-__version__ = '0.13'
+__version__ = '0.14'
 
-assert MIN_FONT_SIZE < MAX_FONT_SIZE
 
 ItemDataType = Dict[str, Any]
 ListDataType = List[ItemDataType]
@@ -47,22 +46,26 @@ DEL_SUB_LIST_PREFIX = "from "               #: delete_item_confirmed() item_name
 
 class MaioApp(KivyMainApp):
     """ app class """
-    filter_selected: bool = True                #: True for to hide selected items
-    filter_unselected: bool = True              #: True for to hide unselected items
-    data_tree: ListDataType = list()            #: app data
+    selected_item_ink: tuple = (0.69, 1.0, 0.39, 0.18)      #: rgba color tuple for list items (selected)
+    unselected_item_ink: tuple = (0.39, 0.39, 0.39, 0.18)   #: rgba color tuple for list items (unselected)
+    context_path_ink: tuple = (0.99, 0.99, 0.39, 0.48)      #: rgba color tuple for drag&drop item placeholder
+    context_id_ink: tuple = (0.99, 0.99, 0.69, 0.69)        #: rgba color tuple for drag&drop sub_list placeholder
+    filter_selected: bool = True                            #: True for to hide selected items
+    filter_unselected: bool = True                          #: True for to hide unselected items
+    data_tree: ListDataType = list()                        #: app data
 
-    current_list: ListDataType = list()         #: item data of currently displayed sub-list
-    dragging_list_idx: Optional[int] = None     #: index of dragged data in current list if in drag mode else None
+    current_list: ListDataType = list()             #: item data of currently displayed sub-list
+    dragging_list_idx: Optional[int] = None         #: index of dragged data in current list if in drag mode else None
     placeholders_above: Dict[int, Widget] = dict()  #: added placeholder above widgets (used for drag+drop)
     placeholders_below: Dict[int, Widget] = dict()  #: added placeholder below widgets (used for drag+drop)
 
-    _current_widget: Optional[Widget]           #: widget used for to add a new or edit a list item
+    _current_widget: Optional[Widget]               #: widget used for to add a new or edit a list item
 
     # app init
 
-    def setup_app_state(self, app_state: Dict[str, Any]) -> str:
+    def setup_app_states(self, app_state: Dict[str, Any]) -> str:
         """ put app state variables into main app instance for to prepare framework app.run_app """
-        err_msg = super().setup_app_state(app_state)
+        err_msg = super().setup_app_states(app_state)
         if not err_msg:
             pass
         return err_msg
@@ -364,7 +367,7 @@ class MaioApp(KivyMainApp):
                 else:
                     item_data['sub_list'] = list()
             self.set_context(text)
-        self.save_app_state()
+        self.save_app_states()
         self.on_context_draw()
 
     def on_context_draw(self):
@@ -443,7 +446,7 @@ class MaioApp(KivyMainApp):
             self.change_app_state('filter_unselected', filtering)
             if filtering and self.filter_selected:
                 self.change_app_state('filter_selected', False)
-        self.save_app_state()
+        self.save_app_states()
         self.on_context_draw()
 
     @staticmethod

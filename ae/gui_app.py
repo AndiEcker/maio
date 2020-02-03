@@ -1,6 +1,140 @@
-""" Base class for applications with a graphical user interface. """
+"""
+base class for python applications with a graphical user interface
+==================================================================
+
+The abstract base class :class:`MainAppBase` provided by this ae namespace
+portion can be used for to integrate any of the available Python GUI
+frameworks into the ae namespace.
+
+The plan is to integrate the following GUI frameworks until the end of 2020:
+
+* :mod:`Kivy <ae.kivy_app>`
+* :mod:`Enaml <ae.enaml_app>`
+* :mod:`Beeware <ae.beeware_app>`
+* :mod:`Dabo <ae.dabo_app>`
+* :mod:`QPython <ae.qpython_app>`
+* :mod:`AppJar <ae.appjar_app>`
+
+Currently available is the :mod:`Kivy <ae.kivy_app>` integration of
+the :ref:`Kivy Framework <kivy.org>`.
+
+
+extended console application environment
+----------------------------------------
+
+:class:`MainAppBase` inherits directly from the ae namespace class
+:class:`ae console application environment class <ae.console.ConsoleApp>`.
+The so inherited helper methods are useful for to configure and
+control the run-time of your GUI app via command line arguments,
+:ref:`config-options` and :ref:`config-files`.
+
+.. hint:
+    Please see the documentation of the :mod:`ae.console` namespace
+    portion/module for more detailed information.
+
+:class:`MainAppBase` adds on top of the :class:`~ae.console.ConsoleApp`
+the concepts of :ref:`application status` and :ref:`application context`,
+explained further down.
+
+
+integrate new gui framework
+---------------------------
+
+For to integrate a new Python GUI framework you have to declare a
+new class that inherits from :class:`MainAppBase` and implements at
+least the two abstract methods :meth:`~MainAppBase.on_framework_app_init`
+and :meth:`~MainAppBase.run_app`.
+
+Most GUI frameworks are providing an application class that need to
+be initialized. For to keep a reference to the framework app class
+instance within your main app class you can use the
+:attr:`~MainAppBase.framework_app` attribute of :class:`MainAppBase`.
+
+.. hint:
+    The initialization of :attr:`~MainAppBase.framework_app` is optional.
+    Alternatively you could also add the framework application as mixin
+    to the main app class.
+
+A typical implementation of a framework-specific main app class could
+look like:
+
+from new_gui_framework import NewFrameworkApp
+
+class NewFrameworkMainApp(MainAppBase):
+    def on_framework_app_init(self):
+        self.framework_app = NewFrameworkApp()
+
+    def run_app(self):
+        self.framework_app.run()
+
+Both implementations of these abstract methods will be executed only once
+at app startup. In the first executed method
+:meth:`~MainAppBase.on_framework_app_init` you could initialize
+the GUI framework and prepare it for the app startup. The :meth:`~MainAppClass.run_app`
+method will be called from the main module of your app project for to
+start the framework app instance.
+
+
+application status
+------------------
+
+Any application- and user-specific configurations like e.g. the last
+window position/size, the app theme/font or the last selected context
+within your app, could be included in the application status.
+
+This portion introduces the new section `aeAppState` within the app
+:ref:`config-files` where any status values can be stored persistently
+for to be recovered on the next startup of your application.
+
+.. hint:
+    The section name is declared by the :data:`APP_STATE_SECTION_NAME`
+    constant. If you need to access this config section directly then
+    please use this constant instead of the hardcoded section name.
+
+.. _app-state-variables:
+
+Which app state variables are finally used by your app project is (fully data-driven)
+depending on the app state :ref:`config-variables` detected in all the
+:ref:`config-files` that are found/available at run-time of your app.
+The names of the available application state variables can be
+determined with the helper function :func:`app_state_keys`.
+
+:class:`MainBaseApp` provides optionally a user-defined font size to your application
+if it detect the app state variable :attr:`~MainAppBase.font_size`. The method
+:meth:`set_font_size` has to be called when the user has changed the font size
+of your app.
+
+Another two built-in app state variables are :attr:`~MainAppBase.context_id` and
+:attr:`~MainAppBase.context_path` which will be explained in the next section.
+
+
+application context
+-------------------
+
+:class:`MainBaseApp` provides your application a integrated context manager,
+which persists application contexts in the :ref:`config-files`.
+
+A application context is represented by a string that defines e.g.
+the action for to enter into the context, the data that gets currently displayed
+and an index within the data.
+
+The format of this context string/id can be freely defined by your application.
+The app state variable :attr:`~MainAppBase.context_id` stores the current
+context when the app quits for to restore it on the next app start.
+
+The context id is initially an empty string. As soon as the user is
+initiating an action your application has to call the
+:meth:`~MainBaseApp.set_context` method for to change the app context.
+
+For more complex applications you can specify a path of nested contexts.
+This context path gets represented by the app state variable
+:attr:`~MainAppBase.context_path`, which is a list of context strings/ids.
+For to enter into a deeper/nested context you have to call the
+:meth:`~MainBaseApp.context_enter` method instead of the
+:meth:`~MainBaseApp.set_context` method.
+"""
 from abc import ABC, abstractmethod
-from configparser import ConfigParser
+from configparser import ConfigParser, NoSectionError
 from typing import Any, Dict, Tuple, List
 
 from ae.core import DEBUG_LEVEL_VERBOSE         # type: ignore
@@ -20,25 +154,21 @@ def app_state_keys(cfg_parser: ConfigParser) -> Tuple:
                             :class:`~ae.console.ConsoleApp`.
     :return:                tuple of all app state item keys.
     """
-    if cfg_parser.has_section(APP_STATE_SECTION_NAME):
+    try:    # quicker than asking before with: if cfg_parser.has_section(APP_STATE_SECTION_NAME):
         return tuple(cfg_parser.options(APP_STATE_SECTION_NAME))
-    return tuple()
+    except NoSectionError:
+        return tuple()
 
 
 class MainAppBase(ConsoleApp, ABC):
     """ abstract base class for to implement a GUIApp-conform app class """
-
-    context_path: List[str]                                 #: list of context ids, reflecting recent user actions
+    # app states
     context_id: str = ""                                    #: id of the current app context (entered by the app user)
+    context_path: List[str]                                 #: list of context ids, reflecting recent user actions
     font_size: float = 30.                                  #: font size used for toolbar and context screens
+
+    # generic run-time shortcut references provided by the main app
     framework_app: Any = None                               #: app class instance of the used GUI framework
-    selected_item_ink: Tuple = (0.69, 1.0, 0.39, 0.18)      #: rgba color tuple for list items (selected)
-    unselected_item_ink: Tuple = (0.39, 0.39, 0.39, 0.18)   #: rgba color tuple for list items (unselected)
-    context_path_ink: Tuple = (0.99, 0.99, 0.39, 0.48)      #: rgba color tuple for drag&drop item placeholder
-    context_id_ink: Tuple = (0.99, 0.99, 0.69, 0.69)        #: rgba color tuple for drag&drop sub_list placeholder
-
-    win_rectangle: Tuple = (0, 0, 800, 600)                 #: app window coordinates
-
     debug_bubble: bool = False                              #: visibility of a popup/bubble showing debugging info
     info_bubble: Any = None                                 #: optional DebugBubble widget
 
@@ -51,10 +181,10 @@ class MainAppBase(ConsoleApp, ABC):
         :param debug_bubble:
         :param console_app_kwargs:
         """
-        self.context_path = list()
+        self.context_path = list()  # init for Literal type recognition - will be overwritten by setup_app_states()
         self.debug_bubble = debug_bubble
         super().__init__(**console_app_kwargs)
-        self.load_app_state()
+        self.load_app_states()
         self.on_framework_app_init()
 
     # abstract methods
@@ -69,7 +199,7 @@ class MainAppBase(ConsoleApp, ABC):
 
     # base implementation helper methods (can be overwritten by framework portion or by user main app)
 
-    def setup_app_state(self, app_state: AppStateType) -> str:
+    def setup_app_states(self, app_state: AppStateType) -> str:
         """ put app state variables into main app instance for to prepare framework app.run_app """
         for key in app_state_keys(self._cfg_parser):
             if key in app_state and (hasattr(self, key) or hasattr(self.__class__, key)):
@@ -100,25 +230,27 @@ class MainAppBase(ConsoleApp, ABC):
         list_name = self.context_path.pop()
         self.set_context(next_context_id or list_name)
 
-    def load_app_state(self) -> str:
+    def load_app_states(self) -> str:
         """ load application state for to prepare app.run_app """
         self.debug_bubble = self.get_opt('debugLevel') >= DEBUG_LEVEL_VERBOSE
 
         app_state = dict()
-        if self._cfg_parser.has_section(APP_STATE_SECTION_NAME):
+        try:            # if self._cfg_parser.has_section(APP_STATE_SECTION_NAME):
             items = self._cfg_parser.items(APP_STATE_SECTION_NAME)
             for key, state in items:
                 lit = Literal(state, value_type=type(getattr(self, key, "")))
                 app_state[key] = lit.value
+        except NoSectionError:
+            pass
 
-        return self.setup_app_state(app_state)
+        return self.setup_app_states(app_state)
 
     @staticmethod
     def play_beep():
-        """ make a short beep sound """
+        """ make a short beep sound, should be overwritten by GUI framework. """
         print(chr(7), "BEEP")
 
-    def retrieve_app_state(self) -> AppStateType:
+    def retrieve_app_states(self) -> AppStateType:
         """ determine the state of a running app and return it as dict """
         app_state = dict()
         for key in app_state_keys(self._cfg_parser):
@@ -126,11 +258,11 @@ class MainAppBase(ConsoleApp, ABC):
 
         return app_state
 
-    def save_app_state(self) -> str:
+    def save_app_states(self) -> str:
         """ save app state in config file """
         err_msg = ""
 
-        app_state = self.retrieve_app_state()
+        app_state = self.retrieve_app_states()
         for key, state in app_state.items():
             err_msg = self.set_var(key, state, section=APP_STATE_SECTION_NAME)
             if err_msg:

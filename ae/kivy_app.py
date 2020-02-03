@@ -17,8 +17,8 @@ kivy.require('1.9.1')  # currently using 1.11.1 but at least 1.9.1 is needed for
 Window.softinput_mode = 'below_target'  # ensure android keyboard is not covering Popup/text input
 
 
-MIN_FONT_SIZE = sp(18)
-MAX_FONT_SIZE = sp(30)
+MIN_FONT_SIZE = sp(21)
+MAX_FONT_SIZE = sp(33)
 
 
 # adapted from: https://stackoverflow.com/questions/23055696
@@ -41,15 +41,15 @@ DEBUG_BUBBLE_DEF = '''
 class FrameworkApp(App):
     """ framework app class """
 
-    landscape = BooleanProperty()
-    app_state = DictProperty()
+    landscape = BooleanProperty()           #: True if app window width is bigger than the app window height, else False
+    app_state = DictProperty()              #: duplicate of MainAppBase app state attributes for events/binds
 
     # kivy App class methods and callbacks
 
     def __init__(self, main_app: 'KivyMainApp', **kwargs):
         """ init kivy app """
         self.main_app = main_app
-        self.title = main_app.app_title                      #: set kivy.app.App.title
+        self.title = main_app.app_title                     #: set kivy.app.App.title
         self.icon = os.path.join("img", "app_icon.png")     #: set kivy.app.App.icon
 
         super().__init__(**kwargs)
@@ -85,22 +85,27 @@ class FrameworkApp(App):
 
     def on_pause(self):
         """ app pause event """
-        self.main_app.save_app_state()
+        self.main_app.save_app_states()
+        self.main_app.call_event('on_framework_app_pause')
         return True
 
     def on_stop(self):
         """ quit app event """
-        self.main_app.save_app_state()
+        self.main_app.save_app_states()
+        self.main_app.call_event('on_framework_app_stop')
 
     def win_pos_size_changed(self, *_):
         """ screen resize handler """
         self.main_app.po('win_pos_size_changed', self.root.width, self.root.height)
         self.landscape = self.root.width >= self.root.height
         self.main_app.change_app_state('win_rectangle', (Window.left, Window.top, Window.width, Window.height))
+        self.main_app.call_event('on_framework_win_pos_size')
 
 
 class KivyMainApp(MainAppBase):
     """ Kivy application """
+    win_rectangle: tuple = (0, 0, 800, 600)                 #: window coordinates app state variable
+
     def on_framework_app_init(self):
         """ initialize framework app instance """
         win_rect = self.win_rectangle
@@ -111,14 +116,14 @@ class KivyMainApp(MainAppBase):
         self.framework_app = FrameworkApp(self)
         self.framework_app.kv_file = 'main.kv'
 
-        self.framework_app.app_state.update(self.retrieve_app_state())  # copy app states to duplicate DictProperty
+        self.framework_app.app_state.update(self.retrieve_app_states())  # copy app states to duplicate DictProperty
 
     def run_app(self):
         """ startup/display the application """
         if self.debug_bubble:
             Builder.load_string(DEBUG_BUBBLE_DEF)
 
-        self.framework_app.app_state = self.retrieve_app_state()
+        self.framework_app.app_state = self.retrieve_app_states()
 
         self.framework_app.run()
 
