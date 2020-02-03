@@ -35,7 +35,7 @@ from kivy.core.window import Window
 from ae.kivy_app import KivyMainApp
 
 
-__version__ = '0.14'
+__version__ = '0.15'
 
 
 ItemDataType = Dict[str, Any]
@@ -62,13 +62,6 @@ class MaioApp(KivyMainApp):
     _current_widget: Optional[Widget]               #: widget used for to add a new or edit a list item
 
     # app init
-
-    def setup_app_states(self, app_state: Dict[str, Any]) -> str:
-        """ put app state variables into main app instance for to prepare framework app.run_app """
-        err_msg = super().setup_app_states(app_state)
-        if not err_msg:
-            pass
-        return err_msg
 
     def on_framework_app_start(self):
         """ callback after app init/build for to draw/refresh gui. """

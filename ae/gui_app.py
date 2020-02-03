@@ -18,6 +18,10 @@ The plan is to integrate the following GUI frameworks until the end of 2020:
 Currently available is the :mod:`Kivy <ae.kivy_app>` integration of
 the :ref:`Kivy Framework <kivy.org>`.
 
+.. note:
+    In implementing the outstanding framework integrations this module will be
+    extended and changed frequently.
+
 
 extended console application environment
 ----------------------------------------
@@ -82,8 +86,8 @@ Any application- and user-specific configurations like e.g. the last
 window position/size, the app theme/font or the last selected context
 within your app, could be included in the application status.
 
-This portion introduces the new section `aeAppState` within the app
-:ref:`config-files` where any status values can be stored persistently
+This namespace portion introduces the section `aeAppState` in the app
+:ref:`config-files`, where any status values can be stored persistently
 for to be recovered on the next startup of your application.
 
 .. hint:
@@ -106,6 +110,26 @@ of your app.
 
 Another two built-in app state variables are :attr:`~MainAppBase.context_id` and
 :attr:`~MainAppBase.context_path` which will be explained in the next section.
+
+The :meth:`~MainBaseApp.load_app_states` method is called on instantiation from
+the implemented main app class for to load the values of all
+app state variables from the :ref:`config-files`, and is then calling
+:meth:~MainAppBase.setup_app_states` for pass them into their corresponding
+instance attributes.
+
+Use the main app instance attribute for to read/get the actual value of
+a single app state variable. The actual values of
+all app state variables as a dict is determining the method
+:meth:`~MainBaseApp.retrieve_app_states` for you.
+
+Changed app state value that need to be propagated also to the framework
+app instance should be set not via the instance attribute, instead call
+the method :meth:`~MainBaseApp.change_app_state` (which ensures the
+propagation to any duplicated value in a (bound) framework property).
+
+For to to save the app state to the :ref:`config-files` the implementing main app
+instance has to call the method :meth:`~MainBaseApp.save_app_states` - this could be
+done e.g. after the app state has changed or at least on quiting the application.
 
 
 application context
@@ -132,6 +156,18 @@ This context path gets represented by the app state variable
 For to enter into a deeper/nested context you have to call the
 :meth:`~MainBaseApp.context_enter` method instead of the
 :meth:`~MainBaseApp.set_context` method.
+
+
+application events
+------------------
+
+The helper method :meth:`~MainAppBase.call_event` can be used to support
+optionally implemented event callback routines.
+
+Internally is this method used for to fire the event `on_context_draw()`
+automatically after a change of the :ref:`application context` or if
+the user changed the font size.
+
 """
 from abc import ABC, abstractmethod
 from configparser import ConfigParser, NoSectionError
@@ -199,14 +235,6 @@ class MainAppBase(ConsoleApp, ABC):
 
     # base implementation helper methods (can be overwritten by framework portion or by user main app)
 
-    def setup_app_states(self, app_state: AppStateType) -> str:
-        """ put app state variables into main app instance for to prepare framework app.run_app """
-        for key in app_state_keys(self._cfg_parser):
-            if key in app_state and (hasattr(self, key) or hasattr(self.__class__, key)):
-                # set main app instance attribute and update also self.framework_app.app_state (if exists/initialized)
-                self.change_app_state(key, app_state[key])
-        return ""
-
     def call_event(self, method: str, *args, **kwargs) -> Any:
         """ dispatch event to inheriting instances. """
         event_callback = getattr(self, method, None)
@@ -230,7 +258,7 @@ class MainAppBase(ConsoleApp, ABC):
         list_name = self.context_path.pop()
         self.set_context(next_context_id or list_name)
 
-    def load_app_states(self) -> str:
+    def load_app_states(self):
         """ load application state for to prepare app.run_app """
         self.debug_bubble = self.get_opt('debugLevel') >= DEBUG_LEVEL_VERBOSE
 
@@ -241,9 +269,9 @@ class MainAppBase(ConsoleApp, ABC):
                 lit = Literal(state, value_type=type(getattr(self, key, "")))
                 app_state[key] = lit.value
         except NoSectionError:
-            pass
+            self.dpo(f"MainAppBase.load_app_states: ignoring missing config file section {APP_STATE_SECTION_NAME}")
 
-        return self.setup_app_states(app_state)
+        self.setup_app_states(app_state)
 
     @staticmethod
     def play_beep():
@@ -285,3 +313,8 @@ class MainAppBase(ConsoleApp, ABC):
         """ change font size. """
         self.change_app_state('font_size', font_size)
         self.call_event('on_context_draw')
+
+    def setup_app_states(self, app_state: AppStateType):
+        """ put app state variables into main app instance for to prepare framework app.run_app """
+        for key in app_state_keys(self._cfg_parser):
+            self.change_app_state(key, app_state[key])

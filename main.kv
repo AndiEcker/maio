@@ -197,7 +197,7 @@
     item_data: app.main_app.update_item_data(self, toggleSelected.text, toggleSelected.state)
     size_hint_y: None
     height: app.app_state['font_size'] * 1.5
-    padding: [sp(3), sp(3)]
+    padding: [sp(app.app_state['font_size'] * 3 / 33), sp(app.app_state['font_size'] * 3 / 33)]
     canvas.before:
         Color:
             rgba:
