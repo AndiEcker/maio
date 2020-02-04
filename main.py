@@ -35,7 +35,7 @@ from kivy.core.window import Window
 from ae.kivy_app import KivyMainApp
 
 
-__version__ = '0.15'
+__version__ = '0.16'
 
 
 ItemDataType = Dict[str, Any]
@@ -251,6 +251,7 @@ class MaioApp(KivyMainApp):
     def delete_current_item(self):
         """ menu delete button callback for current/last touched item in current list """
         item_name = self.context_id
+        assert item_name
         lid = self.get_item_by_name(item_name)
         if 'sub_list' in lid:
             if lid['sub_list']:
@@ -279,7 +280,7 @@ class MaioApp(KivyMainApp):
                 self.get_item_by_name(item_name).pop('sub_list', None)
             else:
                 self.delete_data_item(item_name)
-                lcw.height -= liw.height
+                # already re-drawn, so no need to reduce height: lcw.height -= liw.height
                 lcw.remove_widget(liw)
 
     @staticmethod

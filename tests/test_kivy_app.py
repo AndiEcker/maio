@@ -22,15 +22,31 @@ def ini_file(restore_app_env):
         os.remove(fn)
 
 
+class KeyboardStub:
+    """ stub to simulate keyboard instance for key events. """
+    def __init__(self, **kwargs):
+        self.command_keys = kwargs
+
+
 class KivyAppTest(KivyMainApp):
     """ kivy main app test implementation """
     app_state_list: list
     app_state_bool: bool
 
-    on_context_called = False
+    on_init_called = False
     on_start_called = False
     on_run_called = False
+    on_context_called = False
     on_stop_called = False
+
+    on_key_press_called = False
+    on_key_release_called = False
+    last_keys = ()
+
+    def on_framework_app_init(self):
+        """ called from KivyMainApp """
+        self.on_init_called = True
+        super().on_framework_app_init()
 
     def on_framework_app_start(self):
         """ called from KivyMainApp """
@@ -49,33 +65,51 @@ class KivyAppTest(KivyMainApp):
         """ called from KivyMainApp """
         self.on_stop_called = True
 
+    def on_key_press(self, key, modifier):
+        """ key press callback """
+        self.on_key_press_called = True
+        self.last_keys = key, modifier
+        return True
+
+    def on_key_release(self, key):
+        """ key release callback """
+        self.on_key_release_called = True
+        self.last_keys = key,
+        return True
+
 
 class TestCallbacks:
     def test_setup_app_states(self, ini_file, restore_app_env):
         app = KivyMainApp(additional_cfg_files=(ini_file,))
-        assert app.win_rectangle == def_app_state
+        assert getattr(app, TST_VAR) == def_app_state[TST_VAR]
 
     def test_retrieve_app_states(self, restore_app_env):
         app = KivyMainApp()
         assert app.retrieve_app_states() == dict()
 
+    def test_init(self, restore_app_env):
+        app = KivyAppTest()
+        assert app.on_init_called
+
     def test_run(self, restore_app_env):
-        app = KivyMainApp()
-        assert not app.run_app()
+        app = KivyAppTest()
+        assert not app.on_run_called
+        app.run_app()
+        assert app.on_run_called
         assert app.framework_app
         assert app.framework_app.app_state == def_app_state
 
     def test_start(self, restore_app_env):
         app = KivyAppTest()
-        assert not app.framework_app.on_start_called
+        assert not app.on_start_called
         app.run_app()
-        assert app.framework_app.on_start_called
+        assert app.on_start_called
 
     def test_context_draw(self, restore_app_env):
-        app = KivyMainApp()
-        assert not app.framework_app.on_context_called
+        app = KivyAppTest()
+        assert not app.on_context_called
         app.set_context('tstCtx')
-        assert app.framework_app.on_context_called
+        assert app.on_context_called
 
 
 class TestAppState:
@@ -141,28 +175,28 @@ class TestAppState:
         assert app.save_app_states() != ""
 
     def test_set_font_size(self, ini_file, restore_app_env):
-        app = KivyMainApp(additional_cfg_files=(ini_file,))
+        app = KivyAppTest(additional_cfg_files=(ini_file,))
         assert app.font_size == 0.0
-        assert not app.framework_app.on_context_called
+        assert not app.on_context_called
 
         font_size = 99.9
         app.set_font_size(font_size)
         assert app.font_size == font_size
-        assert app.framework_app.on_context_called
+        assert app.on_context_called
 
 
 class TestHelperMethods:
     def test_call_event_valid_method(self, ini_file, restore_app_env):
-        app = KivyMainApp(additional_cfg_files=(ini_file,))
-        assert not app.framework_app.on_context_called
+        app = KivyAppTest(additional_cfg_files=(ini_file,))
+        assert not app.on_context_called
         assert app.call_event('on_context_draw') is None
-        assert app.framework_app.on_context_called
+        assert app.on_context_called
 
     def test_call_event_return(self, ini_file, restore_app_env):
-        app = KivyMainApp(additional_cfg_files=(ini_file,))
-        assert not app.framework_app.on_run_called
+        app = KivyAppTest(additional_cfg_files=(ini_file,))
+        assert not app.on_run_called
         assert app.call_event('run_app') == ""
-        assert app.framework_app.on_run_called
+        assert app.on_run_called
 
     def test_call_event_invalid_method(self, ini_file, restore_app_env):
         app = KivyMainApp(additional_cfg_files=(ini_file,))
@@ -175,28 +209,28 @@ class TestHelperMethods:
 
 class TestContext:
     def test_set_context_with_redraw(self, ini_file, restore_app_env):
-        app = KivyMainApp(additional_cfg_files=(ini_file,))
+        app = KivyAppTest(additional_cfg_files=(ini_file,))
         assert len(app.context_path) == 0
         assert app.context_id == ""
-        assert not app.framework_app.on_context_called
+        assert not app.on_context_called
 
         ctx1 = 'first_context'
         app.set_context(ctx1)
         assert len(app.context_path) == 0
         assert app.context_id == ctx1
-        assert app.framework_app.on_context_called
+        assert app.on_context_called
 
     def test_set_context_without_redraw(self, ini_file, restore_app_env):
-        app = KivyMainApp(additional_cfg_files=(ini_file,))
+        app = KivyAppTest(additional_cfg_files=(ini_file,))
         assert len(app.context_path) == 0
         assert app.context_id == ""
-        assert not app.framework_app.on_context_called
+        assert not app.on_context_called
 
         ctx1 = 'first_context'
         app.set_context(ctx1, redraw=False)
         assert len(app.context_path) == 0
         assert app.context_id == ctx1
-        assert not app.framework_app.on_context_called
+        assert not app.on_context_called
 
     def test_context_enter(self, ini_file, restore_app_env):
         app = KivyMainApp(additional_cfg_files=(ini_file,))
@@ -238,3 +272,30 @@ class TestContext:
 
         assert len(app.context_path) == 0
         assert app.context_id == ctx3
+
+
+class TestKeyEvents:
+    def test_key_press_text(self, restore_app_env):
+        app = KivyAppTest()
+        kbd = KeyboardStub()
+        key_code = 32
+        key_text = ' '
+        modifiers = 0
+        assert app.framework_app.on_key_down(kbd, key_code, None, key_text, modifiers)
+        assert app.last_keys == (key_text, modifiers)
+
+    def test_key_press_code(self, restore_app_env):
+        app = KivyAppTest()
+        kbd = KeyboardStub()
+        key_code = 32
+        key_text = ''
+        modifiers = 0
+        assert app.framework_app.on_key_down(kbd, key_code, None, key_text, modifiers)
+        assert app.last_keys == (key_code, modifiers)
+
+    def test_key_release(self, restore_app_env):
+        app = KivyAppTest()
+        kbd = KeyboardStub()
+        key_code = 32
+        assert app.framework_app.on_key_up(kbd, key_code, None)
+        assert app.last_keys == (key_code, )

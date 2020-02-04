@@ -123,9 +123,9 @@
                 size_hint_x: None
                 width: self.parent.width - self.parent.height
                 font_size: app.app_state['font_size'] * 1.2
-                text_size: self.size
-                halign: 'center'
-                valign: 'middle'
+                #text_size: self.size
+                #halign: 'center'
+                #valign: 'middle'
                 shorten: True
                 shorten_from: 'left'
                 split_str: '...'
@@ -197,7 +197,8 @@
     item_data: app.main_app.update_item_data(self, toggleSelected.text, toggleSelected.state)
     size_hint_y: None
     height: app.app_state['font_size'] * 1.5
-    padding: [sp(app.app_state['font_size'] * 3 / 33), sp(app.app_state['font_size'] * 3 / 33)]
+    #padding: [sp(round(app.app_state['font_size'] / 33)), sp(round(app.app_state['font_size'] / 33))]
+    padding: [1, 1]
     canvas.before:
         Color:
             rgba:
@@ -212,12 +213,15 @@
         text: root.item_data['id']
         on_state: app.main_app.change_app_state('context_id', self.text)
         on_text: app.main_app.change_app_state('context_id', self.text)
-        size_hint: 0.69, None
+        #size_hint: 0.69, None
+        size_hint_x: 0.69
         font_size: app.app_state['font_size']
-        height: self.font_size * 1.5 - 2 * root.padding[1]
+        #height: self.font_size * 1.5 - 2 * root.padding[1]
+        #height: self.font_size * 1.5
+        #text_size: self.size[0] - 2 * root.padding[0], self.size[1] - 2 * root.padding[1]
+        text_size: self.size
         halign: 'left'
         valign: 'middle'
-        text_size: self.size[0] - 2 * root.padding[0], self.size[1] - 2 * root.padding[1]
         shorten: True
         shorten_from: 'right'
         split_str: '..'
@@ -237,9 +241,9 @@
         size_hint_x: None
         width: self.height * 2.7 if 'sub_list' in root.item_data else 0
         font_size: app.app_state['font_size'] * 1.2
-        halign: 'center'
-        valign: 'middle'
-        text_size: self.size
+        #text_size: self.size
+        #halign: 'center'
+        #valign: 'middle'
         canvas:
             Color:
                 rgba:
@@ -254,9 +258,9 @@
         size_hint_x: None
         width: self.height * 1.8
         font_size: app.app_state['font_size'] * 1.5
-        halign: 'center'
-        valign: 'middle'
-        text_size: self.size
+        #text_size: self.size
+        #halign: 'center'
+        #valign: 'middle'
         canvas:
             Color:
                 rgba:
@@ -290,9 +294,9 @@
             size_hint_x: 0.30
             font_size: app.app_state['font_size'] * 1.2
             padding_x: sp(9)
-            halign: 'center'
-            valign: 'middle'
-            text_size: self.size
+            #text_size: self.size
+            #halign: 'center'
+            #valign: 'middle'
 
 
 <ConfirmListDeletePopup@Popup>:
