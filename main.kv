@@ -23,37 +23,40 @@
         orientation: 'horizontal' if app.landscape else 'vertical'
         size_hint: None, None
         size:
-            app.app_state['font_size'] * (2.4 * (3 if app.app_state['context_id'] else 1) if app.landscape else 1.8), \
-            app.app_state['font_size'] * (1.8 if app.landscape else 2.4 * len(self.children))
+            self.padding[0] * (9.9 if app.app_state['context_id'] and app.landscape else 3.9), \
+            self.padding[1] * (9.9 if app.app_state['context_id'] and not app.landscape else 3.9)
         pos_hint: {'right': 0.93}
+        padding: app.app_state['font_size']
+        spacing: app.app_state['font_size']
         ContextButton:
             text: './'
             on_release: app.main_app.edit_item_popup(app.app_state['context_id'])
-            font_size: self.size[1] * 0.63
+            size_hint:
+                1 if app.app_state['context_id'] or not app.landscape else None, \
+                1 if app.app_state['context_id'] or app.landscape else None
+            width: self.width if app.app_state['context_id'] or not app.landscape else 0
+            height: self.height if app.app_state['context_id'] or app.landscape else 0
+            font_size: self.height * 0.63
             text_size: self.size
             valign: 'top'
             halign: 'center'
-            size_hint_max_x: self.height * 1.5
-            size_hint_x: 1 if app.app_state['context_id'] else None
-            width: self.height if app.app_state['context_id'] else 0
             disabled: not app.app_state['context_id']
             opacity: 1 if app.app_state['context_id'] else 0
             canvas.after:
                 Color:
-                    rgba: app.app_state['context_id_ink'][:3] + (0.78, )
+                    rgba: app.app_state['context_id_ink'][:3] + (0.69, )
                 Ellipse:
                     pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
                     size: self.size[0] - sp(12), self.size[1] - sp(12)
         ContextButton:
             text: '-'
-            on_release: app.main_app.delete_current_item()
-            font_size: self.size[1] * 3
-            text_size: self.size
-            halign: 'center'
-            valign: 'top'
-            size_hint_max_x: self.height * 2.1
-            size_hint_x: 1 if app.app_state['context_id'] else None
-            width: self.height if app.app_state['context_id'] else 0
+            on_release: app.main_app.delete_item_popup(app.main_app.context_id)
+            size_hint:
+                1 if app.app_state['context_id'] or not app.landscape else None, \
+                1 if app.app_state['context_id'] or app.landscape else None
+            width: self.width if app.app_state['context_id'] or not app.landscape else 0
+            height: self.height if app.app_state['context_id'] or app.landscape else 0
+            font_size: (self.height if app.landscape else self.width) * 2.1
             disabled: not app.app_state['context_id']
             opacity: 1 if app.app_state['context_id'] else 0
             canvas.after:
@@ -64,14 +67,20 @@
                     size: self.size[0] - sp(30), self.size[1] - 4.2 * self.height / 5.4
         ContextButton:
             text: '+'
-            on_release: app.main_app.add_new_item()
-            font_size: self.size[1] * 1.2
+            on_release: app.main_app.add_item_popup()
+            font_size: min(self.width, self.height) * 1.2
+            size_hint_max: self.parent.padding[0] * 2.1, self.parent.padding[1] * 2.1
             canvas.after:
                 Color:
                     rgba: 1, 0, 0, .63
                 Ellipse:
                     pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
                     size: self.size[0] - sp(12), self.size[1] - sp(12)
+
+
+<ContextButton@Button>:
+    background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
+    background_down: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
 
 
 <MaioMenuBar@BoxLayout>:
@@ -81,7 +90,8 @@
         text: '< --'
         on_release: app.main_app.context_leave()
         font_size: app.app_state['font_size'] * 1.5
-        size_hint_max_x: self.height * 2.1
+        size_hint_max_x: self.height * 1.8
+        size_hint_min_x: self.height * 1.2
         disabled: not app.app_state['context_path']
         canvas.after:
             Color:
@@ -90,13 +100,11 @@
                 pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
                 size: self.size[0] - sp(12), self.size[1] - sp(12)
     Button:
-        width: sp(369)
-        font_size: app.app_state['font_size'] * 1.5
         on_release:
             Popup(title=f"{app.main_app.app_title} V {version}    (c) 2020 Andi Ecker",
             title_align='center',
             content=Label(text=
-            "Touch short on leaf/list name for to toggle selection.\n"
+            "Touch short on name for to toggle selection.\n"
             "Touch short on lists --> icon for\n"
             "to display their leafs and sub-lists.\n"
             "Edit selected leaf/list for to change name\n"
@@ -108,27 +116,25 @@
             ),
             size_hint_y=.6
             ).open()
-        StackLayout:
+        font_size: app.app_state['font_size'] * 1.5
+        size_hint_x: None
+        width: self.height
+        Image:
+            source: 'img/app_icon.jpg'
+            size_hint: None, None
             pos: self.parent.pos
             size: self.parent.size
-            Image:
-                source: 'img/app_icon.jpg'
-                size_hint_x: None
-                width: self.parent.height
-            Label:
-                text:
-                    " / ".join(_[:18 if app.landscape else 3] for _ in app.app_state['context_path']) \
-                    + (" ->" + app.app_state['context_id'][:18 if app.landscape else 3] \
-                    if app.app_state['context_id'] else "")
-                size_hint_x: None
-                width: self.parent.width - self.parent.height
-                font_size: app.app_state['font_size'] * 1.2
-                #text_size: self.size
-                #halign: 'center'
-                #valign: 'middle'
-                shorten: True
-                shorten_from: 'left'
-                split_str: '...'
+    Button:
+        text:
+            " / ".join(_[:18 if app.landscape else 3] for _ in app.app_state['context_path']) \
+            + (" ->" + app.app_state['context_id'][:18 if app.landscape else 3] \
+            if app.app_state['context_id'] else "")
+        on_release: app.open_settings()
+        size_hint_x: .69
+        font_size: app.app_state['font_size'] * 1.2
+        shorten: True
+        shorten_from: 'left'
+        split_str: '...'
     FontSizeDropDown:
         id: fontSizer
     ListFiltButton:
@@ -136,7 +142,8 @@
         state: 'down' if app.app_state['filter_selected'] else 'normal'
         canvas:
             Color:
-                rgba: app.app_state['selected_item_ink']
+                rgba:
+                    (0.6, 0.6, 0.6, 0.6) if app.app_state['filter_selected'] else app.app_state['selected_item_ink']
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
@@ -145,7 +152,8 @@
         state: 'down' if app.app_state['filter_unselected'] else 'normal'
         canvas:
             Color:
-                rgba: app.app_state['unselected_item_ink']
+                rgba:
+                    (0.6, 0.6, 0.6, 0.6) if app.app_state['filter_unselected'] else app.app_state['unselected_item_ink']
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
@@ -154,7 +162,8 @@
 <ListFiltButton@ToggleButton>:
     on_release: app.main_app.toggle_list_filter(self)
     minimum_width: self.height
-    size_hint_max_x: self.height * 2.1
+    size_hint_max_x: self.height * 1.2
+    size_hint_min_x: self.height
     background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
     background_down: 'atlas://data/images/defaulttheme/slider_cursor_disabled'
 
@@ -197,7 +206,6 @@
     item_data: app.main_app.update_item_data(self, toggleSelected.text, toggleSelected.state)
     size_hint_y: None
     height: app.app_state['font_size'] * 1.5
-    #padding: [sp(round(app.app_state['font_size'] / 33)), sp(round(app.app_state['font_size'] / 33))]
     padding: [1, 1]
     canvas.before:
         Color:
@@ -213,12 +221,7 @@
         text: root.item_data['id']
         on_state: app.main_app.change_app_state('context_id', self.text)
         on_text: app.main_app.change_app_state('context_id', self.text)
-        #size_hint: 0.69, None
-        size_hint_x: 0.69
         font_size: app.app_state['font_size']
-        #height: self.font_size * 1.5 - 2 * root.padding[1]
-        #height: self.font_size * 1.5
-        #text_size: self.size[0] - 2 * root.padding[0], self.size[1] - 2 * root.padding[1]
         text_size: self.size
         halign: 'left'
         valign: 'middle'
@@ -237,13 +240,10 @@
         id: enterList
         text: '-- >'
         on_release: app.main_app.context_enter(root.item_data['id'])
+        font_size: app.app_state['font_size'] * 1.2
         opacity: 1 if 'sub_list' in root.item_data else 0
         size_hint_x: None
         width: self.height * 2.7 if 'sub_list' in root.item_data else 0
-        font_size: app.app_state['font_size'] * 1.2
-        #text_size: self.size
-        #halign: 'center'
-        #valign: 'middle'
         canvas:
             Color:
                 rgba:
@@ -255,12 +255,10 @@
     Button:
         id: dragHandle
         text: '^v^'
-        size_hint_x: None
-        width: self.height * 1.8
         font_size: app.app_state['font_size'] * 1.5
-        #text_size: self.size
-        #halign: 'center'
-        #valign: 'middle'
+        opacity: 1 if not (app.app_state['filter_selected'] or app.app_state['filter_unselected']) else 0
+        size_hint_x: None
+        width: self.height * 1.8 if not (app.app_state['filter_selected'] or app.app_state['filter_unselected']) else 0
         canvas:
             Color:
                 rgba:
@@ -273,7 +271,7 @@
 
 <ItemEditor@Popup>:
     size_hint: 0.9, 0.3
-    on_dismiss: app.main_app.edit_item_finished(itemTextInp.text, itemIsListInp.state)
+    on_dismiss: app.main_app.edit_item_confirmed(itemTextInp.text, itemIsListInp.state)
     auto_dismiss: True
     BoxLayout:
         TextInput:
@@ -284,9 +282,9 @@
             size_hint_x: 0.69
             font_size: app.app_state['font_size']
             height: self.font_size * 1.5
+            text_size: self.size
             halign: 'left'
             valign: 'middle'
-            text_size: app.main_app._current_widget.size
         ToggleButton:
             id: itemIsListInp
             state: 'down' if 'sub_list' in app.main_app.get_item_by_name(root.title) else 'normal'
@@ -294,20 +292,22 @@
             size_hint_x: 0.30
             font_size: app.app_state['font_size'] * 1.2
             padding_x: sp(9)
-            #text_size: self.size
-            #halign: 'center'
-            #valign: 'middle'
 
 
-<ConfirmListDeletePopup@Popup>:
-    size_hint: 0.9, 0.15
+<ConfirmItemDeletePopup@Popup>:
     auto_dismiss: True
-    title: "Confirm deletion of the list " + str(root.what) + " including all sub-leafs/-lists"
+    title:
+        "... loading ..." if root.which_item is None or root.sub_list_only is None else \
+        "Confirm deletion of item(s): " + ",".join(app.main_app.sub_item_names(root.which_item, root.sub_list_only))
     title_align: 'center'
-    what: self.what
+    which_item: self.which_item
+    sub_list_only: self.sub_list_only
+    title_size: app.main_app.font_size
+    size_hint: 0.9, 0.21
     Button:
         text: "Ok"
-        on_release: app.main_app.delete_item_confirmed(root.what); root.dismiss()
+        on_release: app.main_app.delete_item_confirmed(root.which_item, root.sub_list_only); root.dismiss()
+        font_size: app.main_app.font_size
 
 
 <DropPlaceholder>
@@ -321,8 +321,3 @@
         RoundedRectangle:
             pos: self.pos
             size: self.size
-
-
-<ContextButton@Button>:
-    background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
-    background_down: 'atlas://data/images/defaulttheme/slider_cursor_disabled'

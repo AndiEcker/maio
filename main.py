@@ -20,12 +20,10 @@
     - user specific app theme (color, fonts) config screen
 
 """
-from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 from kivy.animation import Animation
 from kivy.app import App
-from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
@@ -35,13 +33,11 @@ from kivy.core.window import Window
 from ae.kivy_app import KivyMainApp
 
 
-__version__ = '0.16'
+__version__ = '0.17'
 
 
 ItemDataType = Dict[str, Any]
 ListDataType = List[ItemDataType]
-
-DEL_SUB_LIST_PREFIX = "from "               #: delete_item_confirmed() item_name prefix: if list or sub_list get deleted
 
 
 class MaioApp(KivyMainApp):
@@ -81,10 +77,10 @@ class MaioApp(KivyMainApp):
     def get_context_list(self, path_end_idx: Optional[int] = None):
         """ get list name and data of the current context list. """
         current_list = self.data_tree
-        sub_list = ''
-        for sub_list in self.context_path[:path_end_idx]:
-            current_list = self.get_item_by_name(sub_list, searched_list=current_list)['sub_list']
-        return sub_list, current_list
+        sub_list_name = ''
+        for sub_list_name in self.context_path[:path_end_idx]:
+            current_list = self.get_item_by_name(sub_list_name, searched_list=current_list)['sub_list']
+        return sub_list_name, current_list
 
     def get_item_by_name(self, item_name: str, searched_list: Optional[ListDataType] = None) -> ItemDataType:
         """ search list item in current list """
@@ -129,36 +125,47 @@ class MaioApp(KivyMainApp):
                 context_id = current_list[-1]['id']
             self.set_context(context_id)
 
+    def sub_item_names(self, item_name, sub_list_only, sub_list=None, sub_item_names=None):
+        """ return item names of item, including sub_list items (if exists). """
+        if sub_list is None:
+            sub_list = self.current_list
+        if sub_item_names is None:
+            sub_item_names = list()
+
+        if not sub_list_only:
+            sub_item_names.append(item_name)
+
+        item_data = self.get_item_by_name(item_name, sub_list)
+        sub_list = item_data.get('sub_list', list())
+        for sub_item in sub_list:
+            if sub_item.get('sub_list'):
+                self.sub_item_names(sub_item['id'], False, sub_list, sub_item_names)
+            else:
+                sub_item_names.append(sub_item['id'])
+
+        return sub_item_names
+
     # item (leaf/sub_list) add/delete/edit of name/copy/del
 
-    def add_leaf_confirmed(self, item_name: str, liw: Widget):
-        """ finish the addition of a new list item """
-        # self.current_list.append(dict(id=item_name))
-        # liw.item_data['id'] = item_name
-        liw.item_data['id'] = item_name
-        self.current_list.append(liw.item_data)
-        lcw = self.root_layout.ids.listContainer
-        lcw.add_widget(liw)
-        lcw.height += liw.height
-
-        self.set_context(item_name)
-
-    def add_list(self, list_name, copy_items_from=''):
-        """ add new list """
-        if copy_items_from:
-            new_list = deepcopy(self.get_item_by_name(copy_items_from))
-        else:
-            new_list = dict(sub_list=list())
-        new_list['id'] = list_name
-        self.current_list.append(new_list)
-        self.set_context(list_name)
-
-    def add_new_item(self):
+    def add_item_popup(self):
         """ start/initiate the addition of a new list item """
         self.set_context('')
         self._current_widget = Factory.ListItem()
         pu = Factory.ItemEditor(title='')
         pu.open()  # calling self._current_widget on dismiss/close
+
+    def add_item_confirmed(self, item_name: str, liw: Widget, has_sub_list: bool):
+        """ finish the addition of a new list item """
+        liw.item_data['id'] = item_name
+        if has_sub_list:
+            liw.item_data['sub_list'] = list()
+        self.current_list.append(liw.item_data)
+
+        lcw = self.root_layout.ids.listContainer
+        lcw.add_widget(liw)
+        lcw.height += liw.height
+
+        self.set_context(item_name)
 
     def context_enter(self, context_id: str, next_context_id: str = ''):
         """ overwrite to animate. """
@@ -248,120 +255,92 @@ class MaioApp(KivyMainApp):
 
         return widgets
 
-    def delete_current_item(self):
-        """ menu delete button callback for current/last touched item in current list """
-        item_name = self.context_id
-        assert item_name
-        lid = self.get_item_by_name(item_name)
-        if 'sub_list' in lid:
-            if lid['sub_list']:
-                self.delete_list_popup(item_name)
-                return
-            lid.pop('sub_list')
-        else:
-            self.delete_item_confirmed(item_name)
-
-    def delete_data_item(self, item_name):
-        """ delete list item """
-        self.current_list.remove(self.get_item_by_name(item_name))
-        self.set_context('')
-
-    def delete_item_confirmed(self, item_name):
-        """ delete item or sub-list of this item """
-        if item_name.startswith(DEL_SUB_LIST_PREFIX):
-            item_name = item_name[len(DEL_SUB_LIST_PREFIX):]
-            del_sub_list = True
-        else:
-            del_sub_list = False
-        lcw = self.root_layout.ids.listContainer
-        liw = self.get_widget_by_name(item_name)
-        if liw:
-            if del_sub_list:
-                self.get_item_by_name(item_name).pop('sub_list', None)
-            else:
-                self.delete_data_item(item_name)
-                # already re-drawn, so no need to reduce height: lcw.height -= liw.height
-                lcw.remove_widget(liw)
-
     @staticmethod
-    def delete_list_popup(list_name):
+    def delete_item_popup(item_name, sub_list_only=False):
         """ delete list """
-        pu = Factory.ConfirmListDeletePopup()
-        pu.what = list_name
+        pu = Factory.ConfirmItemDeletePopup()
+        pu.which_item = item_name
+        pu.sub_list_only = sub_list_only
         pu.open()
 
-    def edit_item_popup(self, item_name, *_):
-        """ edit list item """
-        self.dpo('edit item', item_name)
+    def delete_item_confirmed(self, item_name, del_sub_list=False):
+        """ delete item or sub-list of this item """
+        lcw = self.root_layout.ids.listContainer
         liw = self.get_widget_by_name(item_name)
-        if liw:
-            self.set_context(item_name)
-            self._current_widget = liw
-            root = self.root_layout
-            lcw = root.ids.listContainer
-            svw = lcw.parent
-            svw.scroll_to(liw)
-            pos = svw.parent.to_widget(*liw.to_window(*liw.pos))    # - (lcw.size[1] - svw.size[1]) * svw.scroll_y
-            border = Popup.border.defaultvalue   # (bottom, right, top, left)
-            phx = pos[0] - border[3]
-            phy = pos[1] - border[0]
-            if svw.top > lcw.top:
-                phy += svw.top - lcw.top
-            else:
-                phy += svw.g_translate.xy[1]
-            pu = Factory.ItemEditor(title=liw.item_data['id'],
-                                    pos_hint=dict(x=phx / Window.width, y=phy / Window.height),
-                                    size_hint=(None, None), size=(svw.width + border[1] + border[3], liw.height * 2.4),
-                                    background_color=(.9, .6, .6, .6),
-                                    border=border,
-                                    separator_height=0,
-                                    title_size=self.font_size / 80.1,
-                                    )
-            # pu.open()  # calling edit_item_finished() on dismiss/close
-            Clock.schedule_once(pu.open, 1.2)       # focus is still going away with touch_up
+        lid = self.get_item_by_name(item_name)
+        if del_sub_list:
+            lid.pop('sub_list')
+        else:
+            self.current_list.remove(lid)
+            # already re-drawn, so no need to reduce height: lcw.height -= liw.height
+            lcw.remove_widget(liw)
+            self.set_context('')
 
-    def edit_item_finished(self, text, state):
+        self.on_context_draw()
+
+    def edit_item_popup(self, item_name):
+        """ edit list item """
+        liw = self.get_widget_by_name(item_name)
+        self.set_context(item_name)
+        self._current_widget = liw
+        root = self.root_layout
+        lcw = root.ids.listContainer
+        svw = lcw.parent
+        svw.scroll_to(liw)
+        pos = svw.parent.to_widget(*liw.to_window(*liw.pos))    # - (lcw.size[1] - svw.size[1]) * svw.scroll_y
+        border = Popup.border.defaultvalue   # (bottom, right, top, left)
+        phx = pos[0] - border[3]
+        phy = pos[1] - border[0]
+        if svw.top > lcw.top:
+            phy += svw.top - lcw.top
+        else:
+            phy += svw.g_translate.xy[1]
+        height = liw.height * 1.5 + border[0] + border[2]
+        phy = min(max(0, phy), svw.height - height)
+        pu = Factory.ItemEditor(title=liw.item_data['id'],
+                                pos_hint=dict(x=phx / Window.width, y=phy / Window.height),
+                                size_hint=(None, None), size=(svw.width + border[1] + border[3], height),
+                                background_color=(.9, .6, .6, .6),
+                                border=border,
+                                separator_height=0,
+                                title_size=self.font_size / 80.1,
+                                )
+        pu.open()  # calling edit_item_confirmed() on dismiss/close
+        # Clock.schedule_once(pu.open, 1.2)       # focus is still going away with touch_up
+
+    def edit_item_confirmed(self, text, state):
         """ finished list edit callback """
-        self.dpo('edit_item_finished', text, self._current_widget)
         liw = self._current_widget
         if not liw:
             self.dpo("last_edit_finished(): current widget unset in popup dismiss callback")
-            return  # sometimes this event is fired multiple times (on dismiss of popup)
-        self._current_widget = None  # release ref created by add_new_item()/edit_item_popup()
+            return                      # sometimes this event is fired multiple times (on dismiss of popup)
+        self._current_widget = None     # release ref created by add_item_popup()/edit_item_popup()
 
         item_data = liw.item_data       # self.get_item_by_name(liw.text)
-        remove_item = not text  # (text is None or text == '')
+        remove_item = not text          # (text is None or text == '')
         append_item = (item_data['id'] == '')
         if remove_item and append_item:
-            return      # user cancelled newly created but still not added list item
+            return                      # user cancelled newly created but still not added list item
         if (append_item or text != item_data['id']) and self.find_item_index(text) != -1:
             self.play_beep()
-            return      # prevent creation of duplicates
+            return                      # prevent creation of duplicates
 
-        if remove_item:  # user cleared text of existing list item
-            if item_data.get('sub_list'):
-                self.delete_list_popup(item_data['id'])
+        if remove_item:                 # user cleared text of existing list item -> let user confirm the deletion
+            self.delete_item_popup(item_data['id'])
+            return
+
+        if append_item:                 # user added new list item (with text)
+            self.add_item_confirmed(text, liw, has_sub_list=state == 'down')
+            return
+
+        if state != 'down' if 'sub_list' in item_data else 'normal':
+            if state == 'normal':   # user removed list
+                self.delete_item_popup(text, sub_list_only=True)
                 return
-            self.delete_item_confirmed(item_data['id'])
-        elif append_item:  # user added new list item (with text)
-            if state == 'down':
-                self.add_list(text)
-            else:
-                self.add_leaf_confirmed(text, liw)
-        else:  # user edited list item
-            item_data['id'] = text
-            # liw.text = text
-            if state != 'down' if 'sub_list' in item_data else 'normal':
-                if state == 'normal':
-                    if item_data.get('sub_list'):
-                        self.delete_list_popup(DEL_SUB_LIST_PREFIX + text)
-                        return
-                    if 'sub_list' in item_data:
-                        item_data.pop('sub_list')
-                else:
-                    item_data['sub_list'] = list()
-            self.set_context(text)
-        self.save_app_states()
+            item_data['sub_list'] = list()
+        item_data['id'] = text      # binding does set also: liw.text = text
+        self.set_context(text)
+
         self.on_context_draw()
 
     def on_context_draw(self):
@@ -396,6 +375,9 @@ class MaioApp(KivyMainApp):
 
         # restore self.context_id (changed in list redraw by setting observed selectButton.state)
         self.set_context(context_id, redraw=redraw)
+        # save changed app states (because context/content got changed by user)
+        self.save_app_states()
+
 
     def on_key_press(self, key_code, _modifiers):
         """ key press event. """
@@ -430,6 +412,7 @@ class MaioApp(KivyMainApp):
         """ list item filter """
         filter_button_state = filter_button.state
         self.dpo('toggle_list_filter', filter_button, filter_button_state)
+
         toggle_selected_filter = filter_button == self.root_layout.ids.menuBar.ids.listFilterSelected
         filtering = filter_button_state == 'down'
         if toggle_selected_filter:
@@ -440,7 +423,7 @@ class MaioApp(KivyMainApp):
             self.change_app_state('filter_unselected', filtering)
             if filtering and self.filter_selected:
                 self.change_app_state('filter_selected', False)
-        self.save_app_states()
+
         self.on_context_draw()
 
     @staticmethod
