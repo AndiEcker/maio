@@ -205,13 +205,12 @@
 <ListItem>:
     item_data: app.main_app.update_item_data(self, toggleSelected.text, toggleSelected.state)
     size_hint_y: None
-    height: app.app_state['font_size'] * 1.5
+    height: app.main_app.font_size * 1.5
     padding: [1, 1]
-    canvas.before:
+    canvas.after:
         Color:
             rgba:
-                app.app_state['context_id_ink'][:3] \
-                + (.69 if app.app_state['context_id'] == root.item_data['id'] else 0, )
+                app.main_app.context_id_ink[:3] + (.69 if app.app_state['context_id'] == root.item_data['id'] else 0, )
         Line:
             width: sp(1.8)
             rectangle: self.x + sp(2), self.y + sp(2), self.width - sp(4), self.height - sp(4)
@@ -221,7 +220,7 @@
         text: root.item_data['id']
         on_state: app.main_app.change_app_state('context_id', self.text)
         on_text: app.main_app.change_app_state('context_id', self.text)
-        font_size: app.app_state['font_size']
+        font_size: app.main_app.font_size
         text_size: self.size
         halign: 'left'
         valign: 'middle'
@@ -231,8 +230,7 @@
         canvas:
             Color:
                 rgba:
-                    app.app_state['selected_item_ink'] if self.state == 'down' else \
-                    app.app_state['unselected_item_ink']
+                    app.main_app.selected_item_ink if self.state == 'down' else app.main_app.unselected_item_ink
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
@@ -240,38 +238,37 @@
         id: enterList
         text: '-- >'
         on_release: app.main_app.context_enter(root.item_data['id'])
-        font_size: app.app_state['font_size'] * 1.2
+        font_size: app.main_app.font_size * 1.2
         opacity: 1 if 'sub_list' in root.item_data else 0
         size_hint_x: None
         width: self.height * 2.7 if 'sub_list' in root.item_data else 0
         canvas:
             Color:
                 rgba:
-                    app.app_state['selected_item_ink'] if root.item_data.get('sel') else \
-                    app.app_state['unselected_item_ink']
+                    app.main_app.selected_item_ink if root.item_data.get('sel') else \
+                    app.main_app.unselected_item_ink
             Rectangle:
                 pos: self.pos
                 size: self.size
     Button:
         id: dragHandle
         text: '^v^'
-        font_size: app.app_state['font_size'] * 1.5
-        opacity: 1 if not (app.app_state['filter_selected'] or app.app_state['filter_unselected']) else 0
+        font_size: app.main_app.font_size * 1.5
+        opacity: 1 if not (app.main_app.filter_selected or app.main_app.filter_unselected) else 0
         size_hint_x: None
-        width: self.height * 1.8 if not (app.app_state['filter_selected'] or app.app_state['filter_unselected']) else 0
+        width: self.height * 1.8 if not (app.main_app.filter_selected or app.main_app.filter_unselected) else 0
         canvas:
             Color:
                 rgba:
-                    app.app_state['selected_item_ink'] if root.item_data.get('sel') else \
-                    app.app_state['unselected_item_ink']
+                    app.main_app.selected_item_ink if root.item_data.get('sel') else app.main_app.unselected_item_ink
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
 
 
 <ItemEditor@Popup>:
-    size_hint: 0.9, 0.3
-    on_dismiss: app.main_app.edit_item_confirmed(itemTextInp.text, itemIsListInp.state)
+    size_hint: 0.9, app.main_app.font_size * 3.6 / app.root.height
+    on_dismiss: app.main_app.edit_item_finished(itemTextInp.text, itemIsListInp.state)
     auto_dismiss: True
     BoxLayout:
         TextInput:
@@ -280,7 +277,7 @@
             focus: True
             multiline: False
             size_hint_x: 0.69
-            font_size: app.app_state['font_size']
+            font_size: app.main_app.font_size
             height: self.font_size * 1.5
             text_size: self.size
             halign: 'left'
@@ -290,7 +287,7 @@
             state: 'down' if 'sub_list' in app.main_app.get_item_by_name(root.title) else 'normal'
             text: '-- >'
             size_hint_x: 0.30
-            font_size: app.app_state['font_size'] * 1.2
+            font_size: app.main_app.font_size * 1.2
             padding_x: sp(9)
 
 
@@ -316,8 +313,7 @@
     canvas:
         Color:
             rgba:
-                app.app_state['context_path_ink'] if root.dark else \
-                app.app_state['context_id_ink']
+                app.main_app.context_path_ink if root.dark else app.main_app.context_id_ink
         RoundedRectangle:
             pos: self.pos
             size: self.size

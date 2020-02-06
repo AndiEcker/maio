@@ -14,7 +14,7 @@ from kivy.lang import Builder                                           # type: 
 from ae.gui_app import MainAppBase
 
 kivy.require('1.9.1')  # currently using 1.11.1 but at least 1.9.1 is needed for Window.softinput_mode 'below_target'
-Window.softinput_mode = 'below_target'  # ensure android keyboard is not covering Popup/text input
+# Window.softinput_mode = 'below_target'  # ensure android keyboard is not covering Popup/text input
 
 
 MIN_FONT_SIZE = sp(21)
@@ -96,9 +96,10 @@ class FrameworkApp(App):
 
     def win_pos_size_changed(self, *_):
         """ screen resize handler """
-        self.main_app.po('win_pos_size_changed', self.root.width, self.root.height)
+        win_pos_size = (Window.left, Window.top, Window.width, Window.height)
         self.landscape = self.root.width >= self.root.height
-        self.main_app.change_app_state('win_rectangle', (Window.left, Window.top, Window.width, Window.height))
+        self.main_app.po('win_pos_size_changed', self.landscape, *win_pos_size)
+        self.main_app.change_app_state('win_rectangle', win_pos_size)
         self.main_app.call_event('on_framework_win_pos_size')
 
 
