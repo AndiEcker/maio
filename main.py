@@ -33,7 +33,7 @@ from kivy.core.window import Window
 from ae.kivy_app import KivyMainApp
 
 
-__version__ = '0.18'
+__version__ = '0.19'
 
 
 ItemDataType = Dict[str, Any]
@@ -94,7 +94,7 @@ class MaioApp(KivyMainApp):
         # save changed app states (because context/content got changed by user)
         self.save_app_states()
 
-    def on_framework_app_start(self):
+    def on_app_start(self):
         """ callback after app init/build for to draw/refresh gui. """
         self.on_context_draw()
 

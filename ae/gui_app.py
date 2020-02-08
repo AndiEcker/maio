@@ -46,7 +46,7 @@ integrate new gui framework
 
 For to integrate a new Python GUI framework you have to declare a
 new class that inherits from :class:`MainAppBase` and implements at
-least the two abstract methods :meth:`~MainAppBase.on_framework_app_init`
+least the two abstract methods :meth:`~MainAppBase.on_app_init`
 and :meth:`~MainAppBase.run_app`.
 
 Most GUI frameworks are providing an application class that need to
@@ -60,20 +60,20 @@ instance within your main app class you can use the
     to the main app class.
 
 A typical implementation of a framework-specific main app class could
-look like:
+look like::
 
-from new_gui_framework import NewFrameworkApp
+    from new_gui_framework import NewFrameworkApp
 
-class NewFrameworkMainApp(MainAppBase):
-    def on_framework_app_init(self):
-        self.framework_app = NewFrameworkApp()
+    class NewFrameworkMainApp(MainAppBase):
+        def on_app_init(self):
+            self.framework_app = NewFrameworkApp()
 
-    def run_app(self):
-        self.framework_app.run()
+        def run_app(self):
+            self.framework_app.run()
 
 Both implementations of these abstract methods will be executed only once
 at app startup. In the first executed method
-:meth:`~MainAppBase.on_framework_app_init` you could initialize
+:meth:`~MainAppBase.on_app_init` you could initialize
 the GUI framework and prepare it for the app startup. The :meth:`~MainAppClass.run_app`
 method will be called from the main module of your app project for to
 start the framework app instance.
@@ -221,12 +221,12 @@ class MainAppBase(ConsoleApp, ABC):
         self.debug_bubble = debug_bubble
         super().__init__(**console_app_kwargs)
         self.load_app_states()
-        self.on_framework_app_init()
+        self.on_app_init()
 
     # abstract methods
 
     @abstractmethod
-    def on_framework_app_init(self):
+    def on_app_init(self):
         """ callback to framework api for to initialize an app instance. """
 
     @abstractmethod

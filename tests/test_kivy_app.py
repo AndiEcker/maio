@@ -1,6 +1,8 @@
 """ test ae.kivy_app portion """
 import os
 import pytest
+from ae.core import DEBUG_LEVEL_VERBOSE
+
 from ae.gui_app import APP_STATE_SECTION_NAME
 from ae.kivy_app import KivyMainApp
 
@@ -16,7 +18,8 @@ def ini_file(restore_app_env):
     """ provide test config file """
     fn = 'tests/tst.ini'
     with open(fn, 'w') as file_handle:
-        file_handle.write(f"[{APP_STATE_SECTION_NAME}]\n{def_app_state!r}")
+        file_handle.write(f"[{APP_STATE_SECTION_NAME}]\n")
+        file_handle.write("\n".join(k + " = " + repr(v) for k, v in def_app_state.items()))
     yield fn
     if os.path.exists(fn):      # some exception/error-check tests need to delete the INI
         os.remove(fn)
@@ -43,12 +46,13 @@ class KivyAppTest(KivyMainApp):
     on_key_release_called = False
     last_keys = ()
 
-    def on_framework_app_init(self):
-        """ called from KivyMainApp """
+    def on_app_init(self):
+        """ called from MainAppBase """
         self.on_init_called = True
-        super().on_framework_app_init()
+        self.app_title = "KivyAppTest Stub"
+        super().on_app_init()
 
-    def on_framework_app_start(self):
+    def on_app_start(self):
         """ called from KivyMainApp """
         self.on_start_called = True
 
@@ -61,7 +65,7 @@ class KivyAppTest(KivyMainApp):
         """ called from KivyMainApp """
         self.on_context_called = True
 
-    def on_framework_app_stop(self):
+    def on_app_stop(self):
         """ called from KivyMainApp """
         self.on_stop_called = True
 
@@ -110,6 +114,10 @@ class TestCallbacks:
         assert not app.on_context_called
         app.set_context('tstCtx')
         assert app.on_context_called
+
+    #def test_on_start(self, restore_app_env):
+    #    app.framework_app.on_start()
+    # on_pause, on_stop, win_pos_size_changed
 
 
 class TestAppState:
@@ -272,6 +280,14 @@ class TestContext:
 
         assert len(app.context_path) == 0
         assert app.context_id == ctx3
+
+
+class TestBubble:
+    def test_show_bubble_cov(self, restore_app_env):
+        app = KivyAppTest()
+        app.set_opt('debugLevel', DEBUG_LEVEL_VERBOSE)
+        app.run_app()   # Builder.load_string(DEBUG_BUBBLE_DEF)
+        app.show_bubble("Test", 369, True)
 
 
 class TestKeyEvents:

@@ -44,7 +44,7 @@ class ImplementationOfMainApp(MainAppBase):
         self.setup_state_called = True
         super().setup_app_states(app_state)
 
-    def on_framework_app_init(self):
+    def on_app_init(self):
         """ init app """
         self.framework_app = FrameworkApp()
         self.framework_app.app_state.update(self.retrieve_app_states())
@@ -60,7 +60,7 @@ class ImplementationOfMainApp(MainAppBase):
         self.run_called = True
         return ""
 
-    def on_framework_app_start(self):
+    def on_app_start(self):
         """ init app """
         self.start_called = True
 
@@ -100,7 +100,7 @@ class TestCallbacks:
     def test_start(self, restore_app_env):
         app = ImplementationOfMainApp()
         assert not app.start_called
-        app.on_framework_app_start()
+        app.on_app_start()
         assert app.start_called
 
     def test_context_draw(self, restore_app_env):

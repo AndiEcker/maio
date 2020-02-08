@@ -81,18 +81,18 @@ class FrameworkApp(App):
         self.win_pos_size_changed()  # init. app./self.landscape (on app startup and after build)
         self.main_app.root_layout = self.root
         self.main_app.root_win = self.root.parent
-        self.main_app.call_event('on_framework_app_start')
+        self.main_app.call_event('on_app_start')
 
     def on_pause(self):
         """ app pause event """
         self.main_app.save_app_states()
-        self.main_app.call_event('on_framework_app_pause')
+        self.main_app.call_event('on_app_pause')
         return True
 
     def on_stop(self):
         """ quit app event """
         self.main_app.save_app_states()
-        self.main_app.call_event('on_framework_app_stop')
+        self.main_app.call_event('on_app_stop')
 
     def win_pos_size_changed(self, *_):
         """ screen resize handler """
@@ -100,14 +100,14 @@ class FrameworkApp(App):
         self.landscape = self.root.width >= self.root.height
         self.main_app.po('win_pos_size_changed', self.landscape, *win_pos_size)
         self.main_app.change_app_state('win_rectangle', win_pos_size)
-        self.main_app.call_event('on_framework_win_pos_size')
+        self.main_app.call_event('on_win_pos_size')
 
 
 class KivyMainApp(MainAppBase):
     """ Kivy application """
     win_rectangle: tuple = (0, 0, 800, 600)                 #: window coordinates app state variable
 
-    def on_framework_app_init(self):
+    def on_app_init(self):
         """ initialize framework app instance """
         win_rect = self.win_rectangle
         if win_rect:
