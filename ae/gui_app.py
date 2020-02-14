@@ -266,7 +266,7 @@ class MainAppBase(ConsoleApp, ABC):
         try:            # if self._cfg_parser.has_section(APP_STATE_SECTION_NAME):
             items = self._cfg_parser.items(APP_STATE_SECTION_NAME)
             for key, state in items:
-                lit = Literal(state, value_type=type(getattr(self, key, "")))
+                lit = Literal(state)        # not working for str literals: , value_type=type(getattr(self, key, "")))
                 app_state[key] = lit.value
         except NoSectionError:
             self.dpo(f"MainAppBase.load_app_states: ignoring missing config file section {APP_STATE_SECTION_NAME}")
@@ -293,6 +293,7 @@ class MainAppBase(ConsoleApp, ABC):
         app_state = self.retrieve_app_states()
         for key, state in app_state.items():
             err_msg = self.set_var(key, state, section=APP_STATE_SECTION_NAME)
+            self.dpo(f"save_app_state {key}={state} {err_msg or 'OK'}")
             if err_msg:
                 break
         self.load_cfg_files()
@@ -304,6 +305,7 @@ class MainAppBase(ConsoleApp, ABC):
         :param context_id:  name of new current item.
         :param redraw:      pass False to prevent to redraw the context screens.
         """
+        self.dpo(f"set_context({context_id})")
         self.change_app_state('context_path', self.context_path)
         self.change_app_state('context_id', context_id)
         if redraw:

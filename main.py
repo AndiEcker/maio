@@ -16,6 +16,7 @@
     0.11    extended/corrected leafs to the ones in Irmi's mobile phone, fixed bugs, added DEBUG_BUBBLE.
     0.12    big refactoring of UI (migrate to KivyMainApp) and data structure (allow list in list).
     0.13    finished unit tests for gui_app portion.
+    0.14-20 extended kivy_app portion and unit tests, added icon images and bug fixing.
   ToDo:
     - user specific app theme (color, fonts) config screen
 
@@ -26,6 +27,7 @@ from kivy.animation import Animation
 from kivy.app import App
 from kivy.factory import Factory
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
@@ -33,7 +35,7 @@ from kivy.core.window import Window
 from ae.kivy_app import KivyMainApp
 
 
-__version__ = '0.19'
+__version__ = '0.20'
 
 
 ItemDataType = Dict[str, Any]
@@ -308,13 +310,16 @@ class MaioApp(KivyMainApp):
 
         return widgets
 
-    @staticmethod
-    def delete_item_popup(item_name, sub_list_only=False):
+    def delete_item_popup(self, item_name, sub_list_only=False):
         """ delete list """
-        pu = Factory.ConfirmItemDeletePopup()
-        pu.which_item = item_name
-        pu.sub_list_only = sub_list_only
-        pu.open()
+        if sub_list_only and not self.sub_item_names(item_name, sub_list_only=sub_list_only):
+            self.delete_item_confirmed(item_name, del_sub_list=True)    # no confirm needed for del of empty sub list
+            self.set_context(item_name)
+        else:
+            pu = Factory.ConfirmItemDeletePopup()
+            pu.which_item = item_name
+            pu.sub_list_only = sub_list_only
+            pu.open()
 
     def delete_item_confirmed(self, item_name, del_sub_list=False):
         """ delete item or sub-list of this item """
@@ -489,7 +494,9 @@ class ListItem(BoxLayout):
             if not self.dragging_on_back:
                 self.dragging_on_back = bb
                 mb.remove_widget(bb)
-                mb.add_widget(Factory.DropPlaceholder(size=bb.size), index=len(mb.children))
+                ph = Factory.DropPlaceholder(size=bb.size)
+                ph.add_widget(Image(source='img/72/context_leave.png', allow_stretch=True, pos=bb.pos, size=bb.size))
+                mb.add_widget(ph, index=len(mb.children))
         elif touch.pos[1] < self.height:
             svw.scroll_y = min(max(0, svw.scroll_y - svw.convert_distance_to_scroll(0, self.height)[1]), 1)
         elif touch.pos[1] > svw.top - self.height:
