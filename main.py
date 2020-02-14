@@ -17,6 +17,7 @@
     0.12    big refactoring of UI (migrate to KivyMainApp) and data structure (allow list in list).
     0.13    finished unit tests for gui_app portion.
     0.14-20 extended kivy_app portion and unit tests, added icon images and bug fixing.
+    0-21    added ae.updater.
   ToDo:
     - user specific app theme (color, fonts) config screen
 
@@ -35,7 +36,7 @@ from kivy.core.window import Window
 from ae.kivy_app import KivyMainApp
 
 
-__version__ = '0.20'
+__version__ = '0.21'
 
 
 ItemDataType = Dict[str, Any]

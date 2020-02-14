@@ -16,16 +16,18 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ini
 
 # (list) List of inclusions using pattern matching
-source.include_patterns = img/*.jpg
+#source.include_patterns = assets/*,images/*.png
+#source.include_patterns = img/*.jpg
 
 # (list) Source files to exclude (let empty to not exclude anything)
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-#source.exclude_dirs = tests, bin
+source.exclude_dirs = tests,bin,htmlcov,mypy_report
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg
+source.exclude_patterns = ./maio.ini
 
 # (str) Application versioning (method 1)
 #version = 0.1

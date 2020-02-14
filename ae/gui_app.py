@@ -174,6 +174,7 @@ from configparser import ConfigParser, NoSectionError
 from typing import Any, Dict, Tuple, List
 
 from ae.core import DEBUG_LEVEL_VERBOSE         # type: ignore
+from ae.updater import check_all                # type: ignore
 from ae.literal import Literal                  # type: ignore
 from ae.console import ConsoleApp               # type: ignore
 
@@ -181,6 +182,8 @@ from ae.console import ConsoleApp               # type: ignore
 AppStateType = Dict[str, Any]           #: app state config variable type
 
 APP_STATE_SECTION_NAME = 'aeAppState'   #: config section name for to store app state
+
+check_all()
 
 
 def app_state_keys(cfg_parser: ConfigParser) -> Tuple:
