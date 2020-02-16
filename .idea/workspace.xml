@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="V 0.21: added ae.updater for to prevent overwrite of maio.ini on app update.">
-      <change afterPath="$PROJECT_DIR$/ae/updater.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ae_updater_moves/maio.ini" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_updater.py" afterDir="false" />
+    <list default="true" id="f7b532a5-8b63-4485-aa83-5fbeea6f7ccf" name="Default Changelist" comment="V 0.22: ae.updater extended and small UI fixes:&#10; &#10;- more unit test for ae.updater and gui_app.&#10;- fixed shortening title, enhanced drop into sub-list, cleaned kv.&#10;- documented ae.updater functions.">
       <change beforePath="$PROJECT_DIR$/.idea/dictionaries/andi.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/andi.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ae/gui_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/gui_app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildozer.spec" beforeDir="false" afterPath="$PROJECT_DIR$/buildozer.spec" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.ori.ini" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ae/updater.py" beforeDir="false" afterPath="$PROJECT_DIR$/ae/updater.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ae_updater_moves/maio.ini" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.kv" beforeDir="false" afterPath="$PROJECT_DIR$/main.kv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/maio.ini" beforeDir="false" afterPath="$PROJECT_DIR$/maio.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_gui_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_gui_app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_updater.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_updater.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,7 +54,7 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.pytest in test_updater.py">
+  <component name="RunManager" selected="Python.main">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="maio" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -130,10 +129,10 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.pytest in test_updater.py" />
         <item itemvalue="Python.main" />
-        <item itemvalue="Python tests.pytest in test_kivy_app.py" />
         <item itemvalue="Python tests.pytest in test_gui_app.py" />
+        <item itemvalue="Python tests.pytest in test_updater.py" />
+        <item itemvalue="Python tests.pytest in test_kivy_app.py" />
       </list>
     </recent_temporary>
   </component>
@@ -148,6 +147,7 @@
         </serviceView>
       </list>
     </option>
+    <option name="showServicesTree" value="false" />
   </component>
   <component name="StructureViewFactory">
     <option name="AUTOSCROLL_FROM_SOURCE" value="true" />
@@ -346,11 +346,17 @@
       <option name="project" value="LOCAL" />
       <updated>1581643667628</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="V 0.21: added ae.updater for to prevent overwrite of maio.ini on app update.">
+      <created>1581712308321</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1581712308321</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="V 0.11: prepare UI and ae namespace refactoring, extended default list items:&#10;&#10;- refactored ActionBar to BoxLayout.&#10;- slightly enhanced +/- button textures.&#10;- started migration to new ae namespace GUI portions (until V 0.0.1 developed within this project).&#10;- added empty GUIApp/KivyApp ae namespace package skeletons and requirements.txt.&#10;- added DEBUG_BUBBLE.&#10;- extended/corrected list items to the ones in Irmi's mobile phone." />
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 1" />
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 2" />
     <MESSAGE value="V 0.12pre: refactoring to ae namespace portions (WIP) - Part 3" />
@@ -375,7 +381,8 @@
     <MESSAGE value="V 0.18: android device testing fixes and code clean-up.&#10;&#10;- removed Window.softinput_mode = 'below_target'.&#10;- speed-optimized by removing unneeded bind variables&#10;  in kv and duplicate list redraws." />
     <MESSAGE value="V 0.19: extended kivy_app.py unit tests, method name consolidations." />
     <MESSAGE value="V 0.20: replaced button texts with icon images, ..&#10;&#10;- automatic delete of item sub list if empty without confirmation.&#10;- added literal type recognation to ini file / Literal V 0.23." />
-    <option name="LAST_COMMIT_MESSAGE" value="V 0.20: replaced button texts with icon images, ..&#10;&#10;- automatic delete of item sub list if empty without confirmation.&#10;- added literal type recognation to ini file / Literal V 0.23." />
+    <MESSAGE value="V 0.21: added ae.updater for to prevent overwrite of maio.ini on app update." />
+    <option name="LAST_COMMIT_MESSAGE" value="V 0.21: added ae.updater for to prevent overwrite of maio.ini on app update." />
   </component>
   <component name="WindowStateProjectService">
     <state x="453" y="220" width="1084" height="718" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1581693489657">
@@ -406,10 +413,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="843" y="376" width="596" height="489" key="#com.intellij.tools.ToolEditorDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1580816946634" />
-    <state x="363" y="182" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1581701621156">
+    <state x="363" y="182" width="1557" height="810" key="CommitChangelistDialog2" timestamp="1581811597202">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="363" y="182" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1581701621156" />
+    <state x="363" y="182" width="1557" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1581811597202" />
     <state width="1253" height="767" key="DebuggerActiveHint" timestamp="1580838293304">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -426,38 +433,38 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="740" y="305" width="501" height="513" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1580049487454" />
-    <state width="1733" height="287" key="GridCell.Tab.0.bottom" timestamp="1581711721356">
+    <state width="1733" height="265" key="GridCell.Tab.0.bottom" timestamp="1581811011779">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="287" key="GridCell.Tab.0.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1581711721356" />
-    <state width="1733" height="287" key="GridCell.Tab.0.center" timestamp="1581711721355">
+    <state width="1733" height="265" key="GridCell.Tab.0.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1581811011779" />
+    <state width="1733" height="265" key="GridCell.Tab.0.center" timestamp="1581811011778">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="287" key="GridCell.Tab.0.center/67.27.1853.1053@67.27.1853.1053" timestamp="1581711721355" />
-    <state width="1733" height="287" key="GridCell.Tab.0.left" timestamp="1581711721354">
+    <state width="1733" height="265" key="GridCell.Tab.0.center/67.27.1853.1053@67.27.1853.1053" timestamp="1581811011778" />
+    <state width="1733" height="265" key="GridCell.Tab.0.left" timestamp="1581811011778">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="287" key="GridCell.Tab.0.left/67.27.1853.1053@67.27.1853.1053" timestamp="1581711721354" />
-    <state width="1733" height="287" key="GridCell.Tab.0.right" timestamp="1581711721355">
+    <state width="1733" height="265" key="GridCell.Tab.0.left/67.27.1853.1053@67.27.1853.1053" timestamp="1581811011778" />
+    <state width="1733" height="265" key="GridCell.Tab.0.right" timestamp="1581811011779">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="287" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1581711721355" />
-    <state width="1733" height="287" key="GridCell.Tab.1.bottom" timestamp="1581711722652">
+    <state width="1733" height="265" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1581811011779" />
+    <state width="1733" height="287" key="GridCell.Tab.1.bottom" timestamp="1581797638687">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="287" key="GridCell.Tab.1.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1581711722652" />
-    <state width="1733" height="287" key="GridCell.Tab.1.center" timestamp="1581711722651">
+    <state width="1733" height="287" key="GridCell.Tab.1.bottom/67.27.1853.1053@67.27.1853.1053" timestamp="1581797638687" />
+    <state width="1733" height="287" key="GridCell.Tab.1.center" timestamp="1581797638686">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="287" key="GridCell.Tab.1.center/67.27.1853.1053@67.27.1853.1053" timestamp="1581711722651" />
-    <state width="1733" height="287" key="GridCell.Tab.1.left" timestamp="1581711722651">
+    <state width="1733" height="287" key="GridCell.Tab.1.center/67.27.1853.1053@67.27.1853.1053" timestamp="1581797638686" />
+    <state width="1733" height="287" key="GridCell.Tab.1.left" timestamp="1581797638686">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="287" key="GridCell.Tab.1.left/67.27.1853.1053@67.27.1853.1053" timestamp="1581711722651" />
-    <state width="1733" height="287" key="GridCell.Tab.1.right" timestamp="1581711722652">
+    <state width="1733" height="287" key="GridCell.Tab.1.left/67.27.1853.1053@67.27.1853.1053" timestamp="1581797638686" />
+    <state width="1733" height="287" key="GridCell.Tab.1.right" timestamp="1581797638686">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1733" height="287" key="GridCell.Tab.1.right/67.27.1853.1053@67.27.1853.1053" timestamp="1581711722652" />
+    <state width="1733" height="287" key="GridCell.Tab.1.right/67.27.1853.1053@67.27.1853.1053" timestamp="1581797638686" />
     <state x="635" y="256" key="SettingsEditor" timestamp="1581642512237">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -466,10 +473,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state width="498" height="446" key="SwitcherDM/67.27.1853.1053@67.27.1853.1053" timestamp="1579607445271" />
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1581643670515">
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1581712312313">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1581643670515" />
+    <state x="590" y="298" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1581712312313" />
     <state width="926" height="527" key="XDebugger.FullValuePopup" timestamp="1580576305602">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -482,14 +489,14 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="264" y="138" width="1556" height="800" key="com.intellij.history.integration.ui.views.RecentChangeDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1580269657036" />
-    <state x="264" y="138" width="1556" height="800" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog" timestamp="1580265396524">
+    <state x="264" y="138" width="1556" height="800" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog" timestamp="1581810959984">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="264" y="138" width="1556" height="800" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1580265396524" />
-    <state x="255" y="75" width="1362" height="800" key="com.intellij.ide.util.TipDialog" timestamp="1581677192982">
+    <state x="264" y="138" width="1556" height="800" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1581810959984" />
+    <state x="255" y="75" width="1362" height="800" key="com.intellij.ide.util.TipDialog" timestamp="1581765632338">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="255" y="75" width="1362" height="800" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1581677192982" />
+    <state x="255" y="75" width="1362" height="800" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1581765632338" />
     <state x="649" y="180" width="683" height="764" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1581638967455">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -502,14 +509,14 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="591" y="277" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/67.27.1853.1053@67.27.1853.1053" timestamp="1580936838648" />
-    <state x="271" y="85" width="1474" height="968" key="find.popup" timestamp="1581700084979">
+    <state x="271" y="85" width="1474" height="968" key="find.popup" timestamp="1581810740245">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="271" y="85" width="1474" height="968" key="find.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1581700084979" />
-    <state width="1003" height="677" key="javadoc.popup.new" timestamp="1581695206074">
+    <state x="271" y="85" width="1474" height="968" key="find.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1581810740245" />
+    <state width="687" height="677" key="javadoc.popup.new" timestamp="1581796126124">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state width="1003" height="677" key="javadoc.popup.new/67.27.1853.1053@67.27.1853.1053" timestamp="1581695206074" />
+    <state width="687" height="677" key="javadoc.popup.new/67.27.1853.1053@67.27.1853.1053" timestamp="1581796126124" />
     <state x="740" y="205" width="501" height="713" key="refactoring.ChangeSignatureDialog" timestamp="1580477103865">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -518,10 +525,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="606" y="230" width="800" height="677" key="scopes/67.27.1853.1053@67.27.1853.1053" timestamp="1580553720785" />
-    <state x="846" y="277" width="672" height="678" key="search.everywhere.popup" timestamp="1581609314986">
+    <state x="846" y="277" width="672" height="678" key="search.everywhere.popup" timestamp="1581810287941">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="846" y="277" width="672" height="678" key="search.everywhere.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1581609314986" />
+    <state x="846" y="277" width="672" height="678" key="search.everywhere.popup/67.27.1853.1053@67.27.1853.1053" timestamp="1581810287941" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

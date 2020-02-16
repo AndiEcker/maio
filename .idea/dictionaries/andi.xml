@@ -142,6 +142,7 @@
       <w>presplash</w>
       <w>puleva</w>
       <w>pyjnius</w>
+      <w>pytest</w>
       <w>qpython</w>
       <w>quarktasche</w>
       <w>rallado</w>
@@ -149,6 +150,7 @@
       <w>reis</w>
       <w>renpy</w>
       <w>rgba</w>
+      <w>rmtree</w>
       <w>sahne</w>
       <w>salat</w>
       <w>samen</w>
@@ -160,6 +162,7 @@
       <w>schokolade</w>
       <w>sdcard</w>
       <w>senf</w>
+      <w>shutil</w>
       <w>softinput</w>
       <w>speckmantel</w>
       <w>spinat</w>
@@ -172,6 +175,7 @@
       <w>teetassen</w>
       <w>thunfischfilet</w>
       <w>tinto</w>
+      <w>tmpdir</w>
       <w>toastbrot</w>
       <w>tomaten</w>
       <w>tomatenmark</w>

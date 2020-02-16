@@ -3,6 +3,8 @@ import os
 import pytest
 from typing import Dict, Any
 
+from ae.console import get_user_data_path
+
 from ae.gui_app import MainAppBase, APP_STATE_SECTION_NAME, app_state_keys
 
 
@@ -11,12 +13,16 @@ TST_VAL = 'tstVal'
 TST_DICT = {TST_VAR: TST_VAL}
 
 
+def _create_ini_file(fn):
+    with open(fn, 'w') as file_handle:
+        file_handle.write("[" + APP_STATE_SECTION_NAME + "]\n" + TST_VAR + " = " + TST_VAL)
+
+
 @pytest.fixture
 def ini_file(restore_app_env):
     """ provide test config file """
     fn = 'tests/tst.ini'
-    with open(fn, 'w') as file_handle:
-        file_handle.write("[" + APP_STATE_SECTION_NAME + "]\n" + TST_VAR + " = " + TST_VAL)
+    _create_ini_file(fn)
     yield fn
     if os.path.exists(fn):      # some exception/error-check tests need to delete the INI
         os.remove(fn)
@@ -183,7 +189,7 @@ class TestAppState:
         assert app.context_draw_called
 
 
-class TestHelperMethods:
+class TestOtherMainAppMethods:
     def test_call_event_valid_method(self, ini_file, restore_app_env):
         app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         assert not app.context_draw_called
@@ -199,6 +205,26 @@ class TestHelperMethods:
     def test_call_event_invalid_method(self, ini_file, restore_app_env):
         app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
         assert app.call_event('invalid_method_name') is None
+
+    def test_ini_file_cwd_default(self, restore_app_env, tst_app_key):
+        app = ImplementationOfMainApp()
+        ini_file_path = os.path.abspath(tst_app_key + ".ini")
+        assert app._main_cfg_fnam == ini_file_path
+
+    def test_ini_file_added_in_tests_subdir(self, restore_app_env, tst_app_key, ini_file):
+        app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))
+        ini_file_path = os.path.abspath(ini_file)
+        assert app._main_cfg_fnam == ini_file_path
+
+    def test_ini_file_user_data_path(self, restore_app_env, tst_app_key):
+        ini_file_path = os.path.abspath(os.path.join(get_user_data_path(), tst_app_key + ".ini"))
+        try:
+            _create_ini_file(ini_file_path)
+            app = ImplementationOfMainApp()
+            assert app._main_cfg_fnam == ini_file_path
+        finally:
+            if os.path.exists(ini_file_path):
+                os.remove(ini_file_path)
 
     def test_play_beep(self, ini_file, restore_app_env):
         app = ImplementationOfMainApp(additional_cfg_files=(ini_file,))

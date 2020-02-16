@@ -29,7 +29,6 @@
         padding: app.app_state['font_size']
         spacing: app.app_state['font_size']
         ContextButton:
-            #text: './'
             source: 'img/72/edit_item.png'
             on_release: app.main_app.edit_item_popup(app.app_state['context_id'])
             size_hint:
@@ -37,10 +36,6 @@
                 1 if app.app_state['context_id'] or app.landscape else None
             width: self.width if app.app_state['context_id'] or not app.landscape else 0
             height: self.height if app.app_state['context_id'] or app.landscape else 0
-            font_size: self.height * 0.63
-            text_size: self.size
-            valign: 'top'
-            halign: 'center'
             disabled: not app.app_state['context_id']
             opacity: 1 if app.app_state['context_id'] else 0
             canvas.before:
@@ -50,7 +45,6 @@
                     pos: self.pos[0] + sp(6), self.pos[1] + sp(6)
                     size: self.size[0] - sp(12), self.size[1] - sp(12)
         ContextButton:
-            #text: '-'
             source: 'img/72/del_item.png'
             on_release: app.main_app.delete_item_popup(app.main_app.context_id)
             size_hint:
@@ -58,7 +52,6 @@
                 1 if app.app_state['context_id'] or app.landscape else None
             width: self.width if app.app_state['context_id'] or not app.landscape else 0
             height: self.height if app.app_state['context_id'] or app.landscape else 0
-            font_size: (self.height if app.landscape else self.width) * 2.1
             disabled: not app.app_state['context_id']
             opacity: 1 if app.app_state['context_id'] else 0
             canvas.before:
@@ -68,11 +61,8 @@
                     pos: self.pos[0] + sp(3), self.pos[1] + sp(3)
                     size: self.size[0] - sp(6), self.size[1] - sp(6)
         ContextButton:
-            #text: '+'
             source: 'img/72/add_item.png'
             on_release: app.main_app.add_item_popup()
-            font_size: min(self.width, self.height) * 1.2
-            size_hint_max: self.parent.padding[0] * 2.1, self.parent.padding[1] * 2.1
             canvas.before:
                 Color:
                     rgba: 1, 0, 0, .63
@@ -81,19 +71,12 @@
                     size: self.size[0] - sp(12), self.size[1] - sp(12)
 
 
-<ContextButton@ButtonBehavior+Image>:
-    background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
-    allow_stretch: True
-
-
 <MaioMenuBar@BoxLayout>:
     size_hint_y: None
     height: app.app_state['font_size'] * 1.8
     ContextButton:
-        #text: '< --'
         source: 'img/72/context_leave.png'
         on_release: app.main_app.context_leave()
-        font_size: app.app_state['font_size'] * 1.5
         size_hint_max_x: self.height * 1.8
         size_hint_min_x: self.height * 1.2
         disabled: not app.app_state['context_path']
@@ -136,9 +119,12 @@
         on_release: app.open_settings()
         size_hint_x: .69
         font_size: app.app_state['font_size'] * 1.2
+        text_size: self.size
         shorten: True
         shorten_from: 'left'
         split_str: '...'
+        halign: 'center'
+        valign: 'middle'
     FontSizeDropDown:
         id: fontSizer
     ListFiltButton:
@@ -163,6 +149,11 @@
                 size: self.size
 
 
+<ContextButton@ButtonBehavior+Image>:
+    background_normal: 'atlas://data/images/defaulttheme/slider_cursor'
+    allow_stretch: True
+
+
 <ListFiltButton@ToggleButton>:
     on_release: app.main_app.toggle_list_filter(self)
     minimum_width: self.height
@@ -177,7 +168,6 @@
     # fix weak ref bug: https://stackoverflow.com/questions/49367546/kivy-weakly-referenced-object-no-longer-exists
     drop_down_id_weak_ref_fix: dropDown.__self__
     Button:
-        #text: 'Aa'
         on_parent: dropDown.dismiss()
         on_release: dropDown.open(self)
         font_size: app.app_state['font_size'] * 1.5
@@ -244,10 +234,8 @@
                 size: self.size
     ContextButton:
         id: enterList
-        #text: '-- >'
         source: 'img/72/context_enter.png'
         on_release: app.main_app.context_enter(root.item_data['id'])
-        font_size: app.main_app.font_size * 1.2
         opacity: 1 if 'sub_list' in root.item_data else 0
         size_hint_x: None
         width: self.height * 2.7 if 'sub_list' in root.item_data else 0
@@ -264,9 +252,7 @@
                 size: self.size
     ContextButton:
         id: dragHandle
-        #text: '^v^'
         source: 'img/72/drag_item.png'
-        font_size: app.main_app.font_size * 1.5
         opacity: 1 if not (app.main_app.filter_selected or app.main_app.filter_unselected) else 0
         size_hint_x: None
         width: self.height * 1.8 if not (app.main_app.filter_selected or app.main_app.filter_unselected) else 0
@@ -302,7 +288,6 @@
         ToggleButton:
             id: itemIsListInp
             state: 'down' if 'sub_list' in app.main_app.get_item_by_name(root.title) else 'normal'
-            #text: '-- >'
             size_hint_x: 0.30
             font_size: app.main_app.font_size * 1.2
             padding_x: sp(9)

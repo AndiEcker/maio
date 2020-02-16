@@ -17,7 +17,7 @@
     0.12    big refactoring of UI (migrate to KivyMainApp) and data structure (allow list in list).
     0.13    finished unit tests for gui_app portion.
     0.14-20 extended kivy_app portion and unit tests, added icon images and bug fixing.
-    0-21    added ae.updater.
+    0-21-22 added ae.updater and small UI bug fixes.
   ToDo:
     - user specific app theme (color, fonts) config screen
 
@@ -36,7 +36,7 @@ from kivy.core.window import Window
 from ae.kivy_app import KivyMainApp
 
 
-__version__ = '0.21'
+__version__ = '0.22'
 
 
 ItemDataType = Dict[str, Any]
@@ -244,10 +244,10 @@ class MaioApp(KivyMainApp):
         list_idx = liw.list_idx
         self.dpo(f"create placeholder {child_idx:2} {list_idx:2} {liw.item_data['id'][:9]:9}"
                  f" {liw.y:4.2f} {touch_y:4.2f} {part:4.2f}")
-        if 'sub_list' in liw.item_data and 0.249 < part < 0.75:
+        if 'sub_list' in liw.item_data and 0.123 < part < 0.9:
             self.placeholders_above[list_idx] = Factory.DropPlaceholder(height=liw.height / 2.7)
             self.placeholders_below[list_idx] = Factory.DropPlaceholder(height=liw.height / 2.7)
-        elif part <= 1.11:
+        elif -0.111 < part < 1.11:
             placeholders = self.placeholders_above if part >= 0.501 else self.placeholders_below
             placeholders[list_idx] = Factory.DropPlaceholder(dark=True, height=liw.height * 1.11)
         else:

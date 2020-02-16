@@ -5,73 +5,44 @@ import tempfile
 
 import pytest
 
+from ae.console import get_user_data_path
 from ae.updater import (
-    MOVES_FOLDER_NAME, OVERWRITES_FOLDER_NAME, UPDATER_MODULE_NAME, BOOTSTRAP_MODULE_NAME,
+    MOVES_SRC_FOLDER_NAME, OVERWRITES_SRC_FOLDER_NAME, UPDATER_MODULE_NAME, BOOTSTRAP_MODULE_NAME,
     check_local_moves, check_local_overwrites, check_local_updates, check_local_bootstraps, check_all)
 
-FILE1 = 'app.ini'
-CONTENT1 = "TEST FILE CONTENT"
-OLD_CONTENT1 = "OLD/LOCKED FILE CONTENT"
+FILE0 = 'app.ini'
+CONTENT0 = "TEST FILE0 CONTENT"
+OLD_CONTENT0 = "OLD/LOCKED FILE0 CONTENT"
 
-DIR2 = 'img'
-FILE2 = os.path.join(DIR2, 'app.png')
-CONTENT2 = "TEST FILE2 CONTENT"
-
-
-@pytest.fixture
-def files_to_move():
-    """ create test files to be moved. """
-    cwd = os.getcwd()
-    tmp_dir = tempfile.mkdtemp()
-    os.chdir(tmp_dir)
-
-    os.mkdir(MOVES_FOLDER_NAME)
-    os.mkdir(os.path.join(MOVES_FOLDER_NAME, DIR2))
-    fn = os.path.join(MOVES_FOLDER_NAME, FILE1)
-    with open(fn, 'w') as fp:
-        fp.write(CONTENT1)
-    fn = os.path.join(MOVES_FOLDER_NAME, FILE2)
-    with open(fn, 'w') as fp:
-        fp.write(CONTENT2)
-
-    os.mkdir(DIR2)
-
-    yield [FILE1, FILE2]
-
-    shutil.rmtree(tmp_dir)
-    os.chdir(cwd)
+DIR1 = 'app_dir'
+FILE1 = 'app.png'
+CONTENT1 = "TEST FILE1 CONTENT"
 
 
-@pytest.fixture
-def file_existing_at_destination():
-    """ files to block move, to be added after files_to_move. """
-    with open(FILE1, 'w') as fp:
-        fp.write(OLD_CONTENT1)
-    yield FILE1
+@pytest.fixture(params=[MOVES_SRC_FOLDER_NAME, OVERWRITES_SRC_FOLDER_NAME])
+def files_to_move(request, tmpdir):
+    """ create test files in source directory for to be moved and/or overwritten. """
+    src_dir = tmpdir.mkdir(request.param)
+
+    src_file1 = src_dir.join(FILE0)
+    src_file1.write(CONTENT0)
+    src_sub_dir = src_dir.mkdir(DIR1)
+    src_file2 = src_sub_dir.join(FILE1)
+    src_file2.write(CONTENT1)
+
+    yield str(src_file1), str(src_file2)
+
+    # tmpdir/dst_dir1 will be removed automatically by pytest - leaving the last three temporary directories
+    # .. see https://docs.pytest.org/en/latest/tmpdir.html#the-default-base-temporary-directory
+    # shutil.rmtree(tmpdir)
 
 
-@pytest.fixture
-def files_to_overwrite():
-    """ create test files to be overwritten. """
-    cwd = os.getcwd()
-    tmp_dir = tempfile.mkdtemp()
-    os.chdir(tmp_dir)
-
-    os.mkdir(OVERWRITES_FOLDER_NAME)
-    os.mkdir(os.path.join(OVERWRITES_FOLDER_NAME, DIR2))
-    fn = os.path.join(OVERWRITES_FOLDER_NAME, FILE1)
-    with open(fn, 'w') as fp:
-        fp.write(CONTENT1)
-    fn = os.path.join(OVERWRITES_FOLDER_NAME, FILE2)
-    with open(fn, 'w') as fp:
-        fp.write(CONTENT2)
-
-    os.mkdir(DIR2)
-
-    yield [FILE1, FILE2]
-
-    shutil.rmtree(tmp_dir)
-    os.chdir(cwd)
+def _create_file_at_destination(dst_folder):
+    """ create file0 at destination folder for to block move. """
+    dst_file = os.path.join(dst_folder, FILE0)
+    with open(dst_file, 'w') as fp:
+        fp.write(OLD_CONTENT0)
+    return dst_file
 
 
 def _file_content(fn):
@@ -81,59 +52,84 @@ def _file_content(fn):
 
 
 class TestFileUpdates:
-    def test_moves(self, files_to_move):
-        for fn in files_to_move:
-            assert os.path.exists(os.path.join(MOVES_FOLDER_NAME, fn))
-            assert not os.path.exists(fn)
+    def test_moves_to_parent_dir(self, files_to_move):
+        src_dir = os.path.dirname(files_to_move[0])
+        src_len = len(src_dir) + len(os.sep)
+        dst_dir = os.path.join(src_dir, '..')
+        for src_file_path in files_to_move:
+            assert os.path.exists(src_file_path)
+            assert not os.path.exists(os.path.join(dst_dir, src_file_path[src_len:]))
 
-        check_local_moves()
+        check_local_moves(src_folder=src_dir, dst_folder=dst_dir)
 
-        for fn in files_to_move:
-            assert not os.path.exists(os.path.join(MOVES_FOLDER_NAME, fn))
-            assert os.path.exists(fn)
+        if MOVES_SRC_FOLDER_NAME in src_dir:
+            for src_file_path in files_to_move:
+                assert not os.path.exists(src_file_path)
+                assert os.path.exists(os.path.join(dst_dir, src_file_path[src_len:]))
 
-    def test_blocked_moves(self, files_to_move, file_existing_at_destination):
-        for fn in files_to_move:
-            assert os.path.exists(os.path.join(MOVES_FOLDER_NAME, fn))
-        assert os.path.exists(FILE1)
-        assert not os.path.exists(FILE2)
+    def test_blocked_moves_to_parent_dir(self, files_to_move):
+        src_dir = os.path.dirname(files_to_move[0])
+        src_len = len(src_dir) + len(os.sep)
+        dst_dir = os.path.join(src_dir, '..')
+        dst_block_file = _create_file_at_destination(dst_dir)
+        assert os.path.exists(dst_block_file)
+        for src_file_path in files_to_move:
+            assert os.path.exists(src_file_path)
+            dst_file = os.path.join(dst_dir, src_file_path[src_len:])
+            assert dst_file == dst_block_file or not os.path.exists(dst_file)
 
-        check_local_moves()
+        check_local_moves(src_folder=src_dir, dst_folder=dst_dir)
 
-        assert os.path.exists(os.path.join(MOVES_FOLDER_NAME, FILE1))
-        assert _file_content(os.path.join(MOVES_FOLDER_NAME, FILE1)) == CONTENT1
-        assert os.path.exists(FILE1)
-        assert _file_content(FILE1) == OLD_CONTENT1
-        assert not os.path.exists(os.path.join(MOVES_FOLDER_NAME, FILE2))
-        assert os.path.exists(FILE2)
-        assert _file_content(FILE2) == CONTENT2
+        if MOVES_SRC_FOLDER_NAME in src_dir:
+            assert os.path.exists(files_to_move[0])
+            assert _file_content(files_to_move[0]) == CONTENT0
+            dst_file = os.path.join(dst_dir, files_to_move[0][src_len:])
+            assert os.path.exists(dst_file)
+            assert _file_content(dst_file) == OLD_CONTENT0
 
-    def test_overwrites(self, files_to_overwrite):
-        for fn in files_to_overwrite:
-            assert os.path.exists(os.path.join(OVERWRITES_FOLDER_NAME, fn))
-            assert not os.path.exists(fn)
+            assert not os.path.exists(files_to_move[1])
+            dst_file = os.path.join(dst_dir, files_to_move[1][src_len:])
+            assert os.path.exists(dst_file)
+            assert _file_content(dst_file) == CONTENT1
 
-        check_local_overwrites()
+    def test_overwrites_to_parent_dir(self, files_to_move):
+        src_dir = os.path.dirname(files_to_move[0])
+        src_len = len(src_dir) + len(os.sep)
+        dst_dir = os.path.join(src_dir, '..')
+        for src_file_path in files_to_move:
+            assert os.path.exists(src_file_path)
+            assert not os.path.exists(os.path.join(dst_dir, src_file_path[src_len:]))
 
-        for fn in files_to_overwrite:
-            assert not os.path.exists(os.path.join(OVERWRITES_FOLDER_NAME, fn))
-            assert os.path.exists(fn)
+        check_local_overwrites(src_folder=src_dir, dst_folder=dst_dir)
 
-    def test_unblocked_overwrites(self, files_to_overwrite, file_existing_at_destination):
-        for fn in files_to_overwrite:
-            assert os.path.exists(os.path.join(OVERWRITES_FOLDER_NAME, fn))
-        assert os.path.exists(FILE1)
-        assert _file_content(FILE1) == OLD_CONTENT1
-        assert not os.path.exists(FILE2)
+        if OVERWRITES_SRC_FOLDER_NAME in src_dir:
+            for src_file_path in files_to_move:
+                assert not os.path.exists(src_file_path)
+                assert os.path.exists(os.path.join(dst_dir, src_file_path[src_len:]))
 
-        check_local_overwrites()
+    def test_unblocked_overwrites_to_parent_dir(self, files_to_move):
+        src_dir = os.path.dirname(files_to_move[0])
+        src_len = len(src_dir) + len(os.sep)
+        dst_dir = os.path.join(src_dir, '..')
+        dst_block_file = _create_file_at_destination(dst_dir)
+        assert os.path.exists(dst_block_file)
+        for src_file_path in files_to_move:
+            assert os.path.exists(src_file_path)
+            dst_file = os.path.join(dst_dir, src_file_path[src_len:])
+            assert dst_file == dst_block_file or not os.path.exists(dst_file)
 
-        assert not os.path.exists(os.path.join(OVERWRITES_FOLDER_NAME, FILE1))
-        assert os.path.exists(FILE1)
-        assert _file_content(FILE1) == CONTENT1
-        assert not os.path.exists(os.path.join(OVERWRITES_FOLDER_NAME, FILE2))
-        assert os.path.exists(FILE2)
-        assert _file_content(FILE2) == CONTENT2
+        check_local_overwrites(src_folder=src_dir, dst_folder=dst_dir)
+
+        if OVERWRITES_SRC_FOLDER_NAME in src_dir:
+            assert not os.path.exists(files_to_move[0])
+            dst_file = os.path.join(dst_dir, files_to_move[0][src_len:])
+            assert os.path.exists(dst_file)
+            assert _file_content(dst_file) == CONTENT0
+
+            assert not os.path.exists(files_to_move[1])
+            dst_file = os.path.join(dst_dir, files_to_move[1][src_len:])
+            assert os.path.exists(dst_file)
+            assert _file_content(dst_file) == CONTENT1
 
 
 def _create_module(tmp_dir, module_name):
@@ -193,18 +189,23 @@ class TestCheckAll:
         shutil.rmtree(tmp_dir)
         os.chdir(cwd)
 
-    def test_only_moves(self, files_to_move):
-        for fn in files_to_move:
-            assert os.path.exists(os.path.join(MOVES_FOLDER_NAME, fn))
-            assert not os.path.exists(fn)
+    def test_file_moves_to_user_dir_via_check_all(self, files_to_move):
+        src_dir = os.path.dirname(files_to_move[0])
+        src_len = len(src_dir) + len(os.sep)
+        dst_dir = get_user_data_path()
 
-        check_all()
+        check_all(src_folder=src_dir)
 
-        for fn in files_to_move:
-            assert not os.path.exists(os.path.join(MOVES_FOLDER_NAME, fn))
-            assert os.path.exists(fn)
+        for src_file_path in files_to_move:
+            assert not os.path.exists(src_file_path)
+            assert os.path.exists(os.path.join(dst_dir, src_file_path[src_len:]))
 
-    def test_only_updater(self, created_run_updater):
+    def test_updater_via_check_all(self, created_run_updater):
         assert os.path.exists(created_run_updater)
         check_all()
         assert not os.path.exists(created_run_updater)
+
+    def test_bootstrap_via_check_all(self, created_bootstrap):
+        assert os.path.exists(created_bootstrap)
+        check_all()
+        assert os.path.exists(created_bootstrap)
