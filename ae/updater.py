@@ -69,10 +69,9 @@ def _move_files(src_folder: str, dst_folder: str, overwrite: bool = False) -> Li
     updated = list()
 
     if os.path.exists(src_folder):
-        src_dir_len = len(src_folder) + len(os.sep)
         for src_file in glob.glob(os.path.join(src_folder, '**'), recursive=True):
             if os.path.isfile(src_file):
-                dst_file = os.path.abspath(os.path.join(dst_folder, src_file[src_dir_len:]))
+                dst_file = os.path.abspath(os.path.join(dst_folder, os.path.relpath(src_file, src_folder)))
                 if overwrite or not os.path.exists(dst_file):
                     dst_sub_dir = os.path.dirname(dst_file)
                     if not os.path.exists(dst_sub_dir):
@@ -134,8 +133,8 @@ def check_local_bootstraps() -> bool:
     return func() if func else False
 
 
-def check_all(src_folder: str = "", dst_folder: str = ""):
-    """ check all ae updater features using the default source and destination (user data/cwd) folders.
+def check_all(src_folder: str = "", dst_folder: str = "") -> List[str]:
+    """ check all outstanding scripts to be executed and files to be moved/overwritten.
 
     :param src_folder:      path to source folder/directory where the files get moved from. If not specified
                             or if you pass an empty string then :data:`MOVES_SRC_FOLDER_NAME` will be used
@@ -143,9 +142,10 @@ def check_all(src_folder: str = "", dst_folder: str = ""):
                             for to check and move local file overwrites.
     :param dst_folder:      path to destination folder/directory where the files get moved to. If not specified
                             or if you pass an empty string then the user data/preferences path will be used.
+    :return:                list of moved and overwritten files, with their destination path.
     """
     check_local_updates()
     check_local_bootstraps()
 
-    check_local_moves(src_folder=src_folder or MOVES_SRC_FOLDER_NAME, dst_folder=dst_folder)
-    check_local_overwrites(src_folder=src_folder or OVERWRITES_SRC_FOLDER_NAME, dst_folder=dst_folder)
+    return (check_local_moves(src_folder=src_folder or MOVES_SRC_FOLDER_NAME, dst_folder=dst_folder) +
+            check_local_overwrites(src_folder=src_folder or OVERWRITES_SRC_FOLDER_NAME, dst_folder=dst_folder))

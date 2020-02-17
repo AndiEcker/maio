@@ -54,28 +54,26 @@ def _file_content(fn):
 class TestFileUpdates:
     def test_moves_to_parent_dir(self, files_to_move):
         src_dir = os.path.dirname(files_to_move[0])
-        src_len = len(src_dir) + len(os.sep)
         dst_dir = os.path.join(src_dir, '..')
         for src_file_path in files_to_move:
             assert os.path.exists(src_file_path)
-            assert not os.path.exists(os.path.join(dst_dir, src_file_path[src_len:]))
+            assert not os.path.exists(os.path.join(dst_dir, os.path.relpath(src_file_path, src_dir)))
 
         check_local_moves(src_folder=src_dir, dst_folder=dst_dir)
 
         if MOVES_SRC_FOLDER_NAME in src_dir:
             for src_file_path in files_to_move:
                 assert not os.path.exists(src_file_path)
-                assert os.path.exists(os.path.join(dst_dir, src_file_path[src_len:]))
+                assert os.path.exists(os.path.join(dst_dir, os.path.relpath(src_file_path, src_dir)))
 
     def test_blocked_moves_to_parent_dir(self, files_to_move):
         src_dir = os.path.dirname(files_to_move[0])
-        src_len = len(src_dir) + len(os.sep)
         dst_dir = os.path.join(src_dir, '..')
         dst_block_file = _create_file_at_destination(dst_dir)
         assert os.path.exists(dst_block_file)
         for src_file_path in files_to_move:
             assert os.path.exists(src_file_path)
-            dst_file = os.path.join(dst_dir, src_file_path[src_len:])
+            dst_file = os.path.join(dst_dir, os.path.relpath(src_file_path, src_dir))
             assert dst_file == dst_block_file or not os.path.exists(dst_file)
 
         check_local_moves(src_folder=src_dir, dst_folder=dst_dir)
@@ -83,51 +81,49 @@ class TestFileUpdates:
         if MOVES_SRC_FOLDER_NAME in src_dir:
             assert os.path.exists(files_to_move[0])
             assert _file_content(files_to_move[0]) == CONTENT0
-            dst_file = os.path.join(dst_dir, files_to_move[0][src_len:])
+            dst_file = os.path.join(dst_dir, os.path.relpath(files_to_move[0], src_dir))
             assert os.path.exists(dst_file)
             assert _file_content(dst_file) == OLD_CONTENT0
 
             assert not os.path.exists(files_to_move[1])
-            dst_file = os.path.join(dst_dir, files_to_move[1][src_len:])
+            dst_file = os.path.join(dst_dir, os.path.relpath(files_to_move[1], src_dir))
             assert os.path.exists(dst_file)
             assert _file_content(dst_file) == CONTENT1
 
     def test_overwrites_to_parent_dir(self, files_to_move):
         src_dir = os.path.dirname(files_to_move[0])
-        src_len = len(src_dir) + len(os.sep)
         dst_dir = os.path.join(src_dir, '..')
         for src_file_path in files_to_move:
             assert os.path.exists(src_file_path)
-            assert not os.path.exists(os.path.join(dst_dir, src_file_path[src_len:]))
+            assert not os.path.exists(os.path.join(dst_dir, os.path.relpath(src_file_path, src_dir)))
 
         check_local_overwrites(src_folder=src_dir, dst_folder=dst_dir)
 
         if OVERWRITES_SRC_FOLDER_NAME in src_dir:
             for src_file_path in files_to_move:
                 assert not os.path.exists(src_file_path)
-                assert os.path.exists(os.path.join(dst_dir, src_file_path[src_len:]))
+                assert os.path.exists(os.path.join(dst_dir, os.path.relpath(src_file_path, src_dir)))
 
     def test_unblocked_overwrites_to_parent_dir(self, files_to_move):
         src_dir = os.path.dirname(files_to_move[0])
-        src_len = len(src_dir) + len(os.sep)
         dst_dir = os.path.join(src_dir, '..')
         dst_block_file = _create_file_at_destination(dst_dir)
         assert os.path.exists(dst_block_file)
         for src_file_path in files_to_move:
             assert os.path.exists(src_file_path)
-            dst_file = os.path.join(dst_dir, src_file_path[src_len:])
+            dst_file = os.path.join(dst_dir, os.path.relpath(src_file_path, src_dir))
             assert dst_file == dst_block_file or not os.path.exists(dst_file)
 
         check_local_overwrites(src_folder=src_dir, dst_folder=dst_dir)
 
         if OVERWRITES_SRC_FOLDER_NAME in src_dir:
             assert not os.path.exists(files_to_move[0])
-            dst_file = os.path.join(dst_dir, files_to_move[0][src_len:])
+            dst_file = os.path.join(dst_dir, os.path.relpath(files_to_move[0], src_dir))
             assert os.path.exists(dst_file)
             assert _file_content(dst_file) == CONTENT0
 
             assert not os.path.exists(files_to_move[1])
-            dst_file = os.path.join(dst_dir, files_to_move[1][src_len:])
+            dst_file = os.path.join(dst_dir, os.path.relpath(files_to_move[1], src_dir))
             assert os.path.exists(dst_file)
             assert _file_content(dst_file) == CONTENT1
 
@@ -191,14 +187,22 @@ class TestCheckAll:
 
     def test_file_moves_to_user_dir_via_check_all(self, files_to_move):
         src_dir = os.path.dirname(files_to_move[0])
-        src_len = len(src_dir) + len(os.sep)
         dst_dir = get_user_data_path()
 
-        check_all(src_folder=src_dir)
+        moved = list()
+        try:
+            moved += check_all(src_folder=src_dir)
 
-        for src_file_path in files_to_move:
-            assert not os.path.exists(src_file_path)
-            assert os.path.exists(os.path.join(dst_dir, src_file_path[src_len:]))
+            for src_file_path in files_to_move:
+                assert not os.path.exists(src_file_path)
+                assert os.path.exists(os.path.join(dst_dir, os.path.relpath(src_file_path, src_dir)))
+        finally:
+            for dst_file_path in moved:
+                dst_path = os.path.relpath(dst_file_path, dst_dir)
+                if os.path.exists(dst_file_path):
+                    os.remove(dst_file_path)
+                    if dst_path != os.path.basename(dst_file_path):
+                        shutil.rmtree(os.path.dirname(dst_file_path))
 
     def test_updater_via_check_all(self, created_run_updater):
         assert os.path.exists(created_run_updater)

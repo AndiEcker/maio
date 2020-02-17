@@ -124,6 +124,7 @@
       <w>minzschokoblättchen</w>
       <w>mischgemüse</w>
       <w>mosto</w>
+      <w>mypy</w>
       <w>müllbeutel</w>
       <w>nudeln</w>
       <w>nuss</w>
@@ -141,6 +142,7 @@
       <w>pollo</w>
       <w>presplash</w>
       <w>puleva</w>
+      <w>pycache</w>
       <w>pyjnius</w>
       <w>pytest</w>
       <w>qpython</w>

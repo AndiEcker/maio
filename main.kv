@@ -56,13 +56,14 @@
             opacity: 1 if app.app_state['context_id'] else 0
             canvas.before:
                 Color:
-                    rgba: app.app_state['context_id_ink'][:3] + ((app.app_state['context_id_ink'][3] + 1.0) / 2.0, )
-                Rectangle:
-                    pos: self.pos[0] + sp(3), self.pos[1] + sp(3)
-                    size: self.size[0] - sp(6), self.size[1] - sp(6)
+                    rgba: app.app_state['context_id_ink'][:3] + (0.69, )
+                RoundedRectangle:
+                    pos: self.pos[0] - sp(3), self.pos[1] - sp(3)
+                    size: self.size[0] + sp(6), self.size[1] + sp(6)
         ContextButton:
             source: 'img/72/add_item.png'
             on_release: app.main_app.add_item_popup()
+            size_hint_min: app.app_state['font_size'] * 1.8, app.app_state['font_size'] * 1.8
             canvas.before:
                 Color:
                     rgba: 1, 0, 0, .63

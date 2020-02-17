@@ -13,21 +13,26 @@ package.domain = org.test
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,ini
+# ae: highest priority together with exclude_exts (only files with these extensions will be included),
+# .. therefore commented out / left empty
+#source.include_exts = py,png,jpg,kv,atlas,ini,cfg
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
 #source.include_patterns = img/*.jpg
+# ae: the next line only works for included file extensions (source.include_exts has higher priority)!!!
+#source.include_patterns = ae_updater_moves/*.ini,ae_updater_overwrites/**
 
 # (list) Source files to exclude (let empty to not exclude anything)
-#source.exclude_exts = spec
+source.exclude_exts = spec,md
 
 # (list) List of directory to exclude (let empty to not exclude anything)
+# ae: only works for directories in the project root folder (__pycache__ is included for ae sub-dir)
 source.exclude_dirs = tests,bin,htmlcov,mypy_report
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg
-source.exclude_patterns = ./maio.ini
+source.exclude_patterns = __pycache__/**,**/__pycache__/**
 
 # (str) Application versioning (method 1)
 #version = 0.1
@@ -38,6 +43,7 @@ version.filename = %(source.dir)s/main.py
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
+# ae: pyjnius get added automatically by the kivy requirement
 requirements = python3,kivy,ae.core,ae.literal,ae.console
 
 # (str) Custom source folders for requirements

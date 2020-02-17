@@ -36,7 +36,7 @@ from kivy.core.window import Window
 from ae.kivy_app import KivyMainApp
 
 
-__version__ = '0.22'
+__version__ = '0.23'
 
 
 ItemDataType = Dict[str, Any]
@@ -102,7 +102,9 @@ class MaioApp(KivyMainApp):
         self.on_context_draw()
 
     def on_key_press(self, key_code, _modifiers):
-        """ key press event. """
+        """ check key press event and maybe process command/action. """
+        pop_up_open = len(self.root_win.children) > 1
+        # current item context changes
         if key_code == 'up':
             self.set_neighbour_context(-1)
         elif key_code == 'down':
@@ -115,24 +117,35 @@ class MaioApp(KivyMainApp):
             self.set_neighbour_context(-999999)
         elif key_code == 'end':
             self.set_neighbour_context(999999)
+
+        # toggle selection of current item
         elif key_code == ' ' and self.context_id:    # key string 'space' is not in Window.command_keys
             liw = self.get_widget_by_name(self.context_id)
             new_state = 'normal' if liw.ids.toggleSelected.state == 'down' else 'down'
             self.update_item_data(liw, self.context_id, new_state)
             self.on_context_draw()
-        elif key_code == 'escape' and len(self.root_win.children) > 1:
+
+        # enter/leave context (current list or popup window)
+        elif key_code in ('enter', 'escape') and pop_up_open:
             for pu in self.pop_ups_opened():
                 pu.dismiss()
-        elif key_code in ('escape', 'left') and self.framework_app.app_state['context_path']:
-            self.context_leave()
         elif key_code in ('enter', 'right') and self.context_id \
                 and 'sub_list' in self.get_widget_by_name(self.context_id).item_data:
             self.context_enter(self.context_id)
-        elif key_code == 'del' and self.context_id:
+        elif key_code in ('escape', 'left') and self.framework_app.app_state['context_path']:
+            self.context_leave()
+
+        # item processing: add, request confirmation of deletion of current item
+        elif key_code == '+' and not pop_up_open:
+            self.add_item_popup()
+
+        elif key_code in ('-', 'del') and not pop_up_open and self.context_id:
             self.delete_item_popup(self.context_id)
+
         else:
-            return False
-        return True
+            return False    # pressed key not processable in the current context/app-state
+
+        return True         # key press processed
 
     # item/widget context handling and search in currently displayed list
 
